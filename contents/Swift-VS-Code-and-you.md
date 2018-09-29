@@ -1,7 +1,6 @@
 ---
 title: "Swift, VS Code and you"
 kind: blog
-date: no
 tags: [swift, vscode, linux]
 ---
 

@@ -1,18 +1,20 @@
 import React from 'react'
-import { Link, graphql } from 'gatsby'
+import Helmet from 'react-helmet'
+import { graphql, Link } from 'gatsby'
 
 import Layout from '../components/layout'
 import ArticleHead from '../components/article-head'
 
 const IndexPage = ({ data }) => (
   <Layout>
-    <h1>Hi people</h1>
-    <p>Welcome to your new Gatsby site.</p>
-    <p>Now go build something great.</p>
+    <h1>Blog</h1>
+    <Helmet title="vknabel – Blog" />
     {data.allMarkdownRemark.edges.map(({ node }) => node).map(node => (
       <div key={node.id}>
         <ArticleHead data={node} />
-        <p>{node.excerpt}</p>
+        <p>
+          {node.excerpt} <Link to={node.fields.slug}>&#187;</Link>
+        </p>
       </div>
     ))}
   </Layout>
@@ -24,7 +26,7 @@ export const query = graphql`
   {
     allMarkdownRemark(
       sort: { fields: [frontmatter___date], order: DESC }
-      filter: { frontmatter: { kind: { eq: "blog" }, date: { ne: "no" } } }
+      filter: { frontmatter: { kind: { eq: "blog" }, date: { ne: null } } }
     ) {
       totalCount
       edges {

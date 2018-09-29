@@ -1,5 +1,5 @@
 import React from 'react'
-import ArticleHead from '../components/article-head'
+import Helmet from 'react-helmet'
 import Layout from '../components/layout'
 import { graphql } from 'gatsby'
 
@@ -7,6 +7,7 @@ const Post = ({ data }) => {
   const post = data.markdownRemark
   return (
     <Layout>
+      <Helmet title={post.frontmatter.title} />
       <div>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
       </div>

@@ -1,6 +1,7 @@
 ---
 title: Refactoring RxJS Code in Angular
 kind: thought
+date: 2017-09-28
 tags: [js, rxjs, angular]
 ---
 

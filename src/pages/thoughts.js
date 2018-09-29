@@ -1,4 +1,5 @@
 import React from 'react'
+import Helmet from 'react-helmet'
 import { Link, graphql } from 'gatsby'
 
 import Layout from '../components/layout'
@@ -6,15 +7,29 @@ import ArticleHead from '../components/article-head'
 
 const SecondPage = ({ data }) => (
   <Layout>
-    <h1>Hi from the second page</h1>
-    <p>Welcome to page 2</p>
+    <h1>Thoughts</h1>
+    <Helmet title="vknabel – Thoughts" />
+    <p>
+      This is a collection of unfinished work. All experiments and thoughts will
+      be collected here, if I don't have enough time to actually finish them.
+      All code is{' '}
+      <a
+        href="https://choosealicense.com/licenses/mit/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        MIT
+      </a>
+      -licensed and I would be really happy if my experiments can help you.
+    </p>
     {data.allMarkdownRemark.edges.map(({ node }) => node).map(node => (
       <div key={node.id}>
         <ArticleHead data={node} />
-        <p>{node.excerpt}</p>
+        <p>
+          {node.excerpt} <Link to={node.fields.slug}>&#187;</Link>
+        </p>
       </div>
     ))}
-    <Link to="/">Go back to the homepage</Link>
   </Layout>
 )
 
@@ -24,7 +39,7 @@ export const query = graphql`
   {
     allMarkdownRemark(
       sort: { fields: [frontmatter___date], order: DESC }
-      filter: { frontmatter: { kind: { eq: "thought" }, date: { ne: "no" } } }
+      filter: { frontmatter: { kind: { eq: "thought" }, date: { ne: null } } }
     ) {
       totalCount
       edges {

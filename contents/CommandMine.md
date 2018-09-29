@@ -1,6 +1,7 @@
 ---
 title: CommandMine
 kind: thought
+date: 2017-03-08
 tags: [swift]
 ---
 
@@ -66,7 +67,7 @@ yourMine.runMain()
 So `YourShaft`  will be good for everyone who either wants to provide a complete new CLI using your logic, or for non CLIs.
 At first exporting your mine and drifts into `YourMine` seems awkward, but it may actually help others to embed your project as a subcommand (after all Mines are just complex Shafts) or to just reuse one drift.
 
-## Hj.
+## Summary
 * `Mine`: your CLIs, tasks arguments
 * `Drift`: parses arguments for Shaft, sync
 * `Cage`: the options
