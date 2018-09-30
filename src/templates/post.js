@@ -9,7 +9,20 @@ const Post = ({ data }) => {
     <Layout>
       <Helmet title={post.frontmatter.title} />
       <div>
+        <span className="article-head-date">{post.frontmatter.date}</span>
+        <span className="article-head-tags">
+          {(post.frontmatter.tags || []).map(tag => (
+            <span key={tag} className="article-head-tags-item">
+              #{tag}
+            </span>
+          ))}
+        </span>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
+        {post.frontmatter.playground ? (
+          <a href={post.frontmatter.playground.publicURL}>
+            Download playground
+          </a>
+        ) : null}
       </div>
     </Layout>
   )
@@ -19,6 +32,13 @@ export default Post
 
 export const query = graphql`
   query($slug: String!) {
+    allFile(filter: { relativePath: { glob: "*.playground.zip" } }) {
+      edges {
+        node {
+          publicURL
+        }
+      }
+    }
     markdownRemark(fields: { slug: { eq: $slug } }) {
       html
       id
@@ -34,6 +54,9 @@ export const query = graphql`
         title
         date(formatString: "YYYY-MM-DD")
         tags
+        playground {
+          publicURL
+        }
       }
       fields {
         slug

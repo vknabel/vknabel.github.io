@@ -104,3 +104,26 @@ myObservable$.map(value => {
 // refactored code
 myObservable$.map(value => [value]);
 ```
+
+## What's next?
+
+This blogpost has never been finished. It wasn't touch for more than a year and I don't understand all my remaining notes anymore.
+Here they are:
+
+- Replace instance variables through Observables they represent
+
+	* Store observable as `readonly` and `shareReplay(1)` and remove `subscribe`.
+	* Replace usages with `withLatestFrom` or `this.xx$.first().mergeMap`
+	* When filtered procedural, move logic into observable method for later use
+	* Keep visibility (prefer `private`, of course)
+	* Angular templates should use `|async`
+	* You can now remove `changeDetector.markForCheck()` invocations
+	* If param is requires synchronously use `Observable.defer().shareReplay(1)`
+
+- Remove temporary observable and adjust `mergeMap`s
+- If extracted subject with object for parameter, adjust function parameters
+- Trigger actions with temporary observable named `*Action` (`Observable.empty().finally`)
+- Sideeffect at the begginning before current operator, otherwise behind
+- Keep functions which prevent execution
+- All subjects should always be private: add accessors `processDidChange`, `processDidFail`, `processDidComplete`,`processObserver` (just if required)
+

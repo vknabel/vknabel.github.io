@@ -6,7 +6,7 @@ Information in accordance with Section 5 TMG
 Valentin Knabel<br>
 Töpferweg 22<br>
 89155 Erbach<br>
-Contact Information<br>
+**Contact Information**<br>
 Telephone: ‭+49 7305 1782094‬<br>
 E-Mail: website@vknabel.com<br>
 Internet address: vknabel.com<br>

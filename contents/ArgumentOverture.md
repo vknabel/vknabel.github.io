@@ -1,69 +1,37 @@
 ---
-title: ChainArguments
+title: ArgumentOverture
 kind: thought
+date: 2018-09-30
 tags: [swift, playground, cli]
-playground: ChainArguments.playground
+playground: ./ArgumentOverture.playground.zip
 ---
 
+# ArgumentOverture
+
+A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses [Overture](https://github.com/pointfreeco/swift-overture) and is build for high composability, flexibility and little impact on your project's freedom to evolve.
+
+A central use case was [Archery](https://github.com/vknabel/archery)'s: only actually interpreted arguments shall be consumed. Any others shall be collected (`remaining`) or should prevent execution (`exhaust`), depending on the current command.
+
+First of all an example usage.
+
 ```swift
-// Helpers
-func chain<Element, A, B>(
-    _ f: @escaping ([Element]) -> ([Element], A),
-    _ g: @escaping ([Element]) -> ([Element], B)
-    ) -> ([Element]) -> (A, B) {
-    return { els in
-        let (elAs, vA) = f(els)
-        let (_, vB) = g(elAs)
-        return (vA, vB)
-    }
+// Experiment
+do {
+    let (isVerbose, whoToGreet, language, _) = try with(["-v", "hi", "Some string", "--language", "en"], chain(
+        flag("verbose", "v"),
+        positional("Name"),
+        argument("language", "l"),
+        exhaust
+    ))
+} catch {
+    print("Command failed:", error)
 }
 
-func chain<Element, A, B, C>(
-    _ f: @escaping ([Element]) -> ([Element], A),
-    _ g: @escaping ([Element]) -> ([Element], B),
-    _ h: @escaping ([Element]) -> ([Element], C)
-    ) -> ([Element]) -> (A, B, C) {
-    return { els in
-        let (elAs, vA) = f(els)
-        let (elBs, vB) = g(elAs)
-        let (_, vC) = h(elBs)
-        return (vA, vB, vC)
-    }
-}
+```
 
-func chain<Element, A, B, C>(
-    _ f: @escaping ([Element]) throws -> ([Element], A),
-    _ g: @escaping ([Element]) throws -> ([Element], B),
-    _ h: @escaping ([Element]) throws -> ([Element], C)
-    ) -> ([Element]) throws -> (A, B, C) {
-    return { els in
-        let (elAs, vA) = try f(els)
-        let (elBs, vB) = try g(elAs)
-        let (_, vC) = try h(elBs)
-        return (vA, vB, vC)
-    }
-}
+The implementation of the micro-library itself.
 
-func chain<Element, A, B, C, D>(
-    _ f: @escaping ([Element]) throws -> ([Element], A),
-    _ g: @escaping ([Element]) throws -> ([Element], B),
-    _ h: @escaping ([Element]) throws -> ([Element], C),
-    _ i: @escaping ([Element]) throws -> ([Element], D)
-    ) -> ([Element]) throws -> (A, B, C, D) {
-    return { els in
-        let (elAs, vA) = try f(els)
-        let (elBs, vB) = try g(elAs)
-        let (elCs, vC) = try h(elBs)
-        let (_, vD) = try i(elCs)
-        return (vA, vB, vC, vD)
-    }
-}
-
-prefix operator ??
-prefix func ??<A>(_ value: A) -> (A?) -> A {
-    return { $0 ?? value }
-}
-
+```swift
 // Errors
 private func quoted(_ string: String) -> String {
     return "\"\(string)\""
@@ -172,24 +140,16 @@ public func remaining(_ arguments: [String]) -> ([String], [String]) {
     return ([], arguments)
 }
 
-// Experiment
-do {
-    let (isVerbose, whoToGreet, language, _) = try with(["-v", "hi", "Je ne sais pas", "--language", "en"], chain(
-        flag("verbose", "v"),
-        positional("Name"),
-        argument("language", "l"),
-        exhaust
-    ))
-} catch {
-    print("MÖÖP MÖÖP", error)
-}
+```
 
-/*
+## What's next?
+
+The same concept could be applied to processes and especially handling interrupts:
+
+```swift
 with(Process(), concat(
     setWorkingDir("tmp"),
     passInterrupt(),
     setBashCommand("") // is { concat(setLaunchPath("/bin/bash"), setArguments(["-c", $0]) }
-))*/
-
-
+))
 ```

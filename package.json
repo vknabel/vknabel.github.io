@@ -26,8 +26,10 @@
     "deploy": "gatsby build && gh-pages -d public -b master"
   },
   "devDependencies": {
+    "gatsby-remark-prismjs": "^3.0.1",
     "gh-pages": "^2.0.0",
-    "prettier": "^1.14.2"
+    "prettier": "^1.14.2",
+    "prismjs": "^1.15.0"
   },
   "repository": {
     "type": "git",

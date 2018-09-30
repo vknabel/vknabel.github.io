@@ -2,7 +2,7 @@
 title: CommandMine
 kind: thought
 date: 2017-03-08
-tags: [swift]
+tags: [swift, readme, cli]
 ---
 
 # CommandMine
@@ -130,3 +130,9 @@ extension Drift {
  func optional()
 }
 ```
+
+## What's next?
+
+An alternative concept for modeling CLIs in Swift is [ArgumentOverture](/pages/ArgumentOverture), which would have much less impact on the actual program.
+
+This concept is probably too big and hard to adapt for the benefit it will provide. Though the name is quite nice. 😅
