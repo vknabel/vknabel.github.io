@@ -26,6 +26,10 @@ a {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
+.custom-header a.active-link {
+  color: gray;
+}
+
 nav ul {
   list-style-type: none;
   margin-left: 0;

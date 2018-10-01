@@ -9,16 +9,24 @@ const Header = ({ siteTitle }) => (
     <nav>
       <ul>
         <li>
-          <Link to="/">Blog</Link>
+          <Link activeClassName="active-link" to="/">
+            Blog
+          </Link>
         </li>
         <li>
-          <Link to="/thoughts/">Thoughts</Link>
+          <Link activeClassName="active-link" to="/thoughts/">
+            Thoughts
+          </Link>
         </li>
         <li>
-          <Link to="/pages/About-Me/">About Me</Link>
+          <Link activeClassName="active-link" to="/pages/About-Me/">
+            About Me
+          </Link>
         </li>
         <li>
-          <Link to="/pages/imprint/">Imprint</Link>
+          <Link activeClassName="active-link" to="/pages/imprint/">
+            Imprint
+          </Link>
         </li>
       </ul>
     </nav>
