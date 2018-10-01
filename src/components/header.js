@@ -15,22 +15,7 @@ const Header = ({ siteTitle }) => (
           <Link to="/thoughts/">Thoughts</Link>
         </li>
         <li>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://github.com/vknabel"
-          >
-            Github
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://twitter.com/vknabel"
-          >
-            Twitter
-          </a>
+          <Link to="/pages/About-Me/">About Me</Link>
         </li>
         <li>
           <Link to="/pages/imprint/">Imprint</Link>

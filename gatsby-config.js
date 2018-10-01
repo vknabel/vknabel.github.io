@@ -26,7 +26,7 @@ module.exports = {
         background_color: '#f05138',
         theme_color: '#f05138',
         display: 'minimal-ui',
-        icon: 'src/images/vknabel.jpg', // This path is relative to the root of the site.
+        icon: 'static/images/vknabel.jpg',
       },
     },
   ],
