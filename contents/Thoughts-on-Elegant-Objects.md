@@ -5,12 +5,11 @@ tags: [js, swift, book, programming]
 ---
 
 # Thoughts on: Elegant Objects
-# Thoughts on: Elegant Objects
-#blog/idea #publish/no #book/elegantobjects #javascript #swift
+
 Writing things down is part of my learning process. These thoughts came up while reading through AUTHOR’s book Elegant Objects about a more declarative and less procedural approach of object oriented programming.
 This is more a personal document than a book review or summary and as I already knew some topics, I do not mention several chapters or details, I might explain concepts different than the original author and many examples from Java, Ruby or C++ cannot be applied to Swift as they would already solve the issue.
 
-The book itself is split into three parts of the lifetime of an object: the [birth](#Birth) or initialization,  [education]( ￼#education￼ ), [employment]( ￼#employment￼ ) and [retirement](#) or deinitialization.
+The book itself is split into three parts of the lifetime of an object: the [birth](#Birth) or initialization,  [education](￼#education￼), [employment](￼#employment￼) and [retirement](#retirement) or deinitialization.
 
 Elegant Objects teaches to **treat all objects as human beings** and that we should talk with them `[].isEmpty` instead of talking about them `[].count == 0`.
 
