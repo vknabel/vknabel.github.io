@@ -10,8 +10,9 @@ const SecondPage = ({ data }) => (
     <h1>Thoughts</h1>
     <Helmet title="vknabel – Thoughts" />
     <p>
-      This is a collection of unfinished work. All experiments and thoughts will
-      be collected here, if I don't have enough time to actually finish them.
+      This is a collection of thoughts, reviews and unfinished work. These blog
+      posts are less official and may lack actual introductions or descriptions.
+      If wish additional explanation or examples, you are free to contact me.
       All code is{' '}
       <a
         href="https://choosealicense.com/licenses/mit/"
