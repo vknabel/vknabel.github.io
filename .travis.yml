@@ -10,10 +10,11 @@ deploy:
   github-token: $GITHUB_TOKEN
   local_dir: public
   keep-history: true
+  target-branch: master
   on:
     branch: code-master
 before_script:
-  - 'npm i -g gatsby yarn'
-  - 'yarn'
+  - yarn global add gatsby
+  - yarn
 script:
-  - 'yarn build'
+  - yarn build
