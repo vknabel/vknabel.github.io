@@ -1,7 +1,7 @@
 ---
 title: "Thoughts on: Elegant Objects"
 kind: thought
-tags: [js, swift, book, programming]
+tags: [js, swift, book, programming, oop]
 ---
 
 # Thoughts on: Elegant Objects
