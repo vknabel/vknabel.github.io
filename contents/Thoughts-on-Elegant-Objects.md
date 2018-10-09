@@ -2,7 +2,7 @@
 title: "Thoughts on: Elegant Objects"
 kind: thought
 date: 2018-10-09
-tags: [js, swift, book, programming, oop]
+tags: [js, swift, book, oop]
 ---
 
 # Thoughts on: Elegant Objects
