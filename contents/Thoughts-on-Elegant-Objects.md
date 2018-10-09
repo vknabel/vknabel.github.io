@@ -1,15 +1,16 @@
 ---
 title: "Thoughts on: Elegant Objects"
 kind: thought
+date: 2018-10-09
 tags: [js, swift, book, programming, oop]
 ---
 
 # Thoughts on: Elegant Objects
 
-Writing things down is part of my learning process. These thoughts came up while reading through AUTHOR’s book Elegant Objects about a more declarative and less procedural approach of object oriented programming.
+Writing things down is part of my learning process. These thoughts came up while reading through Yegor Bugayenko’s book Elegant Objects about a more declarative and less procedural approach of object oriented programming.
 This is more a personal document than a book review or summary and as I already knew some topics, I do not mention several chapters or details, I might explain concepts different than the original author and many examples from Java, Ruby or C++ cannot be applied to Swift as they would already solve the issue.
 
-The book itself is split into three parts of the lifetime of an object: the [birth](#Birth) or initialization,  [education](￼#education￼), [employment](￼#employment￼) and [retirement](#retirement) or deinitialization.
+The book itself is split into three parts of the lifetime of an object: the birth or initialization,  education, employment and retirement or deinitialization.
 
 Elegant Objects teaches to **treat all objects as human beings** and that we should talk with them `[].isEmpty` instead of talking about them `[].count == 0`.
 
@@ -37,8 +38,8 @@ https://www.yegor256.com/2015/03/09/objects-end-with-er.html
 	* Observable (stream)
 	* Probably all `able` names, too
 	* Encodable, Decodable (quite generic and hard)
-* Because of the focus on data: many initializers (5...10), a few queries (), as little mutations as possible (). Reasoning: makes it much easier to use
-* This data centric approach reminds me of some functional code I‘ve seen before, which impressed me a lot.
+* Because of the focus on data: many initializers (5...10), a few queries (), as little mutations as possible (). Reasoning: makes it much easier to use 
+* This data centric approach reminds me of some functional code I‘ve seen before, which impressed me a lot. 
 
 ### 1.2 Make one constructor primary
 https://www.yegor256.com/2015/05/28/one-primary-constructor.html
@@ -83,7 +84,7 @@ https://www.yegor256.com/2018/08/22/builders-and-manipulators.html
 https://www.yegor256.com/2015/07/06/public-static-literals.html
 * Do not use public constants (this includes global constants, singletons, static properties, ...)
 * Constants should be private
-* Instead wrap the constants into a class which _uses_ it as intended.
+* Instead wrap the constants into a class which _uses_ it as intended. 
 * Example: `CRLFString` which automatically appends `\r\n` to all strings on `toString`.
 * Regarding enums: `HTTPMethod` are just constants, too! Instead favor distinct classes for `PostRequest`, `GetRequest`, ...
 * In my eyes using enums with associated values is fine as they are much more advanced. E.g. `LocalizableString` with `case priceLabel(amount: Int, currency: String)` and `var localized: String { get }`.
@@ -139,7 +140,7 @@ https://www.yegor256.com/2014/12/22/immutable-objects-not-dumb.html
 * Required `init`s may never instantiate objects
 * Funcs may never instantiate objects
 * But still, not all initializers may be called within `convenience` inits (think of greater dependencies! A convenience init can still hard-code dependencies because of laziness)
-* When needed create a helper function in convenience inits and store it
+* When needed create a helper function in convenience inits and store it 
 * => Unit tests will be much better
 
 ## Retirement
@@ -159,14 +160,14 @@ https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html
 
 ### 4.4 Use RAII
 * Resource Acquisition Is Initialization
-* Says to lock resources on init and release them on deinit
+* Says to lock resources on init and release them on deinit 
 * In Swift this approach is already common: Subscription, Disposable, opaque objects for  `NSNotificationCenter`
 
 ## Recap
-I still don’t know what I am going to take away from this book as it particularly has strong opinions which do not align with mine. Yet, there are things I have experienced myself and got the same solution. What I found valuable are naming and the rules of thumb as I generally agree on them. Though as always, some sentences are too absolute:
-* It’s okay to use return values for mutations: if the only way to get information when performing side-effects, it should better be explicit.
-* Sometimes we do not use boolean queries directly within conditions. In those cases it might read far better if we still keep the `is` prefix. And: `isContaining` sounds awful when compared to `contains`.
-* Functions have much less overhead than classes. Though composing classes can be easier than composing functions. It depends. But mostly functions.
+I still don’t know what I am going to take away from this book as it particularly has strong opinions which do not align with mine. Yet, there are things I have experienced myself and got the same solution. What I found valuable are naming and the rules of thumb as I generally agree on them. Though as in most books, some sentences are too absolute:
+* IMHO it’s okay to use return values for mutations: if the only way to get information when performing side-effects, it should better be explicit.
+* Sometimes we do not use boolean queries directly within conditions. In those cases it might read far better if we still keep the `is` prefix. And: "is `containing`" sounds awful when compared to `contains`.
 * The approach to make it explicit what you want to optimize your code for and how your code should look like is interesting. Of course this may sound philosophical or too meta, but it may help prioritizing.
 * Regarding static methods and global variables: in general? Agreed. Though, I think the global `Current` as proposed by pointfree.co is worth it, as long as it is in-line with your goals and your business: execution-environment specific things should go into `Current` (JS: `window.open`). Things like sessions should preferably be implemented using classic DI (e.g. Tweetbot hay have multiple sessions).
-* Of course all these techniques help to improve maintainability, but what‘s often left unsaid: you can also encapsulate dirty hacks that way. And what if we need to touch these parts again? Keep the tests, throw the code away and write everything from scratch, but in clean. If there is no code to maintain (deleted code is no code) and if we cannot break anything (we have tests for our dirty hack), we can easily maintain everything. In most cases these parts will only be written once. Though this approach requires being explicit about it.
+* Functions have much less overhead than classes. The proposed declarative OOP snippets read mostly like FP on the usage side: you do not gain any benefits from the fact that objects have methods. On the declaration side, writing a class has a much bigger overhead when compared to a function. Though you gain the ability to replace the implementation when using protocols and polymorphism resulting in more verbosity. I think FP feels less like fighting against the language than declarative OOP would feel like.
+* Of course all these techniques help to improve maintainability, but what‘s often left unsaid: you can also encapsulate dirty hacks that way. And what if we need to touch these parts again? Keep the tests, throw the code away and write everything from scratch, but in clean. If there is no code to maintain (deleted code is no code) and if we cannot break anything (we have tests for our dirty hack), we can easily maintain everything. In most cases these parts will only be written once. Though this approach requires being explicit about it. 
