@@ -17,6 +17,7 @@ const Post = ({ data }) => {
             </span>
           ))}
         </span>
+        <h2 className="article-head-title">{post.frontmatter.title}</h2>
         <div dangerouslySetInnerHTML={{ __html: post.html }} />
         {post.frontmatter.playground ? (
           <a href={post.frontmatter.playground.publicURL}>

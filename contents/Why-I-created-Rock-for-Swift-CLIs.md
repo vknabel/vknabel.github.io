@@ -5,8 +5,6 @@ date: 2017-02-22
 tags: [rock, swift, cli]
 ---
 
-# Why I created Rock for Swift CLIs
-
 I excessively make use of the official Swift Package Manager as I usually do some CLIs or other stuff. For this use case it is really great. When developing Apps, Carthage and CocoaPods come in handy, which are great, too.
 For Web Development there are yarn and NPM, which support project based and global installs. Then there are gem (global) and bundler (project) for ruby based dependencies.
 

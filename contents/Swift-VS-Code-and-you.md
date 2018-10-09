@@ -4,7 +4,6 @@ kind: blog
 tags: [swift, vscode, linux]
 ---
 
-# Swift, VS Code and you
 Editors like Visual Studio Code live from a wide range of extensions and customization. In contrast there are IDEs like Xcode and AppCode, which have everything set up and are ready to go. In order to provide a rich set of features,  they cannot not offer the same level of flexibility. Which editor you might want to use is a highly personal decision.
 
 > *Disclaimer:* I am the maintainer or a contributor of some of these projects.

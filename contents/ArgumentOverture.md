@@ -6,8 +6,6 @@ tags: [swift, playground, cli]
 playground: ./ArgumentOverture.playground.zip
 ---
 
-# ArgumentOverture
-
 A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses [Overture](https://github.com/pointfreeco/swift-overture) and is build for high composability, flexibility and little impact on your project's freedom to evolve.
 
 A central use case was [Archery](https://github.com/vknabel/archery)'s: only actually interpreted arguments shall be consumed. Any others shall be collected (`remaining`) or should prevent execution (`exhaust`), depending on the current command.

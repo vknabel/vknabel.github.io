@@ -5,7 +5,6 @@ date: 2017-09-28
 tags: [js, rxjs, angular]
 ---
 
-# Refactoring RxJS Code in Angular
 Do you work with legacy RxJS code? Have you ever revisited your first few observables in your application? Do you need to fix bugs in an app of your learning phase? Are you still learning best practices for writing reactive code? This guide is for you. Even if you don’t have anything to do with Angular, you may find this interesting. I will show you a way of how to improve your reactive streams in order to understand their functionality in many isolated, but tiny steps. Some of them may offer external dependencies, but we will always show, how to do it manually.
 
 Within each step we isolate/eliminate side effects, get more explicit about lifetime and learn about how to prevent unintended behavior. If you use this guide to refactor some specific code, you should perform all single steps in order and rerun all tests after each change. If you can‘t find the shown pattern you can take the next step.
