@@ -3,7 +3,7 @@ a {
   color: #f05138;
 }
 
-code {
+code[class*='language-'] {
   word-wrap: break-word;
 }
 
