@@ -3,6 +3,10 @@ a {
   color: #f05138;
 }
 
+pre {
+  word-wrap: break-word;
+}
+
 .custom-header {
   margin-bottom: 1.45rem;
   margin: 0 auto;
