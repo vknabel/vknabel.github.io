@@ -14,7 +14,6 @@ deploy:
   on:
     branch: code-master
 before_script:
-  - yarn global add gatsby
   - yarn
 script:
   - yarn build
