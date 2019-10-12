@@ -71,7 +71,7 @@ Aside from the speed up for bash scripts, the `vknabel/ArcheryArrow` will come p
 
 Your existing Archerfile still works the same as before. So nothing to do on this side!
 
-If you currently use the arrow syntax, make sure to have Mint installed as it moved from an internal to an external dependency. That’s it!
+If you currently use the arrow syntax, make sure to have Mint installed as it moved from an internal to an external dependency. Also make sure to use Swift 5 as Swift 4 support has been dropped.
 
 ### Is there a new plugin concept?
 
