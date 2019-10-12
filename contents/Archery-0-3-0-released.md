@@ -1,7 +1,7 @@
 ---
 title: Archery 0.3.0 released
 kind: blog
-date: 2019-10-13
+date: 2019-10-12
 tags: [archery, swift, metadata, swiftpm]
 ---
 
