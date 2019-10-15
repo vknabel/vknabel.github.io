@@ -5,7 +5,7 @@ date: 2017-03-08
 tags: [swift, readme, cli]
 ---
 
-Command mine is a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.
+Command mine is a concept of a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.
 
 ## Definitions
 CommandMine is about extracting minerals out of your ore.
