@@ -33,8 +33,8 @@ const Layout = ({ children }) => (
           <html lang="en" />
           <script
             async
-            src="https://analytics.knabel.dev/tracker.js"
-            data-ackee-server="https://analytics.knabel.dev"
+            src="https://ack.knabel.dev/ack.js"
+            data-ackee-server="https://ack.knabel.dev"
             data-ackee-domain-id="b58b1615-f9f1-4a68-9cb5-3cb947354b3a"
           />
         </Helmet>
