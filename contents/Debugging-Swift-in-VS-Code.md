@@ -15,7 +15,7 @@ First we need to install an extension as VS Code does not come with Swift debugg
 Now let’s create a new project on open it in VS Code!
 
 ```bash
-$ swift package init —-type executable
+$ swift package init --type executable
 Creating executable package: MyProject
 Creating Package.swift
 Creating README.md
@@ -31,7 +31,7 @@ Creating Tests/MyProjectTests/XCTestManifests.swift
 $ code . # of not found: open -a "Visual Studio Code" .
 ```
 
-As we’ve prepared all prerequisites, we are ready to set up our first debugging target! In the debuggers tab in your vscode window, select the drop down and then "Add configuration...". This will now create a new file called ` .vscode/launch.json`.
+As we’ve prepared all prerequisites, we are ready to set up our first debugging target! In the debuggers tab in your vscode window, select the drop down and then "Add configuration...". This will now create a new file called `.vscode/launch.json`.
 
 Below is an example configuration supporting running executable targets, unit tests on macOS and Linux. Relevant files will be compiled using the pre-launch-tasks.
 
@@ -57,7 +57,7 @@ Below is an example configuration supporting running executable targets, unit te
             "name": "Debug tests on macOS",
             "program": "<path to xctest executable>", //For example /Applications/Xcode.app/Contents/Developer/usr/bin/xctest
             "args": [
-                "${workspaceFolder}.build/debug/<xctest bundle name>.xctest"
+                "${workspaceFolder}/.build/debug/<xctest bundle name>.xctest"
             ],
             "preLaunchTask": "swift-build-tests"
         },
@@ -93,7 +93,7 @@ And here are the promised pre-launched-tasks:
             "group": "build",
             "args": [
                 "build",
-                "—build-tests"
+                "--build-tests"
                  // for TensorFlow add "-Xlinker", "-ltensorflow"
             ]
         }
