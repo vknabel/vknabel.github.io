@@ -1,14 +1,12 @@
 import React from 'react'
-import Helmet from 'react-helmet'
 import { graphql, Link } from 'gatsby'
 
 import Layout from '../components/layout'
 import ArticleHead from '../components/article-head'
 
 const IndexPage = ({ data }) => (
-  <Layout>
+  <Layout title="Blog posts">
     <h1>Blog</h1>
-    <Helmet title="vknabel – Blog" />
     {data.allMarkdownRemark.edges.map(({ node }) => node).map(node => (
       <div key={node.id}>
         <ArticleHead data={node} />

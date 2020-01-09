@@ -1,4 +1,6 @@
-# About Me
+---
+title: About Me
+---
 
 <img src="/images/vknabel.jpg" width="200" height="200">
 

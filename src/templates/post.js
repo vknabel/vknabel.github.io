@@ -1,15 +1,19 @@
 import React from 'react'
-import Helmet from 'react-helmet'
 import Layout from '../components/layout'
 import { graphql } from 'gatsby'
 
 const Post = ({ data }) => {
   const post = data.markdownRemark
   return (
-    <Layout>
-      <Helmet title={post.frontmatter.title} />
-      <div>
-        <span className="article-head-date">{post.frontmatter.date}</span>
+    <Layout
+      title={post.frontmatter.title}
+      tags={post.frontmatter.tags}
+      description={post.excerpt}
+    >
+      <article>
+        <span className="article-head-date">
+          <time dateTime={post.frontmatter.date}>{post.frontmatter.date}</time>
+        </span>
         <span className="article-head-tags">
           {(post.frontmatter.tags || []).map(tag => (
             <span key={tag} className="article-head-tags-item">
@@ -24,7 +28,7 @@ const Post = ({ data }) => {
             Download playground
           </a>
         ) : null}
-      </div>
+      </article>
     </Layout>
   )
 }
@@ -50,7 +54,7 @@ export const query = graphql`
         words
       }
       timeToRead
-      excerpt(pruneLength: 270)
+      excerpt(pruneLength: 160) # 150 to 160 for seo
       frontmatter {
         title
         date(formatString: "YYYY-MM-DD")

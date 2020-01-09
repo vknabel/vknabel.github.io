@@ -7,13 +7,14 @@ import Header from './header'
 import './layout.css'
 import './custom.css'
 
-const Layout = ({ children }) => (
+const Layout = ({ children, title, tags, description }) => (
   <StaticQuery
     query={graphql`
       query SiteTitleQuery {
         site {
           siteMetadata {
-            title
+            pageTitle
+            fullTitle
           }
         }
       }
@@ -21,12 +22,22 @@ const Layout = ({ children }) => (
     render={data => (
       <>
         <Helmet
-          title={data.site.siteMetadata.title}
+          title={
+            title
+              ? `${title} | ${data.site.siteMetadata.fullTitle}`
+              : data.site.siteMetadata.fullTitle
+          }
           meta={[
-            { name: 'description', content: 'Homepage of vknabel' },
+            {
+              name: 'description',
+              content:
+                description || 'Blog posts and thoughts of Valentin Knabel.',
+            },
             {
               name: 'keywords',
-              content: 'swift, ionic, vscode, js, angular, vue',
+              content: (
+                tags || ['swift', 'ionic', 'vscode', 'js', 'angular', 'vue']
+              ).join(', '),
             },
           ]}
         >
@@ -38,7 +49,7 @@ const Layout = ({ children }) => (
             data-ackee-domain-id="b58b1615-f9f1-4a68-9cb5-3cb947354b3a"
           />
         </Helmet>
-        <Header siteTitle={data.site.siteMetadata.title} />
+        <Header siteTitle={data.site.siteMetadata.pageTitle} />
         <div
           style={{
             margin: '0 auto',

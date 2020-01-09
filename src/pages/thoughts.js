@@ -1,14 +1,12 @@
 import React from 'react'
-import Helmet from 'react-helmet'
 import { Link, graphql } from 'gatsby'
 
 import Layout from '../components/layout'
 import ArticleHead from '../components/article-head'
 
 const SecondPage = ({ data }) => (
-  <Layout>
+  <Layout title="Thoughts and non-finished blog posts">
     <h1>Thoughts</h1>
-    <Helmet title="vknabel – Thoughts" />
     <p>
       This is a collection of thoughts, reviews and unfinished work. These blog
       posts are less official and may lack actual introductions or descriptions.
@@ -27,7 +25,10 @@ const SecondPage = ({ data }) => (
       <div key={node.id}>
         <ArticleHead data={node} />
         <p>
-          {node.excerpt} <Link to={node.fields.slug}>&#187;</Link>
+          {node.excerpt}{' '}
+          <Link to={node.fields.slug} title={node.frontmatter.title}>
+            &#187;
+          </Link>
         </p>
       </div>
     ))}

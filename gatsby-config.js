@@ -1,6 +1,7 @@
 module.exports = {
   siteMetadata: {
-    title: 'vknabel',
+    pageTitle: 'vknabel',
+    fullTitle: 'Valentin Knabel',
   },
   plugins: [
     {
