@@ -6,10 +6,10 @@
     background-color: white;
     color: hsla(0, 0%, 0%, 0.8);
   }
-  .custom-header a {
+  .custom-menu a {
     color: hsla(0, 0%, 0%, 0.8);
   }
-  .custom-header a.active-link {
+  .custom-menu a.active-link {
     color: gray;
   }
   .article-head-title {
@@ -25,10 +25,10 @@
     background-color: black;
     color: hsla(0, 0%, 100%, 0.8);
   }
-  .custom-header a {
+  .custom-menu a {
     color: hsla(0, 0%, 100%, 0.8);
   }
-  .custom-header a.active-link {
+  .custom-menu a.active-link {
     color: gray;
   }
   .article-head-title {
@@ -44,14 +44,14 @@ body code[class*='language-'] {
   word-wrap: break-word;
 }
 
-.custom-header {
+.custom-menu {
   margin-bottom: 1.45rem;
   margin: 0 auto;
   max-width: 960px;
   padding: 1.45rem 1.0875rem;
 }
 
-.custom-header p {
+.custom-menu p {
   margin: 0;
   text-transform: uppercase;
   text-decoration: none;
@@ -77,7 +77,7 @@ body code[class*='language-'] {
   line-height: 1.1;
 }
 
-.custom-header a {
+.custom-menu a {
   text-transform: uppercase;
   font-weight: 400;
   letter-spacing: 2px;
@@ -86,11 +86,13 @@ body code[class*='language-'] {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
-nav ul {
+nav ul,
+footer ul {
   list-style-type: none;
   margin-left: 0;
 }
-nav li {
+nav li,
+footer li {
   display: inline-block;
   margin: 0 20px 0 0;
 }
