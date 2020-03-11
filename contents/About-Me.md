@@ -6,7 +6,7 @@ title: About Me
 
 I’m Valentin Knabel, vknabel on [GitHub](https://github.com/vknabel) and on [Twitter](https://twitter.com/vknabel), B.Sc. I am an open-minded team-player from Germany and learnt coding with 14. I maintain several open source projects including the [Maintained Swift Development Environment](https://github.com/vknabel/vscode-swift-development-environment) extension for Visual Studio Code.
 
-Currently I work at the startup [Conclurer](https://conclurer.com) mostly doing mobile web apps in Vue.js, Ionic and Angular. In my free time I prefer Swift, iOS and supporting the Swift Package Manager ecosystem, especially by improving VS Code’s support for it.
+Currently I work at [oput](https://oput.de) mostly doing iOS and web development. In my free time I do Swift, iOS and supporting the Swift Package Manager ecosystem, especially by improving VS Code’s support for it.
 
 My latest open source projects:
 
@@ -16,7 +16,11 @@ My latest open source projects:
 
 ## Work experience
 
-**Software Developer**, [Conclurer](https://conclurer.com) – since 2016
+**Software Developer**, [oput](https://oput.de)
+
+- Development of iOS and watchOS apps
+
+**Software Developer**, [Conclurer](https://conclurer.com)
 
 - Development of a highly customizable mobile app based on web technologies
 - Implementation of an offline first data abstraction layer
@@ -24,13 +28,13 @@ My latest open source projects:
 - Digitalization of business processes for customers actively used in production
 - Introduced and improved Continuous Integration and Continuous Deployment pipelines
 
-**Remote Freelance iOS Developer**, _American customer_ – 2015
+**Remote Freelance iOS Developer**, _American customer_
 
 - Design and development of an media-rich iOS app in Swift
 - Offline synchronization of metadata, images and videos
 - Automated screenshots and Continuous Deployment
 
-**Remote Student iOS-Developer**, [Freeletics](https://www.freeletics.com/) – 2013
+**Remote Student iOS-Developer**, [Freeletics](https://www.freeletics.com/)
 
 - First hired developer for the iOS-App written in Objective-C
 - Stabilizing and refactoring freshly released App
