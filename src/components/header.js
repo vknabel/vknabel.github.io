@@ -13,11 +13,11 @@ const Header = ({ siteTitle }) => (
             Blog
           </Link>
         </li>
-        <li>
+        {/* <li>
           <Link activeClassName="active-link" to="/thoughts/">
             Thoughts
           </Link>
-        </li>
+        </li> */}
         <li>
           <Link activeClassName="active-link" to="/pages/About-Me/">
             About Me

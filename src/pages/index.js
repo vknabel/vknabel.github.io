@@ -24,7 +24,9 @@ export const query = graphql`
   {
     allMarkdownRemark(
       sort: { fields: [frontmatter___date], order: DESC }
-      filter: { frontmatter: { kind: { eq: "blog" }, date: { ne: null } } }
+      filter: {
+        frontmatter: { kind: { in: ["blog", "thought"] }, date: { ne: null } }
+      }
     ) {
       totalCount
       edges {
