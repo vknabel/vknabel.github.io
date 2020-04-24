@@ -18,7 +18,7 @@ After a while, when most parts of the MVP were finished, I wanted to add [vapor/
 
 The [list of changes](https://forums.swift.org/t/whats-new-in-vapor-4/31832) reads nicely, new services API, new model API built on top of property wrappers looks gorgeous, synchronously decoding contents improves controllers far more than you might expect and eager loading is great to tune up performance and to even reduce the amount of nested futures to be handled.
 
-As mentioned I was especially interested in APNS. Additionally I need background jobs, which come as https://github.com/vapor/jobs, too.
+As mentioned I was especially interested in APNS. Additionally I need background jobs, which come as [vapor/queues](https://github.com/vapor/queues) , too.
 For me the decision was an obvious one: let‘s upgrade the code base!
 
 ## Starting the Migration from Vapor 3 to Vapor 4
@@ -105,9 +105,12 @@ import FluentSQLite
 final class DeviceToken: SQLiteModel {
     typealias Database = SQLiteDatabase
 
+	  static let createdAtKey: TimestampKey? = \.createdAt
+
     var id: Int? // Note the Int? As id!
     var value: String
 	  var userID: User.ID
+	  var createdAt: Date?
 
 	  var user: Parent<DeviceToken, User> { parent(\.userID) }
 
@@ -137,12 +140,15 @@ final class DeviceToken: Model {
 	@Parent(key: "user_id") // 5
 	var user: User
 
-	init() {} // 6 this is required, but in my case always empty ^^
+	@Timestamp(key: "created_at", on: .create) // 6
+  var createdAt: Date?
+
+	init() {} // 7 this is required, but in my case always empty ^^
 
 	init(id: UUID? = nil, value: String, user: User) throws {
 		self.id = id
 		self.value = value
-		// 7
+		// 8
 		// ATTENTION: using self.user = user crashes
 		self.$user.id = try user.requireID()
 		self.$user.value = user
@@ -160,12 +166,16 @@ Quite a lot to explain here, although it should be rather straight-forward. Esse
    1. remove old `var userID: User.ID`
    2. replace old computed `var user: Parent<DeviceToken, User> { parent(\.userID) }`
    3. with `@Parent(key: "user_id") var user: User`
-6. add an empty `init() {}`. Not sure when to customize and what its for 🤔
-7. Here you need to pay attention! You may never set your relations directly, always use `$user.value =` or `$user.id =`. In this case we set both resulting in an already eager loaded `user`.
+   4. The same rules apply to children and siblings
+6. Instead of declaring static `createdAtKey`, `updatedAtKey` and `deletedAtKey` use `@Timestamp(key: FieldKey, on: TimestampTrigger)` as seen above
+7. add an empty `init() {}`. Not sure when to customize and what its for 🤔
+8. Here you need to pay attention! You may never set your relations directly, always use `$user.value =` or `$user.id =`. In this case we set both resulting in an already eager loaded `user`.
+
+Oh and if your models conform to `Parameter`: just remove it. It has been removed.
 
 ### Migrations
 
-As our models are fine now, lets dive into their migrations!
+As our models are fine now, let’s dive into their migrations!
 
 Previously it was a common practice to conform your models to `Migration` and to even let Fluent derive a default migration from your `Model`. Though with Vapor 4 we need to actually implement those. I mean, conforming your models to migration isn‘t scalable anyways. So after all it‘s a good change.
 
@@ -175,7 +185,24 @@ From all I know, your existing migrations will break, but they should be rather 
 
 ```swift
 // MARK: - Vapor 3
+import Fluent
 extension DeviceToken: Migration { }
+
+// Alternatively manual migrations
+import FluentPostgreSQL
+
+extension Domain: Migration {
+    static func prepare(on conn: PostgreSQLConnection) -> Future<Void> {
+        return PostgreSQLDatabase.create(DeviceToken.self, on: conn) { builder in
+            builder.field(for: \.id, isIdentifier: true)
+            builder.field(for: \.value)
+            builder.field(for: \.userID)
+            builder.reference(from: \.userID, to: \User.id)
+			  builder.field(for: \.createdAt)
+			  builder.unique(on: \.value)
+        }
+    }
+}
 ```
 
 > **Some personal note:** I prefer to use the actual relation entities the in initializers. That way I have compiler guarantees, that their id actually exist!
@@ -190,7 +217,10 @@ struct CreateDeviceToken: Migration {
 	func prepare(on: database: Database) -> EventLoopFuture<Void> {
 		return database.schema("device_tokens")
 			.id() // <- oops! This is always .uuid, not .int which is not available on SQLite
-			.field("email", .string, .required)
+			.field("value", .string, .required)
+			.field("user_id", .uuid, .required, .references("users", "id“))
+			.field("created_at", .datetime, .required)
+			.unique(on: "value")
 			.create()
 	}
 
@@ -200,7 +230,9 @@ struct CreateDeviceToken: Migration {
 }
 ```
 
-Some things to note here: I was using SQLite, but the `.id()`-shorthand (cmd+click) is hard-coded to use type `.uuid`:
+At first, we notice much more strings than key paths and that all migrations have to rewritten! Though the upgrade should be comparably easy. If you have a lot migrations, you might have a though job as `revert(on:)` is mandatory now. Hopefully we will never need to revert any migrations in production!
+
+> Another thing to note: I was using SQLite, but the `.id()`-shorthand is hard-coded to use type `.uuid`:
 
 ```swift
 // From Fluent’s source code
@@ -213,19 +245,129 @@ public final class SchemaBuilder {
 
 > As the models and migrations were already independent of the database technology, I decided to switch from SQLite to Postgres, especially as models are now independent of the underlaying database (you import `Fluent` instead of `Fluent{Database}`), this change was quite easy and did only affect `Package.swift` and `configure.swift`. If you don‘t, you probably need to use `.field(.id, .int, .identifier(auto: true))` instead of `.id`.
 
+If you don’t use any authentication, `configure.swift`, all your models and migrations should compile without any errors!
+
+### Authentication
+
+As I didn’t tune my current authentication implementation, I tried to stick as close as possible to the new [Vapor: Security → Authentication](https://docs.vapor.codes/4.0/authentication/) docs.
+
+> Because the app will have a password less login, I didn’t use any basic authentication, which is therefore missing below. But according to the docs, it should be relatively easy to implement.
+
+```swift
+// MARK: Vapor 3
+import Vapor
+import Authentication
+
+extension User: TokenAuthenticatable {
+    /// See `TokenAuthenticatable`.
+    typealias TokenType = UserToken
+}
+
+final class UserToken: SQLiteModel {
+	// ...
+	    static func create(userID: User.ID) throws -> UserToken {
+        // generate a random 128-bit, base64-encoded string.
+        let string = try CryptoRandom().generateData(count: 16).base64EncodedString()
+        // init a new `UserToken` from that string.
+        return .init(string: string, userID: userID)
+    }
+	// ...
+}
+
+/// Allows this model to be used as a TokenAuthenticatable’s token.
+extension UserToken: Token {
+    /// See `Token`.
+    typealias UserType = User
+
+    /// See `Token`.
+    static var tokenKey: WritableKeyPath<UserToken, String> {
+        return \.string
+    }
+
+    /// See `Token`.
+    static var userIDKey: WritableKeyPath<UserToken, User.ID> {
+        return \.userID
+    }
+}
+```
+
+Actually upgrading this, took me some time, since parts of the logic are now reversed.
+
+```swift
+// MARK: - Vapor 4
+// 1
+import Vapor
+
+// 2
+extension User: Authenticatable {
+	  // 3
+    func generateToken() throws -> UserToken {
+        try UserToken(
+            value: [UInt8].random(count: 16).base64,
+            user: self
+        )
+    }
+}
+
+// 4
+extension UserToken: ModelTokenAuthenticatable {
+	static let valueKey = \UserToken.$value
+  	static let userKey = \UserToken.$user
+
+	// 5
+  var isValid: Bool {
+	  Date() >= expiresAt ?? Date()
+  }
+}
+```
+
+1. First of all: drop the Authentication import. Vapor is enough.
+2. Now we mark `User` as `Authenticatable` instead of `TokenAuthenticatable`. This allows you to decode it in your controllers!
+3. Essentially we moved the static `UserToken.create` to `User.generateToken` and updated it to use Swift’s latest APIs. Completely optional.
+4. The old `Token` protocol will be replaced by `ModelTokenAuthenticatable` where we get rid of the `UserType`-typealias and rename the static constants for key paths. And we prefix them with `$` to select the field property wrappers instead of their values.
+5. The docs proposed `isValid` to always be `true`, though as I kept `expiredAt`, I chose a real implementation.
+
+At this point, your models, migrations and your configure should be free from errors.
+
+Some small changes in your routes and we can put a check at authentication. Though as these are very well documented and highly specific to your application, I’ll keep this short!
+
+```swift
+// MARK: - Vapor 3
+let bearer = router.grouped(User.tokenAuthMiddleware())
+
+// MARK: - Vapor 4
+let bearer = app.grouped(UserToken.authenticator()) // note the UserToken instead of User
+```
+
+### Services and Repositories
+
+As I didn’t use services and repositories yet, I have no more detailed help for you, but from reading the appropriate upgrading chapters [Upgrading Services](https://docs.vapor.codes/4.0/upgrading/#services) and [Upgrading Repositories](https://docs.vapor.codes/4.0/upgrading/#repositories), it should be straightforward anyways.
+
+### Routes and Controllers, Learnings
+
+Now only routes and controllers should be left. As routes and controllers are tied together, I both simultaneously. One route and method at a time.
+
+- instead of `Model.parameter` in your routes and `req.parameters.next(_:)`, name it `":model_id"` and resolve it in your controller `Model.find(req.parameters.get(„model_id"), on: req.db)`
+- There are less extensions on `req`, but more vars
+  _ Use `req.auth.require(_:)`instead of`req.requireAuthenticated(_:)`
+  _ `DeviceToken.query(on: req.db)`
+- `req.content.decode(_:)` is now synchronous
+- In queries, your key paths should end with fields (just share some $)
+  _ `.filter(\.$token == deviceToken)`
+  _ `.filter(\.$user.$id == user.id)`
+- `.save(on:)` now returns `Void`
+  _ either add a new func `saveAndReturn(on database: Database) -> EventLoopFuture<Self>` on `Model`
+  _ or use `x.save(on: req.db).transform(to: x)`
+- Async
+  _ `map` and `flatMap` may not throw anymore (you can temporarily add overloads marked as `@available(_, deprecated)`to get warnings) * there is no global`flatMap(_:_:)`anymore, instead use`.and(_:).flatMap(_:)`
+- Relations
+  _ direct access of relations like `token.user` crashes if not loaded eagerly using `.with(\.$user)` (`QueryBuilder<Model>.with(_:KeyPath<Self, Relation>)`) _ for save, synchronous access use`token.$user.value?`or for async access`token.$user.get(on:)`or`.query(on:)`_ directly setting`token.user =`always fails; use`token.$user.value =`or`token.$user.id =`_ when setting`token.$user.value =`, it does not update`token.$user.id`! You need to do both, but then your data has been loaded eagerly!
+
 ## Todo
 
-- [ ] Route
-- [ ] Auth
-- [ ] No services
-- [ ] No repositories
 - [ ] No tests (sorry)
 - [ ] Queries
 - [ ] SQL in migrations
-
-## Learnings
-
-### Using Relations
 
 ## Summary
 
