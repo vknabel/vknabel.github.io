@@ -1,8 +1,8 @@
 ---
-title: Experience upgrading a Swift Server to Vapor 4
+title: Upgrading a server-side Swift project to Vapor 4
 kind: blog
-#date: 2020-04-22
-tags: [swift, vapor, migrations, upgrade, apns]
+date: 2020-04-22
+tags: [swift, vapor, upgrade, server, migrations, apns]
 ---
 
 The past few days I created a new server using [Vapor](https://vapor.codes) and hit `vapor new <project> --auth` which created a Vapor 3 server. Later I upgraded the young project to Vapor 4, but found some lack of practical information about the upgrade on the internet. So here I share my subjective experience and try to give you some tips.
@@ -347,7 +347,10 @@ As I didn’t use services and repositories yet, I have no more detailed help fo
 
 Now only routes and controllers should be left. As routes and controllers are tied together, I both simultaneously. One route and method at a time.
 
-- instead of `Model.parameter` in your routes and `req.parameters.next(_:)`, name it `":model_id"` and resolve it in your controller `Model.find(req.parameters.get(„model_id"), on: req.db)`
+Here I won’t provide lots of actual code diffs as above, because even the list of all subtle changes is impressive and far from complete.
+
+- instead of `Model.parameter` in your routes name it `":model_id"`, in your controller replace `req.parameters.next(_:)`with `Model.find(req.parameters.get("model_id"), on: req.db)`
+- if you have route components with a `/` inside, split them up
 - There are less extensions on `req`, but more vars
   _ Use `req.auth.require(_:)`instead of`req.requireAuthenticated(_:)`
   _ `DeviceToken.query(on: req.db)`
@@ -363,12 +366,11 @@ Now only routes and controllers should be left. As routes and controllers are ti
 - Relations
   _ direct access of relations like `token.user` crashes if not loaded eagerly using `.with(\.$user)` (`QueryBuilder<Model>.with(_:KeyPath<Self, Relation>)`) _ for save, synchronous access use`token.$user.value?`or for async access`token.$user.get(on:)`or`.query(on:)`_ directly setting`token.user =`always fails; use`token.$user.value =`or`token.$user.id =`_ when setting`token.$user.value =`, it does not update`token.$user.id`! You need to do both, but then your data has been loaded eagerly!
 
-## Todo
+## Where to go from here?
 
-- [ ] No tests (sorry)
-- [ ] Queries
-- [ ] SQL in migrations
+Most of your server should be migrated. What’s missing are view renderers, your tests (though they should not break) and more advanced feature. But most effort should be finished.
 
-## Summary
+Even in my small application, the upgrade required a reasonable amount of work, though it was mostly about diffing existing code and documentation. On the other hand the Vapor team did a great job to produce compile errors instead of runtime errors!
+As someone who upgraded several large single page web apps, this was a bless!
 
-The upgrade from Vapor 3 to 4 is relatively hard, but far easier than the Swift 3 upgrade.
+Did this help you? Have you found a bug? What was your upgrade like? Let’s [have a chat on Twitter](https://www.twitter.com/vknabel) and feel free to [open an issue on GitHub](https://github.com/vknabel/vknabel.github.io/issues/new).
