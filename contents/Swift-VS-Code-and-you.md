@@ -96,8 +96,8 @@ Here is a non-exhaustive list of all features missing:
 - Manual installation of dependencies
 - Convenience plugins for external Tooling (Mint, Sourcery, Rocket, ...)
 - Limited Linux support
-- Code Coverage reports
+- [Code Coverage](/pages/Swift-Coverage-for-VS-Code/) _updated_
 
-WHat about you? Have you already tried different editors?
+What about you? Have you already tried different editors?
 Do you know any additional extensions or have any questions?
 Let's get in touch on [Twitter](https://twitter.com/vknabel) or via [email](mailto:swift-vscode-and-you@vknabel.com).
