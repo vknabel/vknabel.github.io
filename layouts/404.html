@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  {{ partial "header.html" . }}
+  <body>
+    <div class="content">
+      {{ partial "head.html" . }}
+
+      <main class="list">
+        <div class="site-description">
+          {{- if isset .Site.Params "subtitle" -}}
+          <p>{{ .Site.Params.Subtitle | markdownify }}</p>
+          {{- end -}}
+        </div>
+
+        <h1>404 page not found</h1>
+        What did you expect? <br />Let me know and
+        <a href="https://github.com/vknabel/vknabel.github.io/issues"
+          >open an issue on GitHub</a
+        >.
+      </main>
+      {{ partial "footer.html" . }}
+    </div>
+  </body>
+</html>

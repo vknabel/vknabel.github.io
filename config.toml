@@ -1,0 +1,45 @@
+baseURL = 'https://vknabel.com/'
+languageCode = 'en-us'
+title = 'vknabel'
+copyright = "© Valentin Knabel"
+theme = 'archie'
+
+[params]
+mode = "auto"                                                                  # color-mode → light,dark,toggle or auto
+useCDN = false                                                                 # don't use CDNs for fonts and icons, instead serve them locally.
+subtitle = "Blog posts about programming languages, Swift, Go and more by me."
+favicon = "/images/vknabel.jpg"
+
+# Social Tags
+
+[[params.social]]
+name = "GitHub"
+icon = "github"
+url = "https://github.com/vknabel"
+
+[[params.social]]
+name = "Twitter"
+icon = "twitter"
+url = "https://twitter.com/vknabel/"
+
+# Main menu Items
+
+[[menu.main]]
+name = "blog"
+url = "/"
+weight = 1
+
+[[menu.main]]
+name = "posts"
+url = "/posts"
+weight = 2
+
+[[menu.main]]
+name = "about"
+url = "/about"
+weight = 3
+
+[[menu.main]]
+name = "tags"
+url = "/tags"
+weight = 4
