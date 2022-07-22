@@ -10,6 +10,11 @@ useCDN = false                                                                 #
 subtitle = "Blog posts about programming languages, Swift, Go and more by me."
 favicon = "/images/vknabel.jpg"
 
+[sitemap]
+changefreq = "weekly"
+filename = "sitemap.xml"
+priority = 0.5
+
 # Social Tags
 
 [[params.social]]
