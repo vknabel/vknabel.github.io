@@ -1,6 +1,6 @@
 ---
 title: 'CSS Rotate und Skew'
-date: '2021-06-02-CSS-rotate-and-skew'
+date: '2021-06-02'
 tags: [js]
 ---
 
