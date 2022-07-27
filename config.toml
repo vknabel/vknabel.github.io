@@ -9,6 +9,7 @@ mode = "auto"                                                                  #
 useCDN = false                                                                 # don't use CDNs for fonts and icons, instead serve them locally.
 subtitle = "Blog posts about programming languages, Swift, Go and more by me."
 favicon = "/images/vknabel.jpg"
+mainSections = ["posts"]
 
 [sitemap]
 changefreq = "weekly"
