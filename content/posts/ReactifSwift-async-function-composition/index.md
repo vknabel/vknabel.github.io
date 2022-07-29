@@ -1,8 +1,8 @@
 ---
-title: "ReactifSwift: async function composition"
+title: 'ReactifSwift: async function composition'
 kind: thought
 date: 2019-10-15
-tags: [swift, playground, functional]
+tags: [swift, experiment, functional]
 ---
 
 Async operators `debounce`, `throttle` or `delay` that functional reactive programming libraries as `RxSwift` and `ReactiveSwift` provide are super useful and expressive. Though their biggest benefit lays within composability.

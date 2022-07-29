@@ -1,8 +1,8 @@
 ---
-title: "Swifducks: simple Redux store with multiple reducers"
+title: 'Swifducks: simple Redux store with multiple reducers'
 kind: thought
 date: 2019-10-15
-tags: [swift, playground, functional]
+tags: [swift, experiment, functional]
 ---
 
 A simple example implementation of the Redux pattern with multiple reducers and listeners.
