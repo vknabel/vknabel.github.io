@@ -15,6 +15,7 @@ Currently I work at [oput](https://oput.de) mostly doing iOS and web development
 - [Lithia](https://github.com/vknabel/lithia) is my experimental, functional programming language. _Go, Docker, GitHub CI, Tree-Sitter, Language Server, Typescript, VS Code extension and more._
 - [Maintained Swift Development Environment (SDE)](https://github.com/vknabel/vscode-swift-development-environment) provides Swift autocompletion to VS Code on macOS and Linux. _Swift, Typescript, Docker, Language Server, VS Code extension and more._
 - [Puffery](https://github.com/vknabel/puffery) is a SwiftUI iOS App and Vapor Server to send push notifications fueled by Siri Shortcuts. _Swift, Vapor, Docker, GitHub CI, Bitrise, Xcode Cloud, PostgreSQL, Redis._
+- [go puffery](https://github.com/vknabel/go-puffery). The TUI for Puffery. _Go, Bubble Tea, GoReleaser._
 - [SwiftLint for VS Code](https://github.com/vknabel/vscode-swiftlint): a plugin for [SwiftLint](https://github.com/realm/SwiftLint). _Typescript, VS Code extension._
 - [apple/swift-format for VS Code](https://github.com/vknabel/vscode-apple-swift-format): a plugin for [apple/swift-format](https://github.com/apple/swift-format). _Typescript, VS Code extension._
 - [SwiftFormat for VS Code](https://github.com/vknabel/vscode-swiftformat): a plugin for [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) on macOS. _Typescript, VS Code extension._
