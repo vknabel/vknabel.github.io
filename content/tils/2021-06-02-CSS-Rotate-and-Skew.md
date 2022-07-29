@@ -1,7 +1,7 @@
 ---
 title: 'CSS Rotate und Skew'
 date: '2021-06-02'
-tags: [js]
+tags: [web]
 ---
 
 With CSS `skew` you can simulate a perspective effect.

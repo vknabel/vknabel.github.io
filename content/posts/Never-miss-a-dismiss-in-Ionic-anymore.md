@@ -2,7 +2,7 @@
 title: Never miss a dismiss in Ionic anymore
 aliases: [/pages/Never-miss-a-dismiss-in-Ionic-anymore/]
 date: 2017-09-26
-tags: [js, ionic, angular]
+tags: [web]
 ---
 
 Have you ever experienced, that some loading indicators just don’t want to dismiss and literally stay forever? Maybe while users tried to login? The short story: you probably forgot to dismiss a loading indicator in some cases.
