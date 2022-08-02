@@ -8,7 +8,7 @@ I’m Valentin Knabel, vknabel on [GitHub](https://github.com/vknabel) and on [T
 
 ![vknabel](/images/vknabel.jpg)
 
-Currently I work at [oput](https://oput.de) mostly doing iOS and web development. In my free time I mainly work on developer tooling like improving VS Code support for the Swift ecosystem and on my own toy-programming language written in Go, of course, including a Docker image, a Language Server and a VS Code extension.
+Currently I work at [x-cellent](https://www.x-cellent.com) on [metal-stack](https://metal-stack.io). In my free time I mainly work on developer tooling like improving VS Code support for the Swift ecosystem and on my own toy-programming language written in Go, of course, including a Docker image, a Language Server and a VS Code extension.
 
 ## My latest open source projects
 
