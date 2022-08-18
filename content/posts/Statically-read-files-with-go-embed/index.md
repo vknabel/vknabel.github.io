@@ -2,7 +2,6 @@
 title: Statically read files with go:embed
 date: 2022-08-18
 tags: [golang]
-published: false
 ---
 
 Did you ever want to access the contents of an auxiliary file from within your repository to access the contents at runtime? This file could include some static settings like the version of the application, translations for user-facing texts, GraphQL requests or SQL queries. The typical solution to this problem is shipping your binary with the auxiliary files.
@@ -131,7 +130,7 @@ Correct, by writing a quick test!
 
 ```go
 func TestEmbedsReadme(t *testing.T) {
-	// read using the ReafFile method
+	// read using the ReadFile method
 	got, err := docsFS.ReadFile("README.md")
 	if err != nil {
 		t.Fatal(err)

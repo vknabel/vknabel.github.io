@@ -49,7 +49,7 @@ func TestEmbedsDocs(t *testing.T) {
 }
 
 func TestEmbedsReadme(t *testing.T) {
-	// read using the ReafFile method
+	// read using the ReadFile method
 	got, err := docsFS.ReadFile("README.md")
 	if err != nil {
 		t.Fatal(err)
