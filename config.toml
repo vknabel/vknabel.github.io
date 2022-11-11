@@ -24,6 +24,11 @@ icon = "github"
 url = "https://github.com/vknabel"
 
 [[params.social]]
+name = "Mastodon"
+icon = "at-sign"
+url = "https://mastodon.social/@vknabel/"
+
+[[params.social]]
 name = "Twitter"
 icon = "twitter"
 url = "https://twitter.com/vknabel/"
