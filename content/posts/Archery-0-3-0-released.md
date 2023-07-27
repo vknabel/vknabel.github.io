@@ -163,4 +163,4 @@ Using the same mechanism you can even override a few scripts, e.g. if you prefer
 
 ### Any questions left?
 
-If you have any questions left or ideas for improvements, create an issue for [Archery on GitHub](https://github.com/vknabel/Archery) or get in contact with [@vknabel on Twitter](https://www.twitter.com/vknabel). Thanks for reading!
+If you have any questions left or ideas for improvements, create an issue for [Archery on GitHub](https://github.com/vknabel/Archery) or get in contact with [@mastodon.social@vknabel](https://mastodon.social/@vknabel). Thanks for reading!

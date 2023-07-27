@@ -91,4 +91,4 @@ Here is a non-exhaustive list of all features missing:
 
 What about you? Have you already tried different editors?
 Do you know any additional extensions or have any questions?
-Let's get in touch on [Twitter](https://twitter.com/vknabel) or via [email](mailto:swift-vscode-and-you@vknabel.com).
+Let's get in touch on [@mastodon.social@vknabel](https://mastodon.social/@vknabel) or via [email](mailto:swift-vscode-and-you@vknabel.com).

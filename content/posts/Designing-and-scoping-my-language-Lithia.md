@@ -162,6 +162,6 @@ In this post, I summarised my take on creating your own programming language. Do
 
 Design your scope and concept. Make sure you stay motivated until the end. Don’t hesitate to reevaluate your decisions. Take tiny steps.
 
-If you wish, check out the open source repository of [Lithia](https://github.com/vknabel/lithia). If you have any questions don't hesitate to ask me on twitter [@vknabel](http://twitter.com/vknabel) or join the [Lithia discussions](https://github.com/vknabel/lithia/discussions).
+If you wish, check out the open source repository of [Lithia](https://github.com/vknabel/lithia). If you have any questions don't hesitate to ask me on [@mastodon.social@vknabel](https://mastodon.social/@vknabel) or join the [Lithia discussions](https://github.com/vknabel/lithia/discussions).
 
 Happy coding!

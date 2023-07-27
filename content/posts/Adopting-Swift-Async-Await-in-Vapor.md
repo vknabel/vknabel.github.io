@@ -297,4 +297,4 @@ func confirmEmailIfNeeded(_ user: User) async throws {
 
 Within this post we upgraded our Swift version, Package manifest, docker / CI Swift versions and our dependencies. Then we incrementally migrated portions of our codebase by following a set of rules. What was your migration like? Did you experience any problems?
 
-If you wish, check out the open source repository of [Puffery](https://github.com/vknabel/puffery) or check it out on the [App Store](https://apps.apple.com/de/app/puffery/id1508776889). If you have any questions or feedback don't hesitate to ask me on twitter [@vknabel](http://twitter.com/vknabel) or join the [Puffery disussions](https://github.com/vknabel/puffery/discussions).
+If you wish, check out the open source repository of [Puffery](https://github.com/vknabel/puffery) or check it out on the [App Store](https://apps.apple.com/de/app/puffery/id1508776889). If you have any questions or feedback don't hesitate to ask me on [@mastodon.social@vknabel](https://mastodon.social/@vknabel) or join the [Puffery disussions](https://github.com/vknabel/puffery/discussions).

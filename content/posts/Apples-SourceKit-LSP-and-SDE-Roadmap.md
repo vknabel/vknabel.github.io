@@ -26,4 +26,4 @@ Once the extension has been released to VS Code‘s extension registry and it is
 
 As soon as I don’t see any reason to keep maintaining SDE, I will add a message as explanation. If SDE will still have features which are not part of Apple’s extension, I will extract them into separate extensions which will still be maintained.
 
-I hope you agree with these future plans. If you have more ideas, feedback or if your don’t agree on this, please [open an issue](https://github.com/vknabel/vscode-swift-development-environment/issues/new) or [tell me on Twitter](https://www.twitter.com/vknabel).
+I hope you agree with these future plans. If you have more ideas, feedback or if your don’t agree on this, please [open an issue](https://github.com/vknabel/vscode-swift-development-environment/issues/new) or tell me on [@mastodon.social@vknabel](https://mastodon.social/@vknabel).

@@ -372,4 +372,4 @@ Most of your server should be migrated. What’s missing are view renderers, you
 Even in my small application, the upgrade required a reasonable amount of work, though it was mostly about diffing existing code and documentation. On the other hand the Vapor team did a great job to produce compile errors instead of runtime errors!
 As someone who upgraded several large single page web apps, this was a bless!
 
-Did this help you? Have you found a bug? What was your upgrade like? Let’s [have a chat on Twitter](https://www.twitter.com/vknabel) and feel free to [open an issue on GitHub](https://github.com/vknabel/vknabel.github.io/issues/new).
+Did this help you? Have you found a bug? What was your upgrade like? Let’s have a chat on [@mastodon.social@vknabel](https://mastodon.social/@vknabel) and feel free to [open an issue on GitHub](https://github.com/vknabel/vknabel.github.io/issues/new).

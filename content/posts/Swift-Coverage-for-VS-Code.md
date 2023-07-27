@@ -29,6 +29,6 @@ To keep your coverage always up to date set `sde.swiftBuildingParams` setting to
 
 Is there something you are missing for Swift and VS Code?
 Do you have any questions or tips?
-Let's get in touch on [Twitter](https://twitter.com/vknabel) or via [email](mailto:swift-coverage-for-vscode@vknabel.com).
+Let's get in touch on [@mastodon.social@vknabel](https://mastodon.social/@vknabel) or via [email](mailto:swift-coverage-for-vscode@vknabel.com).
 
 Have you found a bug or need help with [Swift Coverage](https://github.com/vknabel/vscode-swift-coverage)? It's open source, just head to GitHub and [open an issue](https://github.com/vknabel/vscode-swift-coverage/issues/new).

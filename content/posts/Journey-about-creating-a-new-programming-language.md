@@ -41,6 +41,6 @@ I decided to create yet another programming language and let’s be honest: nobo
 
 I will update and link all my compiler and language design blog posts here.
 
-If you wish, check out the open source repository of [Lithia](https://github.com/vknabel/lithia). If you have any questions don't hesitate to ask me on twitter [@vknabel](http://twitter.com/vknabel) or join the [Lithia disussions](https://github.com/vknabel/lithia/discussions).
+If you wish, check out the open source repository of [Lithia](https://github.com/vknabel/lithia). If you have any questions don't hesitate to ask me on [@mastodon.social@vknabel](https://mastodon.social/@vknabel) or join the [Lithia disussions](https://github.com/vknabel/lithia/discussions).
 
 Happy coding!
