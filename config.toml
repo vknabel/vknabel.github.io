@@ -28,11 +28,6 @@ name = "Mastodon"
 icon = "at-sign"
 url = "https://mastodon.social/@vknabel/"
 
-[[params.social]]
-name = "Twitter"
-icon = "twitter"
-url = "https://twitter.com/vknabel/"
-
 # Main menu Items
 
 [[menu.main]]
