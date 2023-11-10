@@ -1,6 +1,6 @@
 ---
 title: 24hrs format for html inputs in Firefox
-date: 2023-08-17
+date: 2023-11-09
 tags: [web]
 ---
 
