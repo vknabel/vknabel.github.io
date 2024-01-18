@@ -3,6 +3,10 @@ title: Debugging Swift in VS Code in 2022
 aliases: [/pages/Debugging-Swift-in-VS-Code-in-2022/]
 date: 2022-02-08
 tags: [vscode, swift]
+images:
+  - /images/Debugging-Swift-in-VS-Code-in-2022/example_debugging.png
+  - /images/Debugging-Swift-in-VS-Code-in-2022/example_breakpoint.png
+  - /images/Debugging-Swift-in-VS-Code-in-2022/example_launch_configs.png
 ---
 
 Back in 2019 I wrote an [article about how to debug](/pages/Debugging-Swift-in-VS-Code) your Swift Package Manager projects in Visual Studio Code. In late december 2021, the Swift Server Working group released a brand [new extension for vscode](https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang), which dramatically improves debugging your Swift code. Especially for linux! Time for an update!

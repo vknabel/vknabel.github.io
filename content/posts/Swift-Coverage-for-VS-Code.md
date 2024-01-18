@@ -1,8 +1,11 @@
 ---
-title: "Swift Coverage for VS Code"
+title: 'Swift Coverage for VS Code'
 aliases: [/pages/Swift-Coverage-for-VS-Code/]
 tags: [swift, vscode]
 date: 2020-08-29
+images:
+  - /images/Swift-Coverage-for-VS-Code/example-xcode.png
+  - /images/Swift-Coverage-for-VS-Code/example-vscode.png
 ---
 
 When developing Swift in Visual Studio Code there were a few cases, where I preferred Xcode. Beside the obvious cases like iOS Development, managing certificates and provisioning profiles, there was one big case left: Writing unit tests.

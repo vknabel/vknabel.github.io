@@ -1,8 +1,17 @@
 ---
-title: "Swift, VS Code and you"
+title: 'Swift, VS Code and you'
 aliases: [/pages/Swift-VS-Code-and-you/]
 tags: [swift, vscode, lsp]
 date: 2020-01-22
+images:
+  - /images/Swift-VS-Code-and-you/Swiftlint.png
+  - /images/Swift-VS-Code-and-you/SDE-sourcekit-lsp.gif
+  - /images/Swift-VS-Code-and-you/SDE-sourcekite.gif
+  - /images/Swift-VS-Code-and-you/LLDB.png
+  - /images/Swift-VS-Code-and-you/Swiftlint.png
+  - /images/Swift-VS-Code-and-you/swift-format.gif
+  - /images/Swift-VS-Code-and-you/Stencil.png
+  - /images/Swift-VS-Code-and-you/Leaf.png
 ---
 
 Editors like Visual Studio Code live from a wide range of extensions and customization. In contrast there are IDEs like Xcode and AppCode, which have everything set up and are ready to go. In order to provide a rich set of features, they cannot not offer the same level of flexibility. Which editor you might want to use is a highly personal decision.

@@ -2,6 +2,7 @@
 title: About Me
 aliases: [/pages/About-Me/]
 date: 2022-07-22
+images: [/images/vknabel.jpg]
 ---
 
 I’m Valentin Knabel, vknabel on [GitHub](https://github.com/vknabel) and on [@mastodon.social@vknabel](https://mastodon.social/@vknabel). I maintain several open source projects including the [Maintained Swift Development Environment](https://github.com/vknabel/vscode-swift-development-environment) extension for Visual Studio Code.

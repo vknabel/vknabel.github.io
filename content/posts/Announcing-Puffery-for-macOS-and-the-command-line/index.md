@@ -2,6 +2,7 @@
 title: Announcing Puffery for macOS and the command line
 date: '2022-07-29'
 tags: [puffery, cli, announcement]
+images: [/images/puffery-macos-showcase.png, /images/puffery-cli-showcase.png]
 ---
 
 Two years ago, I created [Puffery for iOS](https://apps.apple.com/de/app/puffery/id1508776889), which allows sending push notifications to your iOS devices.
