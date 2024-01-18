@@ -1,0 +1,9 @@
+article p:first-of-type img[title], .article-image--bottom img {
+  max-height: 400px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.article-image--bottom img {
+  object-position: bottom;
+}

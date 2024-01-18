@@ -4,7 +4,10 @@ date: 2024-01-18
 tags: [lithia, compilers, golang]
 ---
 
+<img src="/images/shared-posts/lithia-strelitzia-lush.jpeg" alt="A Strelizia nicolai with a tiny Lithia logo" title="The name and logo of the Lithia programming language are derived from the Strelitzia nicolai." style="max-height:400px;object-fit:cover;width:100%;object-position:bottom;">
+
 ![A Strelizia nicolai with a tiny Lithia logo](/images/shared-posts/lithia-strelitzia-lush.jpeg "The name and logo of the Lithia programming language are derived from the Strelitzia nicolai.")
+{.article-image--bottom}
 
 In 2021 I started working on the current Go implementation of my own experimental programming language called [Lithia](https://github.com/vknabel/lithia). Now it is available in version v0.0.19. Infrequently I also wrote some words about it on this blog.
 It has been designed to be an experiment, that is able to teach some lessons and that can be fulfilled.
