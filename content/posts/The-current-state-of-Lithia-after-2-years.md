@@ -1,7 +1,7 @@
 ---
 title: The current state of Lithia after 2 years
 date: 2024-01-18
-tags: [lithia, compilers]
+tags: [lithia, compilers, golang]
 ---
 
 ![A Strelizia nicolai with a tiny Lithia logo](/images/shared-posts/lithia-strelitzia-lush.jpeg "The name and logo of the Lithia programming language are derived from the Strelitzia nicolai.")
