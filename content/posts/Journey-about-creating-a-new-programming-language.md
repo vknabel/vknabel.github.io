@@ -17,6 +17,7 @@ I felt stuck between theory and simple proof of concept implementations like cre
 These are all finished blog posts so far.
 
 - [Designing and scoping my language Lithia](/posts/designing-and-scoping-my-language-lithia/)
+- [The current state of Lithia after 2 years](/posts/the-current-state-of-lithia-after-2-years/)
 
 ## My motivations and background
 
