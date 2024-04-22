@@ -1,6 +1,5 @@
 ---
 title: 'InferIt: a Constraint Solving Package Manager'
-kind: thought
 date: 2019-10-15
 tags: [swift, experiment, cli]
 ---
