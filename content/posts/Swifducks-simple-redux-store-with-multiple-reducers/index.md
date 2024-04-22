@@ -1,6 +1,5 @@
 ---
 title: 'Swifducks: simple Redux store with multiple reducers'
-kind: thought
 date: 2019-10-15
 tags: [swift, experiment, functional]
 ---
