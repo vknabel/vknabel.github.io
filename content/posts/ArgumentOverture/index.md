@@ -1,6 +1,5 @@
 ---
 title: ArgumentOverture
-kind: thought
 date: 2018-09-30
 tags: [swift, experiment, cli]
 ---
