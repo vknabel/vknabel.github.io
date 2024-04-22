@@ -1,6 +1,5 @@
 ---
 title: 'ReactifSwift: async function composition'
-kind: thought
 date: 2019-10-15
 tags: [swift, experiment, functional]
 ---
