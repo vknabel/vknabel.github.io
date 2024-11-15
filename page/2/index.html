@@ -1,0 +1,358 @@
+<!doctype html><html><head lang=en><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><title>vknabel | Home </title><link rel=icon type=image/png href=/images/vknabel.jpg><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta property="og:image" content><link rel=alternate type=application/rss+xml href=https://vknabel.com/index.xml title=vknabel><meta property="og:url" content="https://vknabel.com/"><meta property="og:site_name" content="vknabel"><meta property="og:title" content="vknabel"><meta property="og:locale" content="en_us"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="vknabel"><script src=https://vknabel.com/js/feather.min.js></script><link href=https://vknabel.com/css/fonts.2c2227b81b1970a03e760aa2e6121cd01f87c88586803cbb282aa224720a765f.css rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://vknabel.com/css/main.5cebd7d4fb2b97856af8d32a6def16164fcf7d844e98e236fcb3559655020373.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://vknabel.com/css/dark.d22e2a2879d933a4b781535fc4c4c716e9f9d35ea4986dd0cbabda82effc4bdd.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=/css/overrides.css></head><body><div class=content><header><div class=main><a href=https://vknabel.com/>vknabel</a></div><nav><a href=/>blog</a>
+<a href=/tils>tils</a>
+<a href=/about>about</a>
+<a href=/tags>tags</a></nav></header><main class=list><div class=site-description><p>Blog posts about programming languages, Swift, Go and more by me.</p></div><section class=list-item><h1 class=title><a href=/posts/swift-vs-code-and-you/>Swift, VS Code and you</a></h1><time>Jan 22, 2020</time><br><div class=description><p>Editors like Visual Studio Code live from a wide range of extensions and customization. In contrast there are IDEs like Xcode and AppCode, which have everything set up and are ready to go. In order to provide a rich set of features, they cannot not offer the same level of flexibility. Which editor you might want to use is a highly personal decision.</p><blockquote><p><em><em>Disclaimer:</em> I am the maintainer of the extensions <a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swift-development-environment">Maintained Swift Development Environment</a>, <a href=https://www.github.com/vknabel/sourcekite>sourcekite</a>, <a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftlint">SwiftLint</a>, <a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftformat">SwiftFormat</a>, <a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-apple-swift-format">apple-swift-format</a>.</em></p>&mldr;</div><a class=readmore href=/posts/swift-vs-code-and-you/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/debugging-swift-in-vs-code/>Debugging Swift in VS Code the old way</a></h1><time>Nov 21, 2019</time><br><div class=description><p>Running and debugging your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode.
+In VS Code we require extensions and configs for this purpose.</p><blockquote><p><strong>Update from 2022:</strong> the Swift Server Work Group released their own <a href="https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang">official VS Code extension</a> which dramatically improves the debugging user experience. <a href=/pages/Debugging-Swift-in-VS-Code-in-2022/>Here is the new, updated blog post</a>.</p></blockquote><p>Within this blog post, we will set up debugging for a Swift Package Manager project. As a bonus we will also prepare debugging your unit tests.</p>&mldr;</div><a class=readmore href=/posts/debugging-swift-in-vs-code/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/inferit-a-constraint-solving-package-manager/>InferIt: a Constraint Solving Package Manager</a></h1><time>Oct 15, 2019</time><br><div class=description><p>The initial idea behind InferIt was to create some mixture of a constraint solver and a dependency manager: you would just tell it what to install and it would gather as much information as possible to install it.</p><p>The goal is to fulfill a requirement. InferIt would then try to resolve all variables by trying to fulfill several requirements. If a requirement has been met, the value can be propagated.</p>&mldr;</div><a class=readmore href=/posts/inferit-a-constraint-solving-package-manager/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/reactifswift-async-function-composition/>ReactifSwift: async function composition</a></h1><time>Oct 15, 2019</time><br><div class=description><p>Async operators <code>debounce</code>, <code>throttle</code> or <code>delay</code> that functional reactive programming libraries as <code>RxSwift</code> and <code>ReactiveSwift</code> provide are super useful and expressive. Though their biggest benefit lays within composability.</p><p>This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on <a href=https://github.com/pointfreeco/swift-overture>Overture</a> in version 0.2.0.</p><p><em>Originally written at 2018-06-10</em></p><h2 id=example>Example</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> count = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> countChars = with({ count <span style=color:#f92672>+=</span> $0 }, pipe(
+</span></span><span style=display:flex><span>    map(<span style=color:#66d9ef>get</span>(<span style=color:#960050;background-color:#1e0010>\</span>String.count)),
+</span></span><span style=display:flex><span>    throttle(time: <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> time = TestingScheduler()
+</span></span><span style=display:flex><span>ReactifCurrent.scheduler = time
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;A&#34;</span>)
+</span></span><span style=display:flex><span>time.tick(<span style=color:#ae81ff>50</span>)
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;B&#34;</span>)
+</span></span><span style=display:flex><span>time.tick(<span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;Abc&#34;</span>)
+</span></span><span style=display:flex><span>count <span style=color:#75715e>// 4</span>
+</span></span></code></pre></div><h2 id=implementation>Implementation</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#75715e>// import Overture</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>Foundation</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>typealias</span> Unary&lt;A&gt; = (A) -&gt; Void
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>protocol</span> <span style=color:#a6e22e>Invalidatable</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>invalidate</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Timer</span>: Invalidatable {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>protocol</span> <span style=color:#a6e22e>Scheduler</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> time: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TestingScheduler</span>: Scheduler {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> delayed: [FakeTimer] = []
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> currentInterval: TimeInterval = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FakeTimer</span>: Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> date: Date
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> fire: (() -&gt; Void)?
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>init</span>(date: Date, fire: @escaping () -&gt; Void) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.fire = fire
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.date = date
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> isValid: Bool {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> fire <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tick</span>(<span style=color:#66d9ef>_</span> now: Date) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> fire = fire, now <span style=color:#f92672>&gt;=</span> <span style=color:#66d9ef>self</span>.date {
+</span></span><span style=display:flex><span>                fire()
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>invalidate</span>() {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.fire = <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tick</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.currentInterval <span style=color:#f92672>+=</span> interval
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> currently = now()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.delayed.forEach { $0.tick(currently) }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.delayed = <span style=color:#66d9ef>self</span>.delayed.filter { $0.isValid }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Date(timeIntervalSince1970: currentInterval)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f)
+</span></span><span style=display:flex><span>        delayed.append(timer)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> timer
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TimeScheduler</span>: Scheduler {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Date()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Timer(timeInterval: interval, repeats: <span style=color:#66d9ef>false</span>) { <span style=color:#66d9ef>_</span> <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            f()
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>ReactifRuntimeContext</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> scheduler: Scheduler = TimeScheduler()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> ReactifCurrent = ReactifRuntimeContext()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Sink</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>typealias</span> Completion = () -&gt; Void
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> call: (@escaping (@escaping Completion) -&gt; Void) -&gt; Bool
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>(<span style=color:#66d9ef>_</span> call: @escaping (@escaping (@escaping Completion) -&gt; Void) -&gt; Bool) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.call = call
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Sink</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>lock</span>(name: String? = <span style=color:#66d9ef>nil</span>) -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> lock = NSLock()
+</span></span><span style=display:flex><span>        lock.name = name
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(lock.unlock)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>recursiveLock</span>(name: String? = <span style=color:#66d9ef>nil</span>) -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> lock = NSRecursiveLock()
+</span></span><span style=display:flex><span>        lock.name = name
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(lock.unlock)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>synchronous</span>() -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            f({})
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>filter</span>(<span style=color:#66d9ef>_</span> includes: @escaping () -&gt; Bool) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { (sink: Sink) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        Sink { (f: @escaping Unary&lt;Sink.Completion&gt;) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            includes() <span style=color:#f92672>&amp;&amp;</span> sink.call(f)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>reschedule</span>(<span style=color:#66d9ef>_</span> transform: @escaping (@escaping Unary&lt;Sink.Completion&gt;, @escaping Sink.Completion) -&gt; Void) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { (sink: Sink) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        Sink { (f: @escaping Unary&lt;Sink.Completion&gt;) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            sink.call { complete <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>                transform(f, complete)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>            f(completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>extend</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        f {
+</span></span><span style=display:flex><span>            ReactifCurrent.scheduler.delay(time, completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>debounce</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> currentAttempt: Invalidatable?
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        currentAttempt?.invalidate()
+</span></span><span style=display:flex><span>        currentAttempt = ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>            f(completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>throttle</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> lastInvocation: Date?
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> filter {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> now = ReactifCurrent.scheduler.now()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>defer</span> { lastInvocation = now }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) <span style=color:#f92672>&lt;</span> time {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>schedule</span>&lt;A&gt;(<span style=color:#66d9ef>_</span> factory: @escaping <span style=color:#66d9ef>@autoclosure</span> () -&gt; Sink) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> sink = factory()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span> sink.call { f(a);$0() } }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// </span><span style=color:#75715e>TODO:</span><span style=color:#75715e> throttle using time after completion instead of starting time</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>throttle</span>&lt;A&gt;(time: TimeInterval) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> schedule(with(.synchronous(), throttle(time: time)))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaustA</span>&lt;A&gt;(ending time: TimeInterval? = <span style=color:#66d9ef>nil</span>) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> schedule(with(.recursiveLock(), extend(time: <span style=color:#ae81ff>10</span>)))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaust</span>&lt;A&gt;(ending time: TimeInterval? = <span style=color:#66d9ef>nil</span>) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> lock = NSLock()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> time = time {
+</span></span><span style=display:flex><span>                    ReactifCurrent.scheduler.delay(time, lock.unlock)
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                    lock.unlock()
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>map</span>&lt;A, B&gt;(<span style=color:#66d9ef>_</span> transform: @escaping (A) -&gt; B) -&gt; (@escaping Unary&lt;B&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span> pipe(transform, f) }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>filter</span>&lt;A&gt;(<span style=color:#66d9ef>_</span> include: @escaping (A) -&gt; Bool) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> include(a) {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>debounce</span>&lt;A&gt;(time: TimeInterval) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> currentAttempt: Invalidatable?
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            currentAttempt?.invalidate()
+</span></span><span style=display:flex><span>            currentAttempt = ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.</p>&mldr;</div><a class=readmore href=/posts/reactifswift-async-function-composition/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/swifducks-simple-redux-store-with-multiple-reducers/>Swifducks: simple Redux store with multiple reducers</a></h1><time>Oct 15, 2019</time><br><div class=description><p>A simple example implementation of the Redux pattern with multiple reducers and listeners.</p><p>The name is derived from Swift + Redux = 🏎🦆</p><p><em>Originally written at 2018-06-10</em></p><h2 id=definitions>Definitions</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Store</span>&lt;State, Action&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>typealias</span> Reducer = (Action, <span style=color:#66d9ef>inout</span> State) -&gt; Void
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>private</span>(<span style=color:#66d9ef>set</span>) <span style=color:#66d9ef>var</span> state: State
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> reducers: [Reducer] = []
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> callbacks: [Weak&lt;Listener&lt;State&gt;<span style=color:#f92672>&gt;</span>] = []
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>init</span>(initial state: State) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.state = state
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>select</span>(<span style=color:#66d9ef>_</span> changes: @escaping (State) -&gt; Void) -&gt; Any {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> subscription = Listener(on: changes)
+</span></span><span style=display:flex><span>        callbacks.append(Weak(subscription))
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> subscription
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>reduce</span>(with reducer: @escaping Reducer) {
+</span></span><span style=display:flex><span>        reducers.append(reducer)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>dispatch</span>(<span style=color:#66d9ef>_</span> action: Action) {
+</span></span><span style=display:flex><span>        state = reducers.reduce(into: state) { intermediate, reducer <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            reducer(action, &amp;intermediate)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        callbacks = callbacks
+</span></span><span style=display:flex><span>            .compactMap { $0.value }
+</span></span><span style=display:flex><span>            .map(Weak.<span style=color:#66d9ef>init</span>)
+</span></span><span style=display:flex><span>        callbacks.forEach { $0.value?.onChange(state) }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Store</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>convenience</span> <span style=color:#66d9ef>init</span>(initial state: State, reducer: @escaping Reducer) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.<span style=color:#66d9ef>init</span>(initial: state)
+</span></span><span style=display:flex><span>        reduce(with: reducer)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Weak</span>&lt;A: AnyObject&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>weak</span> <span style=color:#66d9ef>var</span> value: A?
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>(<span style=color:#66d9ef>_</span> value: A?) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.value = value
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Listener</span>&lt;State&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> onChange: (State) -&gt; Void
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>(on change: @escaping (State) -&gt; Void) {
+</span></span><span style=display:flex><span>        onChange = change
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=example-usage>Example Usage</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#66d9ef>enum</span> <span style=color:#a6e22e>IntAction</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> increase
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> decrease
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> root = Store&lt;Int, IntAction&gt;(initial: <span style=color:#ae81ff>0</span>) { action, state <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>switch</span> action {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> .increase:
+</span></span><span style=display:flex><span>        state <span style=color:#f92672>+=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> .decrease:
+</span></span><span style=display:flex><span>        state <span style=color:#f92672>-=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> sideEffect = <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> listener: Any? = root.select {
+</span></span><span style=display:flex><span>    sideEffect = $0
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root.dispatch(.increase)
+</span></span><span style=display:flex><span>root.state <span style=color:#75715e>// will be 1</span>
+</span></span><span style=display:flex><span>sideEffect <span style=color:#75715e>// will be 1</span>
+</span></span><span style=display:flex><span>listener = <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>root.dispatch(.decrease)
+</span></span><span style=display:flex><span>root.state <span style=color:#75715e>// will be 0</span>
+</span></span><span style=display:flex><span>sideEffect <span style=color:#75715e>// will be 1</span>
+</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>Without explicit support for modularity, supporting multiple reducers as above is probably not needed. Instead some composability functions should be used.</p>&mldr;</div><a class=readmore href=/posts/swifducks-simple-redux-store-with-multiple-reducers/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/archery-0-3-0-released/>Archery 0.3.0 released</a></h1><time>Oct 12, 2019</time><br><div class=description><p><em>Archery</em> is about doing something with your project’s metadata. The new version 0.3.0 puts everything on steroids and allows you to script your metadata.
+A detailed overview of all changes can be found on <a href=https://github.com/vknabel/Archery/blob/master/CHANGELOG.md#021>GitHub</a>.</p><h2 id=archerfile-loaders>Archerfile Loaders</h2><p>At first you will notice the new option to load additional contents into your Archerfile an incredibly open field of new possibilities.
+The most obvious use case is to collect metadata from multiple configuration files.
+At a second look you can even script the generation of your metadata.</p>&mldr;</div><a class=readmore href=/posts/archery-0-3-0-released/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/sde-2-7-0-released/>SDE 2.7.0 released</a></h1><time>Apr 11, 2019</time><br><div class=description><p>Today I released the new <a href=https://github.com/vknabel/vscode-swift-development-environment/releases/tag/2.7.0>2.7.0 update to SDE for VS Code</a> and the companion project sourcekite has been updated, too.</p><p>The new sourcekite <a href=https://github.com/vknabel/sourcekite/releases/tag/0.5.0>0.5.0</a> now supports Swift 5, but drops support for Swift 3. If you still need support for Swift 3.1, I also tagged <a href=https://github.com/vknabel/sourcekite/releases/tag/0.4.2>0.4.2</a>.</p><p>Since 2.6.0, SDE already supported Apple‘s official <a href=https://github.com/apple/sourcekit-lsp>sourcekit-lsp</a> by using the <code>"sde.languageServerMode": "langserver"</code> and the <code>swift.languageServerPath</code> setting.
+As announced in <a href=https://www.vknabel.com/pages/Apples-SourceKit-LSP-and-SDE-Roadmap/>Apples SourceKit-LSP and SDE Roadmap</a> SDE 2.7.0 now explicitly mirrors official SourceKit-LSP settings like <code>sourcekit-lsp.serverPath</code> and <code>sourcekit-lsp.toolchainPath</code>. These settings will only be respected when explicitly setting <code>"sde.languageServerMode": "sourcekit-lsp"</code>.</p>&mldr;</div><a class=readmore href=/posts/sde-2-7-0-released/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/apples-sourcekit-lsp-and-sde-roadmap/>Apple’s SourceKit LSP and SDE Roadmap</a></h1><time>Nov 16, 2018</time><br><div class=description><p>Apple recently <a href=https://forums.swift.org/t/new-lsp-language-service-supporting-swift-and-c-family-languages-for-any-editor-and-platform/17024/>announced</a> to develop a language server for Swift and C-family languages. Or said more clearly: Apple started development to support every editor implementing the <a href=https://langserver.org/>language server protocol</a> like VS Code, Sublime Text, Jet Brains‘ IDEs and Atom.</p><p>Later they published the <a href=https://github.com/apple/sourcekit-lsp>source code in GitHub </a>including <a href=https://github.com/apple/sourcekit-lsp/tree/master/Editors>support for VS Code and Sublime Text</a>. It will work on Linux but is currently limited to Swift snapshots and the VS Code extension hasn’t been published yet.</p>&mldr;</div><a class=readmore href=/posts/apples-sourcekit-lsp-and-sde-roadmap/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/thoughts-on-elegant-objects/>Thoughts on: Elegant Objects</a></h1><time>Oct 9, 2018</time><br><div class=description><p>Writing things down is part of my learning process. These thoughts came up while reading through Yegor Bugayenko’s book Elegant Objects about a more declarative and less procedural approach of object oriented programming.
+This is more a personal document than a book review or summary and as I already knew some topics, I do not mention several chapters or details, I might explain concepts different than the original author and many examples from Java, Ruby or C++ cannot be applied to Swift as they would already solve the issue.</p>&mldr;</div><a class=readmore href=/posts/thoughts-on-elegant-objects/>Read more ⟶</a></section><section class=list-item><h1 class=title><a href=/posts/argumentoverture/>ArgumentOverture</a></h1><time>Sep 30, 2018</time><br><div class=description><p>A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses <a href=https://github.com/pointfreeco/swift-overture>Overture</a> and is build for high composability, flexibility and little impact on your project&rsquo;s freedom to evolve.</p><p>A central use case was <a href=https://github.com/vknabel/archery>Archery</a>&rsquo;s: only actually interpreted arguments shall be consumed. Any others shall be collected (<code>remaining</code>) or should prevent execution (<code>exhaust</code>), depending on the current command.</p><p>First of all an example usage.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#75715e>// Experiment</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>do</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> (isVerbose, whoToGreet, language, <span style=color:#66d9ef>_</span>) = <span style=color:#66d9ef>try</span> with([<span style=color:#e6db74>&#34;-v&#34;</span>, <span style=color:#e6db74>&#34;hi&#34;</span>, <span style=color:#e6db74>&#34;Some string&#34;</span>, <span style=color:#e6db74>&#34;--language&#34;</span>, <span style=color:#e6db74>&#34;en&#34;</span>], chain(
+</span></span><span style=display:flex><span>        flag(<span style=color:#e6db74>&#34;verbose&#34;</span>, <span style=color:#e6db74>&#34;v&#34;</span>),
+</span></span><span style=display:flex><span>        positional(<span style=color:#e6db74>&#34;Name&#34;</span>),
+</span></span><span style=display:flex><span>        argument(<span style=color:#e6db74>&#34;language&#34;</span>, <span style=color:#e6db74>&#34;l&#34;</span>),
+</span></span><span style=display:flex><span>        exhaust
+</span></span><span style=display:flex><span>    ))
+</span></span><span style=display:flex><span>} <span style=color:#66d9ef>catch</span> {
+</span></span><span style=display:flex><span>    print(<span style=color:#e6db74>&#34;Command failed:&#34;</span>, error)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The implementation of the micro-library itself.</p>&mldr;</div><a class=readmore href=/posts/argumentoverture/>Read more ⟶</a></section><ul class=pagination><span class="page-item page-prev"><a href=/ class=page-link aria-label=Previous><span aria-hidden=true>← Prev</span></a>
+</span><span class="page-item page-next"><a href=/page/3/ class=page-link aria-label=Next><span aria-hidden=true>Next →</span></a></span></ul></main><footer><div style=display:flex><a class=soc href=https://github.com/vknabel rel=me title=GitHub><i data-feather=github></i></a>
+<a class=border></a><a class=soc href=https://mastodon.social/@vknabel/ rel=me title=Mastodon><i data-feather=at-sign></i></a>
+<a class=border></a></div><div class=footer-info>2024 © Valentin Knabel | <a href=https://github.com/athul/archie>Archie Theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></footer><script>feather.replace()</script></div></body></html>
