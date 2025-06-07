@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Vscode on vknabel</title><link>https://vknabel.com/tags/vscode/</link><description>Recent content in Vscode on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Tue, 08 Feb 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/vscode/index.xml" rel="self" type="application/rss+xml"/><item><title>Debugging Swift in VS Code in 2022</title><link>https://vknabel.com/posts/debugging-swift-in-vs-code-in-2022/</link><pubDate>Tue, 08 Feb 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/debugging-swift-in-vs-code-in-2022/</guid><description>&lt;p>Back in 2019 I wrote an &lt;a href="https://vknabel.com/pages/Debugging-Swift-in-VS-Code">article about how to debug&lt;/a> your Swift Package Manager projects in Visual Studio Code. In late december 2021, the Swift Server Working group released a brand &lt;a href="https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang">new extension for vscode&lt;/a>, which dramatically improves debugging your Swift code. Especially for linux! Time for an update!&lt;/p>
+&lt;p>Running, debugging and developing your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode.
+In VS Code we require extensions and configs for this purpose.&lt;/p>
+&lt;p>First we need to install the mentioned extension: &lt;a href="https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang">Swift for Visual Studio Code&lt;/a>.&lt;/p>
+&lt;p>Now let’s create a new project on open it in VS Code!&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>$ swift package init --type executable
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating executable package: MyProject
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Package.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating README.md
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating .gitignore
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Sources/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Sources/MyProject/main.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/MyProjectTests/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/MyProjectTests/MyProjectTests.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>$ code . &lt;span style="color:#75715e"># if not found: open -a &amp;#34;Visual Studio Code&amp;#34; .&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The Swift extension for VS Code will now generate some launch configurations within a &lt;code>.vscode/launch.json&lt;/code> file.
+It generates release and debug &lt;a href="https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb">LLDB&lt;/a>-launch-configurations for each target and one launch configuration for each test target. Previously this step would have been manual.&lt;/p>
+&lt;p>As we currently have one target &lt;code>MyProject&lt;/code> and one test target &lt;code>MyProjectTests&lt;/code>, we will have the following launch configurations:&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Debugging-Swift-in-VS-Code-in-2022/example_launch_configs.png" alt="Launch configs">&lt;/p>
+&lt;p>Also note, that the &lt;code>preLaunchTask&lt;/code>s have been created, too!&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;configurations&amp;#34;&lt;/span>: [
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;lldb&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;request&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;launch&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;name&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;Debug MyProject&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;program&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;${workspaceFolder:MyProject}/.build/debug/MyProject&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;args&amp;#34;&lt;/span>: [],
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;cwd&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;${workspaceFolder:MyProject}&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;preLaunchTask&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift: Build Debug MyProject&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;lldb&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;request&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;launch&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;name&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;Release MyProject&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;program&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;${workspaceFolder:MyProject}/.build/release/MyProject&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;args&amp;#34;&lt;/span>: [],
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;cwd&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;${workspaceFolder:MyProject}&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;preLaunchTask&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift: Build Release MyProject&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;lldb&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;request&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;launch&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;name&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;Test MyProject&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;program&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;/Applications/Xcode.app/Contents/Developer/usr/bin/xctest&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;args&amp;#34;&lt;/span>: [&lt;span style="color:#e6db74">&amp;#34;.build/debug/MyProjectPackageTests.xctest&amp;#34;&lt;/span>],
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;cwd&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;${workspaceFolder:MyProject}&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;preLaunchTask&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift: Build All&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now we are ready to start debugging!
+Let&amp;rsquo;s open &lt;code>Sources/MyProject/main.swift&lt;/code>, and add a breakpoint before executing &lt;code>print(&amp;quot;Hello, world!&amp;quot;)&lt;/code> by left-clicking the empty space before the line number.&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Debugging-Swift-in-VS-Code-in-2022/example_breakpoint.png" alt="Breakpoint in main.swift">&lt;/p>
+&lt;p>Next, switch to the &lt;code>Run and Debug&lt;/code> tab on the left, make sure &lt;code>Debug MyProject&lt;/code> is selected, and click the green run button.&lt;/p>
+&lt;p>Now your project will be compiled, run and stops at the breakpoint!&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Debugging-Swift-in-VS-Code-in-2022/example_debugging.png" alt="Stopped at breakpoint in main.swift">&lt;/p>
+&lt;p>Sadly this approach currently does not work when debugging iOS or macOS apps, but Swift Package Manager projects and CLIs work great!
+I hope you enjoy your increased productivity!&lt;/p></description></item><item><title>Reminder: websites contain weird characters</title><link>https://vknabel.com/tils/2021-11-16-reminder-websites-contain-weird-characters/</link><pubDate>Tue, 16 Nov 2021 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2021-11-16-reminder-websites-contain-weird-characters/</guid><description>&lt;p>Copying contents from the web often copies weird characters, like the invisible character &lt;code>U+FEFF&lt;/code> or &amp;ldquo;Zero Width No-Break Space&amp;rdquo;.&lt;/p>
+&lt;p>Code editors like VS Code might highlight those characters depending on your config, but other websites don&amp;rsquo;t. In my case I copied a secret for my CI pipeline including the invisible character.&lt;/p>
+&lt;p>An easy workaround for this on the mac: Spotlight removes some of these characters. A simple &lt;code>cmd+space&lt;/code>, &lt;code>cmd+v&lt;/code>, &lt;code>cmd+a&lt;/code>, &lt;code>cmd+c&lt;/code> and &lt;code>esc&lt;/code> cleans the copied text.&lt;/p>
+&lt;p>And suddenly the inserted password is correct!&lt;/p></description></item><item><title>ftp-simple vscode workspace</title><link>https://vknabel.com/tils/2021-05-12-ftp-simple-vscode-workspace/</link><pubDate>Wed, 12 May 2021 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2021-05-12-ftp-simple-vscode-workspace/</guid><description>&lt;p>&lt;a href="https://marketplace.visualstudio.com/items?itemName=humy2833.ftp-simple">ftp-simple&lt;/a> allows opening FTP connections as VS Code workspace!&lt;/p></description></item><item><title>Swift Coverage for VS Code</title><link>https://vknabel.com/posts/swift-coverage-for-vs-code/</link><pubDate>Sat, 29 Aug 2020 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/swift-coverage-for-vs-code/</guid><description>&lt;p>When developing Swift in Visual Studio Code there were a few cases, where I preferred Xcode. Beside the obvious cases like iOS Development, managing certificates and provisioning profiles, there was one big case left: Writing unit tests.&lt;/p>
+&lt;p>With perfect TDD (unit tests first, then code) this is no real problem, but if you want to write tests for already existing code, it is essential to get feedback about your current progress and test coverage.&lt;/p>
+&lt;p>In these situations, I still opened Xcode, to check the coverage. As I did this too regular and missed my VS Code setup, I decided to give code coverage in VS Code a try.&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-Coverage-for-VS-Code/example-xcode.png" alt="Code Coverage in Xcode">&lt;/p>
+&lt;p>After some research, I mostly found code coverage extensions for JS or other languages. Though I never found an extension supporting the llvm-cov-format produced by &lt;code>swift test --enable-code-coverage&lt;/code> at &lt;code>.build/*/debug/codecov/*.json&lt;/code> out of the box. There are solutions like converting this coverage file to &lt;code>lcov.info&lt;/code>, but this would always require some setup in every project. So I started my own.&lt;/p>
+&lt;p>As I really liked the idea of other extensions to highlight the code itself, I decided to adopt this idea. Though many highlight covered code using a green background, which feels too heavy for always being activated. So I decided to only highlight covered expressions by default.&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-Coverage-for-VS-Code/example-vscode.png" alt="Code Coverage in VS Code with Swift Coverage">&lt;/p>
+&lt;p>To get started, install &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.swift-coverage">Swift Coverage - Visual Studio Marketplace&lt;/a> and run your tests using &lt;code>swift test --enable-code-coverage&lt;/code>.&lt;/p>
+&lt;p>Whenever you need to update your coverage statistics, simple re-run your tests.
+That&amp;rsquo;s it!&lt;/p>
+&lt;p>Are you using &lt;a href="https://github.com/vknabel/vscode-swift-development-environment">Maintained Swift Development Environment&lt;/a>?
+To keep your coverage always up to date set &lt;code>sde.swiftBuildingParams&lt;/code> setting to &lt;code>[&amp;quot;test&amp;quot;, &amp;quot;--enable-code-coverage&amp;quot;]&lt;/code> to run all your unit tests on every change. Might not be a good idea with a slow test suite, but in smaller projects, this is super great.&lt;/p>
+&lt;p>Is there something you are missing for Swift and VS Code?
+Do you have any questions or tips?
+Let&amp;rsquo;s get in touch on &lt;a href="https://mastodon.social/@vknabel">@mastodon.social@vknabel&lt;/a> or via &lt;a href="mailto:swift-coverage-for-vscode@vknabel.com">email&lt;/a>.&lt;/p>
+&lt;p>Have you found a bug or need help with &lt;a href="https://github.com/vknabel/vscode-swift-coverage">Swift Coverage&lt;/a>? It&amp;rsquo;s open source, just head to GitHub and &lt;a href="https://github.com/vknabel/vscode-swift-coverage/issues/new">open an issue&lt;/a>.&lt;/p></description></item><item><title>Swift, VS Code and you</title><link>https://vknabel.com/posts/swift-vs-code-and-you/</link><pubDate>Wed, 22 Jan 2020 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/swift-vs-code-and-you/</guid><description>&lt;p>Editors like Visual Studio Code live from a wide range of extensions and customization. In contrast there are IDEs like Xcode and AppCode, which have everything set up and are ready to go. In order to provide a rich set of features, they cannot not offer the same level of flexibility. Which editor you might want to use is a highly personal decision.&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;em>&lt;em>Disclaimer:&lt;/em> I am the maintainer of the extensions &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swift-development-environment">Maintained Swift Development Environment&lt;/a>, &lt;a href="https://www.github.com/vknabel/sourcekite">sourcekite&lt;/a>, &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftlint">SwiftLint&lt;/a>, &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftformat">SwiftFormat&lt;/a>, &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-apple-swift-format">apple-swift-format&lt;/a>.&lt;/em>&lt;/p>&lt;/blockquote>
+&lt;h2 id="autocompletion">Autocompletion&lt;/h2>
+&lt;p>Although Visual Studio Code ships with basic syntax highlighting, it won’t give you any suggestions or diagnostics. In order to get autocompletion working, you have two major possibilities:
+Using &lt;a href="https://github.com/apple/sourcekit-lsp">Apple’s official VS Code extension&lt;/a> or using &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swift-development-environment">Maintained Swift Development Environment&lt;/a> (or in short SDE). Apple’s extension needs to be compiled manually with Node JS, SDE has already been published to the marketplace.&lt;/p>
+&lt;p>SDE supports two underlaying drivers: Apple’s SourceKit LSP and its own Sourcekite, while Apple does not. Support thee same degree of freedom.
+If you are not sure install SDE and try both drivers out. Stick with the one that fits your needs best.&lt;/p>
+&lt;h3 id="sourcekit-lsp-in-action">sourcekit-lsp in action&lt;/h3>
+&lt;p>At the moment of writing, &lt;a href="https://github.com/apple/sourcekit-lsp">sourcekit-lsp&lt;/a> is more reliable in autocompletion. And as it’s Apple’s official implementation, it will further improve on the long term.
+It does only support Swift Package Manager projects.&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/SDE-sourcekit-lsp.gif" alt="SDE with sourcekit-lsp">&lt;/p>
+&lt;h3 id="sourcekite-in-action">sourcekite in action&lt;/h3>
+&lt;p>&lt;a href="https://github.com/apple/sourcekite">&lt;code>sourcekite&lt;/code>&lt;/a> works out of the box with Swift Package Manager projects, too. Additionally you can manually configure your project structure to support standalone files, Xcode projects, Tensorflow or UIKit projects.&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/SDE-sourcekite.gif" alt="SDE with sourcekite">&lt;/p>
+&lt;h2 id="debugging">Debugging&lt;/h2>
+&lt;p>Every piece of code needs to be tested and debugged. In contrast to Xcode, you need to manually configure your debugging targets.&lt;/p>
+&lt;p>For this purpose use LLDB Debugger. In case you need more details, read my blog post on &lt;a href="https://vknabel.com/pages/Debugging-Swift-in-VS-Code/">Debugging Swift in VS Code | Valentin Knabel&lt;/a>. On Linux you might need some additional setup.&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/LLDB.png" alt="LLDB Debugger">&lt;/p>
+&lt;h2 id="swiftlint">SwiftLint&lt;/h2>
+&lt;p>You probably know SwiftLint. Wouldn&amp;rsquo;t it be great to see all its warnings and errors in VS Code? It is with &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftlint">SwiftLint&lt;/a>.&lt;/p>
+&lt;p>Of course you need to install &lt;a href="https://github.com/realm/SwiftLint#installation">SwiftLint&lt;/a> manually. If you add SwiftLint as dependency to your Swift Package Manager project, the extension will prefer the local version.&lt;/p>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/Swiftlint.png" alt="SwiftLint">&lt;/p>
+&lt;h2 id="swiftformat">SwiftFormat&lt;/h2>
+&lt;p>If you like code formatters, you have two options.
+First &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftformat">SwiftFormat&lt;/a> which uses &lt;a href="https://www.github.com/nicklockwood/SwiftFormat">nicklockwood/SwiftFormat&lt;/a> under the hood and second &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-apple-swift-format">apple-swift-format&lt;/a> which relies on &lt;a href="https://www.github.com/apple/swift-format">apple/swift-format&lt;/a>.
+Pick the used extension for your project&amp;rsquo;s tool to avoid unnecessary reformats and merge conflicts.&lt;/p>
+&lt;p>In both cases, you need to install the command line tools manually: either &lt;a href="https://github.com/nicklockwood/SwiftFormat#command-line-tool">nicklockwood/SwiftFormat&lt;/a> or &lt;a href="https://github.com/apple/swift-format#swift-format">apple/swift-format&lt;/a>.
+In both cases: if you add the formatter of your choice as dependency to your Swift Package Manager project, the extension will prefer the local version.&lt;/p>
+&lt;blockquote>
+&lt;p>Pro tip: enable &lt;code>editor.formatOnSave&lt;/code>!&lt;/p>&lt;/blockquote>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/swift-format.gif" alt="SwiftFormat">&lt;/p>
+&lt;h2 id="templating">Templating&lt;/h2>
+&lt;p>There is a lot of tooling built on top of templating languages like Stencil of Leaf. Of course there are some extensions for these languages:&lt;/p>
+&lt;ul>
+&lt;li>Use &lt;a href="https://marketplace.visualstudio.com/items?itemName=svanimpe.stencil">Stencil&lt;/a> for VS Code if you are using Sourcery or Kitura. No additional dependencies are are required.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/Stencil.png" alt="Stencil">&lt;/p>
+&lt;ul>
+&lt;li>Vapor users may be interested in &lt;a href="https://marketplace.visualstudio.com/items?itemName=Francisco.html-leaf">Leaf HTML&lt;/a> for VS Code. Nothing to install here either.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/Leaf.png" alt="Leaf">&lt;/p>
+&lt;h2 id="whats-left">What’s left&lt;/h2>
+&lt;p>In general there are many features missing when using VS Code for Swift development.
+Here is a non-exhaustive list of all features missing:&lt;/p>
+&lt;ul>
+&lt;li>No Xcode project support&lt;/li>
+&lt;li>No Playground support&lt;/li>
+&lt;li>No iOS debugging&lt;/li>
+&lt;li>No refactoring, yet&lt;/li>
+&lt;li>No Swift migrations&lt;/li>
+&lt;li>Missing debugger snippets&lt;/li>
+&lt;li>Missing tasks and commands for SPM&lt;/li>
+&lt;li>Incomplete Language Servers&lt;/li>
+&lt;li>Manual installation of dependencies&lt;/li>
+&lt;li>Convenience plugins for external Tooling (Mint, Sourcery, Rocket, &amp;hellip;)&lt;/li>
+&lt;li>Limited Linux support&lt;/li>
+&lt;li>&lt;a href="https://vknabel.com/pages/Swift-Coverage-for-VS-Code/">Code Coverage&lt;/a> &lt;em>updated&lt;/em>&lt;/li>
+&lt;/ul>
+&lt;p>What about you? Have you already tried different editors?
+Do you know any additional extensions or have any questions?
+Let&amp;rsquo;s get in touch on &lt;a href="https://mastodon.social/@vknabel">@mastodon.social@vknabel&lt;/a> or via &lt;a href="mailto:swift-vscode-and-you@vknabel.com">email&lt;/a>.&lt;/p></description></item><item><title>Debugging Swift in VS Code the old way</title><link>https://vknabel.com/posts/debugging-swift-in-vs-code/</link><pubDate>Thu, 21 Nov 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/debugging-swift-in-vs-code/</guid><description>&lt;p>Running and debugging your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode.
+In VS Code we require extensions and configs for this purpose.&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;strong>Update from 2022:&lt;/strong> the Swift Server Work Group released their own &lt;a href="https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang">official VS Code extension&lt;/a> which dramatically improves the debugging user experience. &lt;a href="https://vknabel.com/pages/Debugging-Swift-in-VS-Code-in-2022/">Here is the new, updated blog post&lt;/a>.&lt;/p>&lt;/blockquote>
+&lt;p>Within this blog post, we will set up debugging for a Swift Package Manager project. As a bonus we will also prepare debugging your unit tests.&lt;/p>
+&lt;p>First we need to install an extension as VS Code does not come with Swift debugger: &lt;a href="https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb">LLDB Debugger&lt;/a>.&lt;/p>
+&lt;p>Now let’s create a new project on open it in VS Code!&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>$ swift package init --type executable
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating executable package: MyProject
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Package.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating README.md
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating .gitignore
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Sources/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Sources/MyProject/main.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/LinuxMain.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/MyProjectTests/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/MyProjectTests/MyProjectTests.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Creating Tests/MyProjectTests/XCTestManifests.swift
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>$ code . &lt;span style="color:#75715e"># if not found: open -a &amp;#34;Visual Studio Code&amp;#34; .&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>As we’ve prepared all prerequisites, we are ready to set up our first debugging target! In the debuggers tab in your vscode window, select the drop down and then &amp;ldquo;Add configuration&amp;hellip;&amp;rdquo;. This will now create a new file called &lt;code>.vscode/launch.json&lt;/code>.&lt;/p>
+&lt;p>Below is an example configuration supporting running executable targets, unit tests on macOS and Linux. Relevant files will be compiled using the pre-launch-tasks.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// .vscode/launch.json
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;version&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;0.2.0&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;configurations&amp;#34;&lt;/span>: [
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// Running executables
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;lldb&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;request&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;launch&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;name&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;Run your Executable&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;program&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;${workspaceFolder}/.build/debug/your-executable&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;args&amp;#34;&lt;/span>: [],
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;cwd&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;${workspaceFolder}&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;preLaunchTask&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift-build&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// Running unit tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;lldb&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;request&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;launch&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;name&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;Debug tests on macOS&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;program&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;&amp;lt;path to xctest executable&amp;gt;&amp;#34;&lt;/span>, &lt;span style="color:#75715e">//For example /Applications/Xcode.app/Contents/Developer/usr/bin/xctest
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#f92672">&amp;#34;args&amp;#34;&lt;/span>: [&lt;span style="color:#e6db74">&amp;#34;${workspaceFolder}/.build/debug/&amp;lt;xctest bundle name&amp;gt;.xctest&amp;#34;&lt;/span>],
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;preLaunchTask&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift-build-tests&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;lldb&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;request&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;launch&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;name&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;Debug tests on Linux&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;program&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;./.build/x86_64-unknown-linux/debug/YourPackageTests.xctest&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;preLaunchTask&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift-build-tests&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>And here are the promised pre-launched-tasks:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// .vscode/tasks.json
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;version&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;2.0.0&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;tasks&amp;#34;&lt;/span>: [
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// compile your SPM project
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;label&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift-build&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;shell&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;command&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift build&amp;#34;&lt;/span> &lt;span style="color:#75715e">// for TensorFlow add -Xlinker -ltensorflow
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// compile your SPM tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;label&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift-build-tests&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;process&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;command&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;swift&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;group&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;build&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;args&amp;#34;&lt;/span>: [
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;build&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;--build-tests&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// for TensorFlow add &amp;#34;-Xlinker&amp;#34;, &amp;#34;-ltensorflow&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Sadly this approach currently does not work when debugging iOS or macOS apps, but Swift Package Manager projects and CLIs work great!
+I hope you enjoy your increased productivity!&lt;/p></description></item><item><title>SDE 2.7.0 released</title><link>https://vknabel.com/posts/sde-2-7-0-released/</link><pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/sde-2-7-0-released/</guid><description>&lt;p>Today I released the new &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/releases/tag/2.7.0">2.7.0 update to SDE for VS Code&lt;/a> and the companion project sourcekite has been updated, too.&lt;/p>
+&lt;p>The new sourcekite &lt;a href="https://github.com/vknabel/sourcekite/releases/tag/0.5.0">0.5.0&lt;/a> now supports Swift 5, but drops support for Swift 3. If you still need support for Swift 3.1, I also tagged &lt;a href="https://github.com/vknabel/sourcekite/releases/tag/0.4.2">0.4.2&lt;/a>.&lt;/p>
+&lt;p>Since 2.6.0, SDE already supported Apple‘s official &lt;a href="https://github.com/apple/sourcekit-lsp">sourcekit-lsp&lt;/a> by using the &lt;code>&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;langserver&amp;quot;&lt;/code> and the &lt;code>swift.languageServerPath&lt;/code> setting.
+As announced in &lt;a href="https://www.vknabel.com/pages/Apples-SourceKit-LSP-and-SDE-Roadmap/">Apples SourceKit-LSP and SDE Roadmap&lt;/a> SDE 2.7.0 now explicitly mirrors official SourceKit-LSP settings like &lt;code>sourcekit-lsp.serverPath&lt;/code> and &lt;code>sourcekit-lsp.toolchainPath&lt;/code>. These settings will only be respected when explicitly setting &lt;code>&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;sourcekit-lsp&amp;quot;&lt;/code>.&lt;/p>
+&lt;p>I‘d suggest you to configure both &lt;code>sourcekit-lsp&lt;/code> and &lt;code>sourcekite&lt;/code> configs. Depending on your project, you may swap out the actually used LSP by updating &lt;code>sde.languageServerMode&lt;/code>. Both LSP implementations have different benefits. Apple‘s SourceKit-LSP is easier to install, under active development and more robust. On the other hand SDE‘s LSP is more flexible in terms of settings, works for standalone Swift files, Xcode projects (through manual configuration) and handles modules differently.&lt;/p>
+&lt;h2 id="upgrade-if-you-use-sourcekit-lsp">Upgrade if you use SourceKit-LSP&lt;/h2>
+&lt;p>In your settings replace your &lt;code>&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;langserver&amp;quot;&lt;/code> with &lt;code>&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;sourcekit-lsp&amp;quot;&lt;/code> and &lt;code>swift.languageServerPath&lt;/code> with &lt;code>sourcekit-lsp.serverPath&lt;/code>.&lt;/p>
+&lt;p>That‘s it.&lt;/p>
+&lt;h2 id="upgrade-if-you-use-sourcekite">Upgrade if you use Sourcekite&lt;/h2>
+&lt;p>Clone the latest version of sourcekite and open the repo within your terminal.&lt;/p>
+&lt;p>&lt;strong>On Linux:&lt;/strong> assuming you have already linked your &lt;code>sourcekitdInProc&lt;/code>, you simply need to run &lt;code>swift build -Xlinker -l:sourcekitdInProc -c release&lt;/code> and overwrite your old binary.&lt;/p>
+&lt;p>&lt;strong>On macOS:&lt;/strong> Run &lt;code>make install LIB_DIR=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/lib&lt;/code> if you have multiple Swift toolchains installed and &lt;code>make install LIB_DIR=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib&lt;/code> otherwise to install the new build to &lt;code>/usr/local/bin/sourcekite&lt;/code>. If you used a different path, override it by adding &lt;code>PREFIX=&amp;lt;your-path&amp;gt;&lt;/code>.&lt;/p>
+&lt;p>Your &lt;code>swift.path.sourcekite&lt;/code> should still be valid. Make sure to restart your VS Code before further development.&lt;/p>
+&lt;h2 id="upgrade-if-you-use-ryan-loveletts-langserverswift">Upgrade if you use Ryan Lovelett‘s LangserverSwift&lt;/h2>
+&lt;p>You have no upgrade steps to do, but you are now able to additionally use SourceKit-LSP.&lt;/p>
+&lt;p>Install SourceKit-LSP and let the global &lt;code>sourcekit-lsp.serverPath&lt;/code> point to the release binary. Now you can swap your language server inside different projects by overriding &lt;code>sde.languageServerMode&lt;/code>.&lt;/p>
+&lt;p>Though as Ryan‘s Langserver is no longer maintained, I‘d recommend you to set your default &lt;code>sde.languageServerMode&lt;/code> to &lt;code>sourcekite&lt;/code> or &lt;code>sourcekit-lsp&lt;/code>.&lt;/p></description></item><item><title>Apple’s SourceKit LSP and SDE Roadmap</title><link>https://vknabel.com/posts/apples-sourcekit-lsp-and-sde-roadmap/</link><pubDate>Fri, 16 Nov 2018 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/apples-sourcekit-lsp-and-sde-roadmap/</guid><description>&lt;p>Apple recently &lt;a href="https://forums.swift.org/t/new-lsp-language-service-supporting-swift-and-c-family-languages-for-any-editor-and-platform/17024/">announced&lt;/a> to develop a language server for Swift and C-family languages. Or said more clearly: Apple started development to support every editor implementing the &lt;a href="https://langserver.org/">language server protocol&lt;/a> like VS Code, Sublime Text, Jet Brains‘ IDEs and Atom.&lt;/p>
+&lt;p>Later they published the &lt;a href="https://github.com/apple/sourcekit-lsp">source code in GitHub &lt;/a> including &lt;a href="https://github.com/apple/sourcekit-lsp/tree/master/Editors">support for VS Code and Sublime Text&lt;/a>. It will work on Linux but is currently limited to Swift snapshots and the VS Code extension hasn’t been published yet.&lt;/p>
+&lt;p>I really love Apple’s decision to take over this responsibility. I think they will be able do a much better job than we as a community have done so far. There were quite a few LSPs for Swift, AFAIK all of them started as an experiment. Most of them got stuck at Swift 3.x and never supported Swift 4. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment">SDE for VS Code&lt;/a> was one of them until I started maintaining it.&lt;/p>
+&lt;h2 id="the-future-of-sde">The future of SDE&lt;/h2>
+&lt;p>That being said, I feel responsible to inform users (and potential ones) about my plans regarding SDE. TL;DR I will still continue to maintain SDE and fix issues if I can. And, of course, I‘d be happy for any feedback and bug reports.&lt;/p>
+&lt;p>I strongly believe Apple‘s SourceKit LSP will be the way to go once it is stable and supports stable Swift releases. My future goal for SDE is to smoothly prepare the transition to it and Apple’s still unpublished VS Code extension.&lt;/p>
+&lt;p>As SDE comes with its own LSP implementation, I already released &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/releases/tag/2.6.0">SDE 2.6.0&lt;/a> to support alternative language server implementations like &lt;a href="https://github.com/RLovelett/langserver-swift">RLovelett‘s LangserverSwift&lt;/a> and Apple’s (back then: unpublished) SourceKit LSP.&lt;/p>
+&lt;p>The following roadmap isn’t final and may actually differ:
+At first I will mirror all &lt;a href="https://github.com/apple/sourcekit-lsp/blob/master/Editors/vscode/package.json">settings of the VS Code extension&lt;/a> as it reduces barriers and migration issues. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/39">#39&lt;/a>&lt;/p>
+&lt;p>Once the extension has been released to VS Code‘s extension registry and it is stable enough, I will add a warning to prefer that instead if not installed yet. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/40">#40&lt;/a> If it has been installed and activated, SDE will disable itself automatically. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/41">#41&lt;/a> These options should be opt-out. The goal within this phase is to decide which extension to use within which project.&lt;/p>
+&lt;p>As soon as I don’t see any reason to keep maintaining SDE, I will add a message as explanation. If SDE will still have features which are not part of Apple’s extension, I will extract them into separate extensions which will still be maintained.&lt;/p>
+&lt;p>I hope you agree with these future plans. If you have more ideas, feedback or if your don’t agree on this, please &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/new">open an issue&lt;/a> or tell me on &lt;a href="https://mastodon.social/@vknabel">@mastodon.social@vknabel&lt;/a>.&lt;/p></description></item></channel></rss>

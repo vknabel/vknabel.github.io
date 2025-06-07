@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cli on vknabel</title><link>https://vknabel.com/tags/cli/</link><description>Recent content in Cli on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Wed, 03 Aug 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/cli/index.xml" rel="self" type="application/rss+xml"/><item><title>Bash scripts with Gum</title><link>https://vknabel.com/tils/2022-08-03-bash-scripts-with-gum/</link><pubDate>Wed, 03 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-08-03-bash-scripts-with-gum/</guid><description>&lt;p>I gave the newest tool of Charm &lt;a href="https://github.com/charmbracelet/gum">Gum&lt;/a> a try.
+It allows to create interactive bash scripts in just a few lines of code.&lt;/p>
+&lt;p>In my case I gave it a try for Kubernetes. I often want to look at the logs of a pod, but the exact k8s pod differs from time to time.
+And sometimes I forget the exact namespace or the pod&amp;rsquo;s name includes random characters.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#! /bin/bash
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># let the user select a namespace&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NAMESPACE&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>kubectl get namespaces -o name | gum choose | cut -d/ -f2&lt;span style="color:#66d9ef">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># let the user select a pod of the namespace&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>POD&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>kubectl get pods -n &lt;span style="color:#e6db74">&amp;#34;&lt;/span>$NAMESPACE&lt;span style="color:#e6db74">&amp;#34;&lt;/span> | tail -n +2 | gum choose | cut -d&lt;span style="color:#e6db74">&amp;#39; &amp;#39;&lt;/span> -f1&lt;span style="color:#66d9ef">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># if you want to repeat, copy the command&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>echo &lt;span style="color:#e6db74">&amp;#34;&amp;gt; kubectl logs -n \&amp;#34;&lt;/span>$NAMESPACE&lt;span style="color:#e6db74">\&amp;#34; \&amp;#34;&lt;/span>$POD&lt;span style="color:#e6db74">\&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># print the logs&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>kubectl logs -n &lt;span style="color:#e6db74">&amp;#34;&lt;/span>$NAMESPACE&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>$POD&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Announcing Puffery for macOS and the command line</title><link>https://vknabel.com/posts/announcing-puffery-for-macos-and-the-command-line/</link><pubDate>Fri, 29 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/announcing-puffery-for-macos-and-the-command-line/</guid><description>&lt;p>Two years ago, I created &lt;a href="https://apps.apple.com/de/app/puffery/id1508776889">Puffery for iOS&lt;/a>, which allows sending push notifications to your iOS devices.&lt;/p>
+&lt;p>You can follow other&amp;rsquo;s channels and directly receive updates. There is no algorithm that decides wether you should receive notifications or not.&lt;/p>
+&lt;p>From the beginning scripting is part of puffery&amp;rsquo;s DNA: you were able to send messages with Siri Shortcuts and a simple &lt;code>curl&lt;/code> command.&lt;/p>
+&lt;blockquote>
+&lt;p>If you want to take a deeper look, feel free to check out the &lt;a href="https://github.com/vknabel/puffery">GitHub repository&lt;/a> including the Swift Server written in Vapor, and the iOS app built with SwiftUI in a single mono-repo.&lt;/p>&lt;/blockquote>
+&lt;h2 id="puffery-for-macos">Puffery for macOS&lt;/h2>
+&lt;p>&lt;img src="./puffery-macos-showcase.png" alt="">&lt;/p>
+&lt;p>If you do no share your channels, sending and receiving messages and thus push notifications from the same iOS device is kind of useless in the long run.&lt;/p>
+&lt;p>Some of your most productive time of the day, you are probably sitting in front of your Mac. And a macOS app better integrates into your daily workflow.&lt;/p>
+&lt;p>Of course, you can use your Shortcuts from your iOS device. But what&amp;rsquo;s special on macOS is the ability to pin specific workflows to the dock or the status bar. Even adding workflows to your share menus is possible!&lt;/p>
+&lt;p>No need to open Puffery directly if you don&amp;rsquo;t want to. No distractions.&lt;/p>
+&lt;p>If you are a user of macOS widgets, you are covered, too! They work exactly the same way as on iOS.&lt;/p>
+&lt;h2 id="puffery-for-the-command-line">Puffery for the command line&lt;/h2>
+&lt;p>&lt;img src="./puffery-cli-showcase.png" alt="">&lt;/p>
+&lt;p>With the next announcement, we are slowly moving outside of the Apple ecosystem. Puffery is now available as a command line tool. Currently it has a limited scope and has not yet received feature parity with the iOS or macOS apps, but it does not only support macOS, but also Linux &lt;em>and&lt;/em> Windows.&lt;/p>
+&lt;p>It provides a tui / text based interface to scroll through lists of channels and messages. You can also send messages to a previously selected channel.&lt;/p>
+&lt;p>You can even signup or login with your existing account.&lt;/p>
+&lt;p>To give it a try, have a look on the &lt;a href="https://github.com/vknabel/go-puffery#installation">puffery installation instructions&lt;/a>.&lt;/p>
+&lt;p>It has been built in Go and &lt;a href="https://charm.sh/">Charm&lt;/a>&amp;rsquo;s &lt;a href="https://github.com/charmbracelet/bubbletea">Bubble Tea library&lt;/a>. As all of Puffery, it is open source and licensed under the &lt;a href="https://github.com/vknabel/go-puffery/blob/main/LICENSE">MIT license&lt;/a>.&lt;/p></description></item><item><title>Getting your IP address</title><link>https://vknabel.com/tils/2022-02-14-getting-your-ip-address/</link><pubDate>Mon, 14 Feb 2022 20:53:32 +0000</pubDate><guid>https://vknabel.com/tils/2022-02-14-getting-your-ip-address/</guid><description>&lt;p>Sometimes you need your local IP address on the command line to automatically pass it to a script.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ifconfig en0 |awk &lt;span style="color:#e6db74">&amp;#39;/inet / {print $2; }&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>There is a modular version manager: asdf!</title><link>https://vknabel.com/tils/2021-11-16-there-is-a-modular-version-manager-asdf/</link><pubDate>Tue, 16 Nov 2021 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2021-11-16-there-is-a-modular-version-manager-asdf/</guid><description>&lt;p>Today I learned about &lt;a href="https://github.com/asdf-vm/asdf">asdf&lt;/a>, which is a pluggable version manager.&lt;/p>
+&lt;p>Previously I used nvm, rvm, swiftenv and more. I now use asdf. Just add the plugin of your choice and install your desired versions.&lt;/p>
+&lt;p>The only drawback is installing completely new versions of the tools. You are only able to install exact versions. You can&amp;rsquo;t install &lt;em>some major 16 nodejs version&lt;/em>.
+But you can still install &lt;code>asdf install &amp;lt;plugin&amp;gt; latest&lt;/code> or in case of nodejs &lt;code>lts-*&lt;/code> versions.&lt;/p>
+&lt;p>Don&amp;rsquo;t forget to pick the version locally or globally.&lt;/p>
+&lt;blockquote>
+&lt;p>some side-tip: there is an &lt;a href="https://github.com/asdf-community/asdf-direnv">asdf plugin for direnv&lt;/a>!&lt;/p>&lt;/blockquote></description></item><item><title>Having two admin dev accounts is a bad idea</title><link>https://vknabel.com/tils/2021-11-15-having-two-admin-dev-accounts-is-a-bad-idea/</link><pubDate>Mon, 15 Nov 2021 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2021-11-15-having-two-admin-dev-accounts-is-a-bad-idea/</guid><description>&lt;p>I tried to keep my work stuff separate from my personal stuff on the same machine.
+I created two admin users, set up a group for homebrew and set the permissions accordingly.&lt;/p>
+&lt;p>Sadly this didn&amp;rsquo;t work out in the long run. So I started to run Homebrew as my preferred admin user.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#f92672">[&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>whoami&lt;span style="color:#66d9ef">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> !&lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;vknabel&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>; &lt;span style="color:#66d9ef">then&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sudo -S --login -u vknabel bash -- &lt;span style="color:#66d9ef">$(&lt;/span>which brew&lt;span style="color:#66d9ef">)&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>$@&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">else&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> brew &lt;span style="color:#e6db74">&amp;#34;&lt;/span>$@&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">fi&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This approach worked and was muich more reliable than the previous approach.&lt;/p>
+&lt;p>Then came Flutter. I had to add additional permissions and eventually change their ownership from time to time as flutter messed them up.&lt;/p></description></item><item><title>InferIt: a Constraint Solving Package Manager</title><link>https://vknabel.com/posts/inferit-a-constraint-solving-package-manager/</link><pubDate>Tue, 15 Oct 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/inferit-a-constraint-solving-package-manager/</guid><description>&lt;p>The initial idea behind InferIt was to create some mixture of a constraint solver and a dependency manager: you would just tell it what to install and it would gather as much information as possible to install it.&lt;/p>
+&lt;p>The goal is to fulfill a requirement. InferIt would then try to resolve all variables by trying to fulfill several requirements. If a requirement has been met, the value can be propagated.&lt;/p>
+&lt;p>The current example does not include side effects or file system lookups. Though this essentially is the key behind this idea and is possible for synchronous operations.&lt;/p>
+&lt;p>&lt;em>Originally written at 2018-01-15&lt;/em>&lt;/p>
+&lt;h2 id="example">Example&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> c = Context()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> name = Variable&amp;lt;String&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;name&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> githubRepository = Variable&amp;lt;String&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;githubRepository&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> workingDirectory = Variable&amp;lt;Path&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;workingDirectory&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> inferConfig = Variable&amp;lt;InferConfig&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;inferConfig&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> repositoryUrl = Variable&amp;lt;URL&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;respositoryUrl&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> projectDirectory = Variable&amp;lt;Path&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;projectDirectory&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(name).by { &lt;span style="color:#e6db74">&amp;#34;vknabel/rock&amp;#34;&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(githubRepository).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name.with { $0.split(separator: &lt;span style="color:#e6db74">&amp;#34;/&amp;#34;&lt;/span>).count == &lt;span style="color:#ae81ff">2&lt;/span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { $0 }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(workingDirectory).by { Path.current }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(inferConfig).by(InferConfig.provider)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(repositoryUrl).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> githubRepository,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { URL(string: &lt;span style="color:#e6db74">&amp;#34;https://github.com/&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>$0&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">.git&amp;#34;&lt;/span>)&lt;span style="color:#f92672">!&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(repositoryUrl).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name.asUrl.toBeDefined,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { $0 }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(projectDirectory).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> repositoryUrl,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> workingDirectory,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { &lt;span style="color:#66d9ef">try&lt;/span> cloneRepository(from: $0, to: $1) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.solve(requirement: projectDirectory) &lt;span style="color:#75715e">// this actually runs the application&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="implemenation">Implemenation&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#a6e22e">Foundation&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">InferConfig&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> projectDirectory: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">provider&lt;/span>() &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; InferConfig {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> ResolveError.notImplemented(&lt;span style="color:#66d9ef">#function&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">cloneRepository&lt;/span>(from url: URL, to path: Path) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; Path {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> path &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#e6db74">&amp;#34;/&amp;#34;&lt;/span> &lt;span style="color:#f92672">+&lt;/span> url.lastPathComponent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#a6e22e">ResolveError&lt;/span>: Error, CustomStringConvertible {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> notImplemented(String)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> undeclaredVariable(String)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> couldNotResolveVariable(String)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> conditionalCastFailed(Any, Any.&lt;span style="color:#66d9ef">Type&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">from&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> error: Error) -&amp;gt; ResolveError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> error = error &lt;span style="color:#66d9ef">as&lt;/span>? ResolveError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> error
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> fatalError(&lt;span style="color:#e6db74">&amp;#34;An unknown error occurred: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>error&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> description: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .notImplemented(feature):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Not Implemented: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>feature&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .undeclaredVariable(variable):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Variable not declared: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>variable&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .couldNotResolveVariable(variable):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Variable could not be resolved: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>variable&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .conditionalCastFailed(value, to):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Type error: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>value&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74"> is no &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>to&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">//: Variables don&amp;#39;t depend on a context.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">Requirement&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> associatedtype Source
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> associatedtype Result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> sourceName: String { &lt;span style="color:#66d9ef">get&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">apply&lt;/span>(state: RequirementState&amp;lt;Source&amp;gt;) -&amp;gt; RequirementState&amp;lt;Result&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Variable&lt;/span>&amp;lt;T&amp;gt;: Requirement {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> sourceName: String
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> name: String) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sourceName = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">apply&lt;/span>(state: RequirementState&amp;lt;T&amp;gt;) -&amp;gt; RequirementState&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> state
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Requirement&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">with&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> filter: @escaping (Result) -&amp;gt; Bool) -&amp;gt; AnyRequirement&amp;lt;Source, Result&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> AnyRequirement(named: sourceName) { sourceState &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.apply(state: sourceState) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(source) &lt;span style="color:#66d9ef">where&lt;/span> filter(source):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(source)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .resolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(.notImplemented(&lt;span style="color:#e6db74">&amp;#34;validation mismatch&amp;#34;&lt;/span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">flatMap&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (Result) -&amp;gt; RequirementState&amp;lt;R&amp;gt;) -&amp;gt; AnyRequirement&amp;lt;Source, R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> AnyRequirement(named: sourceName) { sourceState &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.apply(state: sourceState) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(source):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> transform(source) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(result):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(result)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">map&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (Result) -&amp;gt; R) -&amp;gt; AnyRequirement&amp;lt;Source, R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> AnyRequirement(named: sourceName) { sourceState &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.apply(state: sourceState) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(source):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(transform(source))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">AnyRequirement&lt;/span>&amp;lt;Source, Result&amp;gt;: Requirement {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">typealias&lt;/span> Transformation = (RequirementState&amp;lt;Source&amp;gt;) -&amp;gt; RequirementState&amp;lt;Result&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> sourceName: String
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> transformation: Transformation
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(named name: String, transform: @escaping Transformation) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sourceName = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> transformation = transform
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">apply&lt;/span>(state: RequirementState&amp;lt;Source&amp;gt;) -&amp;gt; RequirementState&amp;lt;Result&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> transformation(state)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#a6e22e">RequirementState&lt;/span>&amp;lt;Value&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> resolved(Value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> failed(ResolveError)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(catching factory: () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; Value) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = .resolved(&lt;span style="color:#66d9ef">try&lt;/span> factory())
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = .failed(.from(error))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(catching factory: () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; RequirementState&amp;lt;Value&amp;gt;) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = &lt;span style="color:#66d9ef">try&lt;/span> factory()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = .failed(.from(error))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">map&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: (Value) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; R) &lt;span style="color:#66d9ef">rethrows&lt;/span> -&amp;gt; RequirementState&amp;lt;R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">try&lt;/span> .resolved(transform(value))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">flatMap&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: (Value) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; RequirementState&amp;lt;R&amp;gt;) &lt;span style="color:#66d9ef">rethrows&lt;/span> -&amp;gt; RequirementState&amp;lt;R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">try&lt;/span> transform(value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">casted&lt;/span>&amp;lt;T&amp;gt;(to &lt;span style="color:#66d9ef">_&lt;/span>: T.&lt;span style="color:#66d9ef">Type&lt;/span> = T.&lt;span style="color:#66d9ef">self&lt;/span>) -&amp;gt; RequirementState&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> value = value &lt;span style="color:#66d9ef">as&lt;/span>? T {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(.conditionalCastFailed(value, T.&lt;span style="color:#66d9ef">self&lt;/span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Variable&lt;/span> &lt;span style="color:#66d9ef">where&lt;/span> T == String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> asUrl: Variable&amp;lt;URL?&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Variable&amp;lt;URL?&lt;span style="color:#f92672">&amp;gt;&lt;/span>(sourceName) &lt;span style="color:#75715e">// &lt;/span>&lt;span style="color:#75715e">TODO:&lt;/span>&lt;span style="color:#75715e"> AnyRequirement&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Variable&lt;/span> &lt;span style="color:#66d9ef">where&lt;/span> T == URL? {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> toBeDefined: Variable&amp;lt;URL&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Variable&amp;lt;URL&amp;gt;(sourceName) &lt;span style="color:#75715e">// &lt;/span>&lt;span style="color:#75715e">TODO:&lt;/span>&lt;span style="color:#75715e"> AnyRequirement&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Provider&lt;/span>&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> context: Context
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> variable: Variable&amp;lt;T&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">for&lt;/span> variable: Variable&amp;lt;T&amp;gt;, &lt;span style="color:#66d9ef">in&lt;/span> context: Context) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.context = context
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.variable = variable
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">by&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> provider: @escaping () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> context.bind(variable: variable, catching: provider)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">when&lt;/span>&amp;lt;R: Requirement&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> precondition: R, &lt;span style="color:#66d9ef">_&lt;/span> resolve: @escaping (R.Result) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> context.bind(variable: variable, to: {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> solution: RequirementState&amp;lt;R.Result&amp;gt; = &lt;span style="color:#66d9ef">self&lt;/span>.context.solve(requirement: precondition)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> solution.flatMap { (value: R.Result) -&amp;gt; RequirementState&amp;lt;T&amp;gt; &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequirementState { &lt;span style="color:#66d9ef">try&lt;/span> resolve(value) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">when&lt;/span>&amp;lt;R0: Requirement, R1: Requirement&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> precondition0: R0, &lt;span style="color:#66d9ef">_&lt;/span> precondition1: R1, &lt;span style="color:#66d9ef">_&lt;/span> resolve: @escaping (R0.Result, R1.Result) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> context.bind(variable: variable, to: {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> solution0 = { &lt;span style="color:#66d9ef">self&lt;/span>.context.solve(requirement: precondition0) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> solution1 = { &lt;span style="color:#66d9ef">self&lt;/span>.context.solve(requirement: precondition1) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> solution0().flatMap { (value0: R0.Result) -&amp;gt; RequirementState&amp;lt;T&amp;gt; &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> solution1().flatMap { (value1: R1.Result) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequirementState { &lt;span style="color:#66d9ef">try&lt;/span> resolve(value0, value1) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>fileprivate &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">VariableBindings&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">typealias&lt;/span> Resolver = () -&amp;gt; RequirementState&amp;lt;Any&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> resolvers: [Resolver] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> state: RequirementState&amp;lt;Any&amp;gt; = .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Context&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> bindings: [String: VariableBindings] = [:]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">provide&lt;/span>&amp;lt;T&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> variable: Variable&amp;lt;T&amp;gt;) -&amp;gt; Provider&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Provider(&lt;span style="color:#66d9ef">for&lt;/span>: variable, &lt;span style="color:#66d9ef">in&lt;/span>: &lt;span style="color:#66d9ef">self&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">bind&lt;/span>&amp;lt;T&amp;gt;(variable: Variable&amp;lt;T&amp;gt;, catching resolver: @escaping () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> bind(variable: variable) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequirementState(catching: resolver)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">bind&lt;/span>&amp;lt;T&amp;gt;(variable: Variable&amp;lt;T&amp;gt;, to resolver: @escaping () -&amp;gt; RequirementState&amp;lt;T&amp;gt;) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> binding = bindings[variable.sourceName] ?? VariableBindings()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> binding.resolvers.append({ resolver().casted() })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> bindings[variable.sourceName] = binding
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">log&lt;/span>(resolver: VariableBindings.Resolver, &lt;span style="color:#66d9ef">for&lt;/span> sourceName: String) -&amp;gt; RequirementState&amp;lt;Any&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> result = resolver()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> result {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;[FAILED] &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>sourceName&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74"> with &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>error&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;[SOLVED] &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>sourceName&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74"> as &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>String&lt;span style="color:#e6db74">(&lt;/span>reflecting: value&lt;span style="color:#e6db74">))&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">break&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">solvePure&lt;/span>(sourceName: String) -&amp;gt; RequirementState&amp;lt;Any&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">guard&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> binding = bindings[sourceName] &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;[FAILED] No rules for &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>sourceName&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(.undeclaredVariable(sourceName))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> binding.state {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> binding.resolvers.reduce(.failed(.couldNotResolveVariable(sourceName))) { result, resolver &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved = result {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> resolver()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">case&lt;/span> .failed(.couldNotResolveVariable(sourceName)) = result {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> log(resolver: resolver, &lt;span style="color:#66d9ef">for&lt;/span>: sourceName)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> result:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">solve&lt;/span>(sourceName: String) -&amp;gt; RequirementState&amp;lt;Any&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> result = solvePure(sourceName: sourceName)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> bindings[sourceName]?.state = result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">solve&lt;/span>&amp;lt;R: Requirement&amp;gt;(requirement: R) -&amp;gt; RequirementState&amp;lt;R.Result&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> variableState: RequirementState&amp;lt;R.Source&amp;gt; = solve(sourceName: requirement.sourceName).casted()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> requirement.apply(state: variableState)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Thus I still believe this to be an interesting topic, the amount of variables and requirements seem to explode and to be hard to debug without any additional tools.&lt;/p>
+&lt;p>Furthermore this constraint solver still operates synchronously. To be production ready this needs to be implemented asynchrously, which would then enhance.&lt;/p>
+&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item><item><title>ArgumentOverture</title><link>https://vknabel.com/posts/argumentoverture/</link><pubDate>Sun, 30 Sep 2018 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/argumentoverture/</guid><description>&lt;p>A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses &lt;a href="https://github.com/pointfreeco/swift-overture">Overture&lt;/a> and is build for high composability, flexibility and little impact on your project&amp;rsquo;s freedom to evolve.&lt;/p>
+&lt;p>A central use case was &lt;a href="https://github.com/vknabel/archery">Archery&lt;/a>&amp;rsquo;s: only actually interpreted arguments shall be consumed. Any others shall be collected (&lt;code>remaining&lt;/code>) or should prevent execution (&lt;code>exhaust&lt;/code>), depending on the current command.&lt;/p>
+&lt;p>First of all an example usage.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// Experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> (isVerbose, whoToGreet, language, &lt;span style="color:#66d9ef">_&lt;/span>) = &lt;span style="color:#66d9ef">try&lt;/span> with([&lt;span style="color:#e6db74">&amp;#34;-v&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;hi&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;Some string&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;--language&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;en&amp;#34;&lt;/span>], chain(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> flag(&lt;span style="color:#e6db74">&amp;#34;verbose&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;v&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> positional(&lt;span style="color:#e6db74">&amp;#34;Name&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> argument(&lt;span style="color:#e6db74">&amp;#34;language&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;l&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> exhaust
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;Command failed:&amp;#34;&lt;/span>, error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The implementation of the micro-library itself.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// Errors&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">quoted&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> string: String) -&amp;gt; String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#ae81ff">\&amp;#34;&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>string&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#ae81ff">\&amp;#34;&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">StringConvertibleError&lt;/span>: Error, CustomStringConvertible {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">MissingArgumentError&lt;/span>: StringConvertibleError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> name: String?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> description: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> with(name, pipe(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> map(quoted),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> map { &lt;span style="color:#e6db74">&amp;#34;Missing argument &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>$0&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ??&lt;span style="color:#e6db74">&amp;#34;Missing argument&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">NonExhaustiveArgumentsError&lt;/span>: StringConvertibleError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> remaining: [String]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> description: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Unused arguments: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>remaining&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// Domain&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">isArgument&lt;/span>(named name: String) -&amp;gt; (String) -&amp;gt; Bool {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { $0 == &lt;span style="color:#e6db74">&amp;#34;-&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>name&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#f92672">||&lt;/span> $0 == &lt;span style="color:#e6db74">&amp;#34;--&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>name&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">isOneArgument&lt;/span>(of names: [String]) -&amp;gt; (String) -&amp;gt; Bool {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { passed &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> names.&lt;span style="color:#66d9ef">lazy&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .map(isArgument(named:))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .reduce(&lt;span style="color:#66d9ef">false&lt;/span>, { $0 &lt;span style="color:#f92672">||&lt;/span> $1(passed) })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">indexOfArguments&lt;/span>(named names: [String]) -&amp;gt; ([String]) -&amp;gt; Array&amp;lt;String&amp;gt;.Index? {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { passed &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> passed.index(&lt;span style="color:#66d9ef">where&lt;/span>: isOneArgument(of: names))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">flag&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> names: String...) -&amp;gt; ([String]) -&amp;gt; ([String], Bool) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> index = arguments.index(&lt;span style="color:#66d9ef">where&lt;/span>: isOneArgument(of: names)) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> result = arguments
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> result.remove(at: index)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (result, &lt;span style="color:#66d9ef">true&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (arguments, &lt;span style="color:#66d9ef">false&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">positional&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> name: String? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], String) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> index = arguments.index(&lt;span style="color:#66d9ef">where&lt;/span>: { &lt;span style="color:#f92672">!&lt;/span>$0.starts(with: &lt;span style="color:#e6db74">&amp;#34;-&amp;#34;&lt;/span>)})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> index = index {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> result = arguments
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> result.remove(at: index)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (result, arguments[index])
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> MissingArgumentError(name: name)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">optional&lt;/span>&amp;lt;A&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> f: @escaping ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], A)) -&amp;gt; ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], A?) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> (remaining, parsed) = &lt;span style="color:#66d9ef">try&lt;/span> f(arguments)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (remaining, .some(parsed))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> &lt;span style="color:#66d9ef">is&lt;/span> MissingArgumentError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (arguments, &lt;span style="color:#66d9ef">nil&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> error
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">argument&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> names: String...) -&amp;gt; ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], String) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> flagIndex = indexOfArguments(named: names)(arguments), arguments.count &lt;span style="color:#f92672">&amp;gt;=&lt;/span> flagIndex &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#ae81ff">2&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> value = arguments[flagIndex &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> rest = arguments
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> rest.remove(at: flagIndex &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> rest.remove(at: flagIndex)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (rest, value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> MissingArgumentError(name: names.first)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">exhaust&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> arguments: [String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], Void) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> arguments.isEmpty {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> ([], ())
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> NonExhaustiveArgumentsError(remaining: arguments)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">remaining&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> arguments: [String]) -&amp;gt; ([String], [String]) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> ([], arguments)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="whats-next">What&amp;rsquo;s next?&lt;/h2>
+&lt;p>The same concept could be applied to processes and especially handling interrupts:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>with(Process(), concat(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> setWorkingDir(&lt;span style="color:#e6db74">&amp;#34;tmp&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> passInterrupt(),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> setBashCommand(&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>) &lt;span style="color:#75715e">// is { concat(setLaunchPath(&amp;#34;/bin/bash&amp;#34;), setArguments([&amp;#34;-c&amp;#34;, $0]) }&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>))
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item><item><title>CommandMine</title><link>https://vknabel.com/posts/commandmine/</link><pubDate>Wed, 08 Mar 2017 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/commandmine/</guid><description>&lt;p>Command mine is a concept of a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.&lt;/p>
+&lt;h2 id="definitions">Definitions&lt;/h2>
+&lt;p>CommandMine is about extracting minerals out of your ore.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> goldmine = Mine&amp;lt;Gold&amp;gt;() &lt;span style="color:#75715e">// declare your mine&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .drift( &lt;span style="color:#75715e">// One way to get to your gold&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> named: &lt;span style="color:#e6db74">&amp;#34;init&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> digging drift: Drift, &lt;span style="color:#75715e">// Prepares your Shaft&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> to shaft: execute &lt;span style="color:#75715e">// your actual program&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="shaft">Shaft&lt;/h3>
+&lt;p>A protocol describing factories of &lt;em>Rails&lt;/em>.&lt;/p>
+&lt;h3 id="mine">Mine&lt;/h3>
+&lt;p>Your program. Is a Shaft.&lt;/p>
+&lt;h3 id="drift">Drift&lt;/h3>
+&lt;p>A special form of a Shaft, that parses raw ore (&lt;code>[String]&lt;/code>) into minerals.&lt;/p>
+&lt;h3 id="ore">Ore&lt;/h3>
+&lt;p>The arguments passed to your program.&lt;/p>
+&lt;h3 id="lore">Lore&lt;/h3>
+&lt;p>An event wrapper around minerals.&lt;/p>
+&lt;h3 id="mineral">Mineral&lt;/h3>
+&lt;p>The desired mineral of your mine.&lt;/p>
+&lt;h3 id="rail">Rail&lt;/h3>
+&lt;p>Transports your filled Lores.
+A simple typealias for &lt;em>Observables&lt;/em> of &lt;em>Lores&lt;/em>.&lt;/p>
+&lt;h3 id="elevator">Elevator&lt;/h3>
+&lt;p>The fastest connection to the outside. A Rx wrapper around print and read line.&lt;/p>
+&lt;p>The idea behind the elevator is to make your CLI embeddable as library without any changes.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> ele = Elevator&amp;lt;String, String&amp;gt;()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ele.onNext(.error(&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>)) &lt;span style="color:#75715e">//.success(&amp;#34;&amp;#34;)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Elevator.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="reusability">Reusability&lt;/h2>
+&lt;p>CommandMine tries to keep your CLIs independent from STDIO and may be used asynchronously.&lt;/p>
+&lt;p>Additionally it is important to keep parts of your code reusable and replaceable: your CLI may evolve.&lt;/p>
+&lt;h3 id="framework-support">Framework Support&lt;/h3>
+&lt;p>When it comes to internal or higher level tooling, frameworks suite better than plain CLIs as it eliminates the need to deal with another binary in your path, that your users need to install and keep up to date. Instead it will be compiled within your own target.&lt;/p>
+&lt;p>In order to split your project into a framework and CLI, you just declare your mine and drifts in &lt;code>YourMine&lt;/code>, everything else in &lt;code>YourShaft&lt;/code> and in your executable&amp;rsquo;s &lt;code>main.swift&lt;/code> you just start your mine.&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;em>Hint:&lt;/em> you can create this project layout with &lt;code>mine init&lt;/code>.&lt;/p>&lt;/blockquote>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#a6e22e">YourMine&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>yourMine.runMain()
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>So &lt;code>YourShaft&lt;/code> will be good for everyone who either wants to provide a complete new CLI using your logic, or for non CLIs.
+At first exporting your mine and drifts into &lt;code>YourMine&lt;/code> seems awkward, but it may actually help others to embed your project as a subcommand (after all Mines are just complex Shafts) or to just reuse one drift.&lt;/p>
+&lt;h2 id="summary">Summary&lt;/h2>
+&lt;ul>
+&lt;li>&lt;code>Mine&lt;/code>: your CLIs, tasks arguments&lt;/li>
+&lt;li>&lt;code>Drift&lt;/code>: parses arguments for Shaft, sync&lt;/li>
+&lt;li>&lt;code>Cage&lt;/code>: the options&lt;/li>
+&lt;li>&lt;code>Shaft&lt;/code>: a command, async&lt;/li>
+&lt;li>&lt;code>Elevator&lt;/code>: user feedback&lt;/li>
+&lt;/ul>
+&lt;p>A &lt;code>Drift&lt;/code> is an &lt;code>Observable&lt;/code> Factory that emits one single &lt;code>Lore&lt;/code> or an error with its help.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#a6e22e">CommandMine&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> main = Shaft(named: &lt;span style="color:#e6db74">&amp;#34;rock&amp;#34;&lt;/span>, summary: &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .drift(named: &lt;span style="color:#e6db74">&amp;#34;init&amp;#34;&lt;/span>, explainedBy: &lt;span style="color:#e6db74">&amp;#34;Creates a new project&amp;#34;&lt;/span>) { (cage: EmptyLore) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> initObsi
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>main.run { result &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> result {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .success(&lt;span style="color:#66d9ef">_&lt;/span>), .usage(&lt;span style="color:#66d9ef">_&lt;/span>, &lt;span style="color:#66d9ef">_&lt;/span>), .error(&lt;span style="color:#66d9ef">_&lt;/span>):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">break&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Shaft.name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Shaft.instructions
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Shaft.drifts
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#a6e22e">MineResult&lt;/span>&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> success(A)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> usage(String?, String?)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> error(Error) &lt;span style="color:#75715e">// thrown errors will be inserted&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span>&lt;span style="color:#f92672">/&lt;/span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Drift&lt;/span>&amp;lt;Arguments, Result&amp;gt;: Drifty {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> bindTo: (Arguments) -&amp;gt; Observable&amp;lt;MineEvent&amp;lt;Result&amp;gt;&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Drifty.map
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Drifty.flatMap
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span>&lt;span style="color:#f92672">/&lt;/span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Shaft&lt;/span>&amp;lt;A&amp;gt;: Drifty {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> usage: (String?, String?)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> rootDrift: Drifts&lt;span style="color:#f92672">&amp;lt;&lt;/span>[String], A&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Shaft&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(named: String, instructions: String? = &lt;span style="color:#66d9ef">nil&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">drift&lt;/span>&amp;lt;Cage&amp;gt;(named: String, instructions: String? = &lt;span style="color:#66d9ef">nil&lt;/span>, cage: Cage.&lt;span style="color:#66d9ef">Type&lt;/span> = Cage.&lt;span style="color:#66d9ef">self&lt;/span>, &lt;span style="color:#66d9ef">_&lt;/span>: @escaping Drift&amp;lt;Cage, A&amp;gt;) -&amp;gt; Shaft&amp;lt;A&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Drift&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">positional&lt;/span>(parameter: @escaping (String) -&amp;gt; Observable&amp;lt;A&amp;gt;) -&amp;gt; [String] -&amp;gt; Observable&amp;lt;MineResult&lt;span style="color:#f92672">&amp;lt;&lt;/span>([String], A)&lt;span style="color:#f92672">&amp;gt;&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { args &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">guard&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> arg = args.first &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .of(.usage(&lt;span style="color:#66d9ef">nil&lt;/span>, &lt;span style="color:#66d9ef">nil&lt;/span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Jfkf
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">exhaustive&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">optional&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="whats-next">What&amp;rsquo;s next?&lt;/h2>
+&lt;p>An alternative concept for modeling CLIs in Swift is &lt;a href="https://vknabel.com/pages/ArgumentOverture">ArgumentOverture&lt;/a>, which would have much less impact on the actual program.&lt;/p>
+&lt;p>This concept is probably too big and hard to adapt for the benefit it will provide. Though the name is quite nice. 😅&lt;/p></description></item><item><title>Why I created Rock for Swift CLIs</title><link>https://vknabel.com/posts/why-i-created-rock-for-swift-clis/</link><pubDate>Wed, 22 Feb 2017 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/why-i-created-rock-for-swift-clis/</guid><description>&lt;p>I excessively make use of the official Swift Package Manager as I usually do some CLIs or other stuff. For this use case it is really great. When developing Apps, Carthage and CocoaPods come in handy, which are great, too.
+For Web Development there are yarn and NPM, which support project based and global installs. Then there are gem (global) and bundler (project) for ruby based dependencies.&lt;/p>
+&lt;p>What I missed was an easy way of distribution for Swift CLIs for either projects or globally. Homebrew is great and can handle global installs great, but for some projects the overhead of submitting new formulas seems too high, especially as this has to be a contribution of a user, not its developer, which is exactly the behavior you want for your personal environment.
+Furthermore it is not meant to pin certain versions of your dependencies. You simply can&amp;rsquo;t install one dependency in different versions just for some projects you&amp;rsquo;re working on.&lt;/p>
+&lt;p>Exactly this is the reason why we have Swiftenv, RVM, pyenv, Bundler and much more:&lt;/p>
+&lt;p>How can you ensure your whole team uses the same dependency versions?
+You must declare it.&lt;/p>
+&lt;p>For Swift CLI dependencies there is no such system yet.
+And that has been the reason why I created Rock for the Swift Ecosystem.
+I want everyone to be able to submit their own projects (like CocoaPods) but support decentralized (and private) architectures, too (like Carthage and SwiftPM).
+Therefore Rock only focuses on Swift CLIs has been built to work seamlessly with Swift Package Manager projects.&lt;/p>
+&lt;p>Do you see the same or other problems? Do you have a different opinion?
+I would be really happy to receive some feedback from you.&lt;/p></description></item></channel></rss>

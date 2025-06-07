@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Oop on vknabel</title><link>https://vknabel.com/tags/oop/</link><description>Recent content in Oop on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Tue, 09 Oct 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/oop/index.xml" rel="self" type="application/rss+xml"/><item><title>Thoughts on: Elegant Objects</title><link>https://vknabel.com/posts/thoughts-on-elegant-objects/</link><pubDate>Tue, 09 Oct 2018 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/thoughts-on-elegant-objects/</guid><description>&lt;p>Writing things down is part of my learning process. These thoughts came up while reading through Yegor Bugayenko’s book Elegant Objects about a more declarative and less procedural approach of object oriented programming.
+This is more a personal document than a book review or summary and as I already knew some topics, I do not mention several chapters or details, I might explain concepts different than the original author and many examples from Java, Ruby or C++ cannot be applied to Swift as they would already solve the issue.&lt;/p>
+&lt;p>The book itself is split into three parts of the lifetime of an object: the birth or initialization, education, employment and retirement or deinitialization.&lt;/p>
+&lt;p>Elegant Objects teaches to &lt;strong>treat all objects as human beings&lt;/strong> and that we should talk with them &lt;code>[].isEmpty&lt;/code> instead of talking about them &lt;code>[].count == 0&lt;/code>.&lt;/p>
+&lt;h2 id="birth">Birth&lt;/h2>
+&lt;ul>
+&lt;li>Objects are not bags of data, they are the data they represent&lt;/li>
+&lt;li>Therefore objects are no algorithms&lt;/li>
+&lt;li>Objects without data make no sense&lt;/li>
+&lt;/ul>
+&lt;h3 id="11-never-use--er-names">1.1 Never use -er names&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/03/09/objects-end-with-er.html">https://www.yegor256.com/2015/03/09/objects-end-with-er.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Names describing algorithms and behavior of the objects instead of their identity are no real OOP. Typical suffixes are &lt;code>er&lt;/code> and &lt;code>or&lt;/code> (exceptions: user, computer, etc):
+&lt;ul>
+&lt;li>Formatter (a format can apply itself, right?)&lt;/li>
+&lt;li>Converter (exchange rate? Metric system?)&lt;/li>
+&lt;li>Manager (repository)&lt;/li>
+&lt;li>Controller (this one is interesting. It holds the view, but how can we name it instead? In UIKit not practical?)&lt;/li>
+&lt;li>Helper (well, yes)&lt;/li>
+&lt;li>Validator (predicate)&lt;/li>
+&lt;li>Router (routing table?)&lt;/li>
+&lt;li>Dispatcher (queue would be too specific)&lt;/li>
+&lt;li>Observer (outside Swift: target, addressee, recipient? Similar: output pipe)&lt;/li>
+&lt;li>Listener (&lt;/li>
+&lt;li>Sorter&lt;/li>
+&lt;li>Encoder&lt;/li>
+&lt;li>Decoder&lt;/li>
+&lt;li>Observable (stream)&lt;/li>
+&lt;li>Probably all &lt;code>able&lt;/code> names, too&lt;/li>
+&lt;li>Encodable, Decodable (quite generic and hard)&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Because of the focus on data: many initializers (5&amp;hellip;10), a few queries (), as little mutations as possible (). Reasoning: makes it much easier to use&lt;/li>
+&lt;li>This data centric approach reminds me of some functional code I‘ve seen before, which impressed me a lot.&lt;/li>
+&lt;/ul>
+&lt;h3 id="12-make-one-constructor-primary">1.2 Make one constructor primary&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/05/28/one-primary-constructor.html">https://www.yegor256.com/2015/05/28/one-primary-constructor.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Have only one primary initializer and many convenience inits&lt;/li>
+&lt;/ul>
+&lt;h3 id="13-keep-constructors-code-free">1.3 Keep constructors code-free&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html">https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Code-free constructors: actually had performance impacts on this in Ionic! Swift‘s &lt;code>lazy&lt;/code> helps a lot here! =&amp;gt; this kind of performance impact should be explicit&lt;/li>
+&lt;li>Rule of thumb: don‘t touch the arguments&lt;/li>
+&lt;li>Suggestion: creation of many, small classes (like a class just for parsing an int out of a string) (reducing overhead with &lt;code>Taggable&lt;/code> like solutions?)&lt;/li>
+&lt;/ul>
+&lt;h2 id="education">Education&lt;/h2>
+&lt;ul>
+&lt;li>Keep objects small (this is a trend in Swift, right? &lt;code>Taggable&lt;/code>)&lt;/li>
+&lt;/ul>
+&lt;h3 id="21-encapsulate-as-little-as-possible">2.1 Encapsulate as little as possible&lt;/h3>
+&lt;ul>
+&lt;li>Rule of thumb: max 4 values per object, otherwise compose&lt;/li>
+&lt;li>What about configuration files? Should their object representations be passed through the whole program or should they be split into more maintainable objects?&lt;/li>
+&lt;li>Every data within an object is part of its identity (in general, yes, but what about database entries and their id? Of course &lt;code>==&lt;/code> should be false if the id is the same, but the name is different)&lt;/li>
+&lt;/ul>
+&lt;h3 id="22-encapsulate-something-at-the-very-least">2.2 Encapsulate something at the very least&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/12/15/how-much-your-objects-encapsulate.html">https://www.yegor256.com/2014/12/15/how-much-your-objects-encapsulate.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Static methods are not pure OOP&lt;/li>
+&lt;li>Objects without data are just static&lt;/li>
+&lt;li>There is only one object encapsulating nothing: the universe (or in swift unit)&lt;/li>
+&lt;li>Doesn‘t like &lt;code>x * z&lt;/code>, but probably not completely applicable to Swift (it changes the way you think)&lt;/li>
+&lt;/ul>
+&lt;h3 id="23-always-use-interfaces">2.3 Always use interfaces&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html">https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Every public method should have their representation within an interface.&lt;/li>
+&lt;li>Do not use object instances directly&lt;/li>
+&lt;li>I think this approach is right, especially easy when using unidirectional data flow architecture. It requires just a few interfaces, but the gains for testability are awesome. If we need to write too much interfaces, we probably picked the wrong abstraction or have too much coupling.&lt;/li>
+&lt;li>Note: in Swift you can use a struct with values of functions instead of methods if it better fits your use case than protocols.&lt;/li>
+&lt;/ul>
+&lt;h3 id="24-choose-method-names-carefully">2.4 Choose method names carefully&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2018/08/22/builders-and-manipulators.html">https://www.yegor256.com/2018/08/22/builders-and-manipulators.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Rule of thumb: queries (builders) are nouns (with adjectives), mutations (manipulators) are verbs (with adverbs).&lt;/li>
+&lt;li>Queries return&lt;/li>
+&lt;li>Mutations mutate and return nothing&lt;/li>
+&lt;li>Reduces side-effects&lt;/li>
+&lt;li>If we need results from the mutation, we should create a new object, which decouples mutations and queries. Generally a good idea, but then you loose compiler safety, that the mutation should have been triggered before reading the results. Using callbacks would just hide the problem, as we would pass the result to the callback. Hence: the mutation would emit data. Exceptions from this would only be thins like &lt;code>Observable&amp;lt;Void&amp;gt;&lt;/code> and &lt;code>Promise&amp;lt;Void&amp;gt;&lt;/code>&lt;/li>
+&lt;li>Booleans should not include &lt;code>is&lt;/code> but should be readable with an &lt;code>is&lt;/code> (prefer is &lt;code>equal(to:)&lt;/code> over &lt;code>equals(_:)&lt;/code>)&lt;/li>
+&lt;/ul>
+&lt;h3 id="25-dont-use-public-constants">2.5 Don‘t use public constants&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/07/06/public-static-literals.html">https://www.yegor256.com/2015/07/06/public-static-literals.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Do not use public constants (this includes global constants, singletons, static properties, &amp;hellip;)&lt;/li>
+&lt;li>Constants should be private&lt;/li>
+&lt;li>Instead wrap the constants into a class which &lt;em>uses&lt;/em> it as intended.&lt;/li>
+&lt;li>Example: &lt;code>CRLFString&lt;/code> which automatically appends &lt;code>\r\n&lt;/code> to all strings on &lt;code>toString&lt;/code>.&lt;/li>
+&lt;li>Regarding enums: &lt;code>HTTPMethod&lt;/code> are just constants, too! Instead favor distinct classes for &lt;code>PostRequest&lt;/code>, &lt;code>GetRequest&lt;/code>, &amp;hellip;&lt;/li>
+&lt;li>In my eyes using enums with associated values is fine as they are much more advanced. E.g. &lt;code>LocalizableString&lt;/code> with &lt;code>case priceLabel(amount: Int, currency: String)&lt;/code> and &lt;code>var localized: String { get }&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h3 id="26-be-immutable">2.6 Be Immutable&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html">https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Of course immutability is important!&lt;/li>
+&lt;/ul>
+&lt;h3 id="27-write-tests-instead-of-documentation">2.7 Write tests instead of documentation&lt;/h3>
+&lt;ul>
+&lt;li>Tests are good docs; tests should be easy to read as the code should be&lt;/li>
+&lt;/ul>
+&lt;h3 id="28-dont-mock-use-fakes">2.8 Don‘t mock; use fakes&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/09/23/built-in-fake-objects.html">https://www.yegor256.com/2014/09/23/built-in-fake-objects.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Mocking is fragile (internal knowledge needed)&lt;/li>
+&lt;li>Fakes are more robust&lt;/li>
+&lt;li>Fakes should provide as much customization as possible.&lt;/li>
+&lt;li>It don’t think Fakes should necessarily be implemented next to the interfaces, but they are essential for unit tests and should always be shipped with libraries (either within module &lt;code>LibraryTesting&lt;/code> or in prod code)&lt;/li>
+&lt;li>I even think more libraries (including my own) should ship a basic set of unit tests that each implementation should pass. &lt;a href="https://oleb.net/blog/2016/12/protocols-have-semantics/">Protocols are more than Bags of Syntax&lt;/a>.&lt;/li>
+&lt;/ul>
+&lt;h3 id="29-keep-interfaces-short-use-smarts">2.9 Keep interfaces short; use smarts&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2016/04/26/why-inputstream-design-is-wrong.html">https://www.yegor256.com/2016/04/26/why-inputstream-design-is-wrong.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>As everything, interfaces should only do one thing&lt;/li>
+&lt;li>Applying defaults and providing overloads are more than this one thing: multiple implementations would still need to apply the same defaults. What if the defaults would be different? In that case we would mix up to problems to one n-to-m problem.&lt;/li>
+&lt;li>The proposed solution is the introduction of &lt;code>Smart&lt;/code> classes. With an implementation given, it will provide all overloads, convenience functions and defaults. If the only connection to the outside world is an instance of the interface, it should be okay to keep the &lt;code>Smart&lt;/code>-suffix. In Swift we do not need this helper at all: we can just move all overloads to an extension.&lt;/li>
+&lt;/ul>
+&lt;h2 id="employment">Employment&lt;/h2>
+&lt;h3 id="expose-fewer-than-five-public-methods">Expose fewer than five public methods&lt;/h3>
+&lt;ul>
+&lt;li>Suggests 5 as max amount of public methods in one single class&lt;/li>
+&lt;li>It‘s about cohesion: every method should access all instance variables. Otherwise you might break it up.&lt;/li>
+&lt;li>I guess these smart classes and Stdlib classes don’t fit into this rule&lt;/li>
+&lt;/ul>
+&lt;h3 id="dont-use-static-methods">Don’t use static methods&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/05/05/oop-alternative-to-utility-classes.html">https://www.yegor256.com/2014/05/05/oop-alternative-to-utility-classes.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Should never be used and are no OOP&lt;/li>
+&lt;li>Treat OOP as declarative paradigm instead of a imperative one&lt;/li>
+&lt;/ul>
+&lt;h3 id="325-functional-programming">3.2.5 Functional Programming&lt;/h3>
+&lt;ul>
+&lt;li>Did not understand benefits of declarative OOP over functional programming. (FP is simpler because it has no methods)&lt;/li>
+&lt;li>Is it possible to combine FP with dOOP? Especially in Swift: could we replace Monads by dOOP?&lt;/li>
+&lt;li>Maybe dOOP for the big picture and FP for the small one?&lt;/li>
+&lt;li>Composability over decorators (higher order objects)&lt;/li>
+&lt;li>dOOP would be a perfect fit for a rule editor! Probably more approachable than FP due to the decorators. „I want an array X. It should be an array with unique elements.“&lt;/li>
+&lt;/ul>
+&lt;h3 id="34-be-loyal-and-immutable-or-constant">3.4 Be loyal and immutable, or constant&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/12/22/immutable-objects-not-dumb.html">https://www.yegor256.com/2014/12/22/immutable-objects-not-dumb.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Loyal: always represents the same real-world entity (e.g. never change the file path or the user id)&lt;/li>
+&lt;li>Immutable: object-state will not change&lt;/li>
+&lt;li>Constant objects are immutable&lt;/li>
+&lt;li>Non-constant but immutable: changes if real-world changes (e.g. after changing files or after manipulating memory)&lt;/li>
+&lt;li>My example: a redux store is immutable but not constant as it does only change accordingly if it‘s represented real-world data changes (the application state). But it must be loyal and must always represent the same application. When diving deeper, there must be a &lt;code>class&lt;/code> wrapper around the state-&lt;code>struct&lt;/code>. This wrapper can apply mutations to the state, but it cannot replace it.&lt;/li>
+&lt;/ul>
+&lt;h3 id="36-dont-use-new-outside-of-secondary-ctors">3.6 Don‘t use &lt;code>new&lt;/code> outside of secondary ctors&lt;/h3>
+&lt;ul>
+&lt;li>Required &lt;code>init&lt;/code>s may never instantiate objects&lt;/li>
+&lt;li>Funcs may never instantiate objects&lt;/li>
+&lt;li>But still, not all initializers may be called within &lt;code>convenience&lt;/code> inits (think of greater dependencies! A convenience init can still hard-code dependencies because of laziness)&lt;/li>
+&lt;li>When needed create a helper function in convenience inits and store it&lt;/li>
+&lt;li>=&amp;gt; Unit tests will be much better&lt;/li>
+&lt;/ul>
+&lt;h2 id="retirement">Retirement&lt;/h2>
+&lt;h3 id="412-alternatives-to-null">4.1.2 Alternatives to null&lt;/h3>
+&lt;ul>
+&lt;li>Use &lt;code>Optional&lt;/code> only for data, but not for errors&lt;/li>
+&lt;/ul>
+&lt;h3 id="421-dont-catch-unless-you-have-to">4.2.1 Don‘t catch unless you have to&lt;/h3>
+&lt;ul>
+&lt;li>Fail early, catch late&lt;/li>
+&lt;/ul>
+&lt;h3 id="423-recover-only-once">4.2.3 Recover only once&lt;/h3>
+&lt;h3 id="424-use-aspect-oriented-programming">4.2.4 Use aspect-oriented programming&lt;/h3>
+&lt;ul>
+&lt;li>Using AOP is not required for this task! Simply create a higher-order function or an object decorator&lt;/li>
+&lt;/ul>
+&lt;h3 id="43-be-either-final-or-abstract">4.3 Be either final or abstract&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html">https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>In Swift there are no &lt;code>abstract&lt;/code> classes. Instead we have protocols with default implementations. This is a much better approach. As a result, all Swift classes should be final. Swift classes are implicitly final for external modules when not marked as open.&lt;/li>
+&lt;/ul>
+&lt;h3 id="44-use-raii">4.4 Use RAII&lt;/h3>
+&lt;ul>
+&lt;li>Resource Acquisition Is Initialization&lt;/li>
+&lt;li>Says to lock resources on init and release them on deinit&lt;/li>
+&lt;li>In Swift this approach is already common: Subscription, Disposable, opaque objects for &lt;code>NSNotificationCenter&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2 id="recap">Recap&lt;/h2>
+&lt;p>I still don’t know what I am going to take away from this book as it particularly has strong opinions which do not align with mine. Yet, there are things I have experienced myself and got the same solution. What I found valuable are naming and the rules of thumb as I generally agree on them. Though as in most books, some sentences are too absolute:&lt;/p>
+&lt;ul>
+&lt;li>IMHO it’s okay to use return values for mutations: if the only way to get information when performing side-effects, it should better be explicit.&lt;/li>
+&lt;li>Sometimes we do not use boolean queries directly within conditions. In those cases it might read far better if we still keep the &lt;code>is&lt;/code> prefix. And: &amp;ldquo;is &lt;code>containing&lt;/code>&amp;rdquo; sounds awful when compared to &lt;code>contains&lt;/code>.&lt;/li>
+&lt;li>The approach to make it explicit what you want to optimize your code for and how your code should look like is interesting. Of course this may sound philosophical or too meta, but it may help prioritizing.&lt;/li>
+&lt;li>Regarding static methods and global variables: in general? Agreed. Though, I think the global &lt;code>Current&lt;/code> as proposed by pointfree.co is worth it, as long as it is in-line with your goals and your business: execution-environment specific things should go into &lt;code>Current&lt;/code> (JS: &lt;code>window.open&lt;/code>). Things like sessions should preferably be implemented using classic DI (e.g. Tweetbot hay have multiple sessions).&lt;/li>
+&lt;li>Functions have much less overhead than classes. The proposed declarative OOP snippets read mostly like FP on the usage side: you do not gain any benefits from the fact that objects have methods. On the declaration side, writing a class has a much bigger overhead when compared to a function. Though you gain the ability to replace the implementation when using protocols and polymorphism resulting in more verbosity. I think FP feels less like fighting against the language than declarative OOP would feel like.&lt;/li>
+&lt;li>Of course all these techniques help to improve maintainability, but what‘s often left unsaid: you can also encapsulate dirty hacks that way. And what if we need to touch these parts again? Keep the tests, throw the code away and write everything from scratch, but in clean. If there is no code to maintain (deleted code is no code) and if we cannot break anything (we have tests for our dirty hack), we can easily maintain everything. In most cases these parts will only be written once. Though this approach requires being explicit about it.&lt;/li>
+&lt;/ul></description></item></channel></rss>

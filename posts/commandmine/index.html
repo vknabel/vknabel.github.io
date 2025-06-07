@@ -1,0 +1,84 @@
+<!doctype html><html><head lang=en><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><title>CommandMine - vknabel</title><link rel=icon type=image/png href=/images/vknabel.jpg><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content='Command mine is a concept of a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.
+Definitions
+CommandMine is about extracting minerals out of your ore.
+let goldmine = Mine<Gold>() // declare your mine
+ .drift( // One way to get to your gold
+  named: "init",
+  digging drift: Drift, // Prepares your Shaft
+  to shaft: execute // your actual program
+ )
+Shaft
+A protocol describing factories of Rails.'><meta property="og:image" content><meta property="og:url" content="https://vknabel.com/posts/commandmine/"><meta property="og:site_name" content="vknabel"><meta property="og:title" content="CommandMine"><meta property="og:description" content='Command mine is a concept of a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.
+Definitions CommandMine is about extracting minerals out of your ore.
+let goldmine = Mine<Gold>() // declare your mine .drift( // One way to get to your gold named: "init", digging drift: Drift, // Prepares your Shaft to shaft: execute // your actual program ) Shaft A protocol describing factories of Rails.'><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2017-03-08T00:00:00+00:00"><meta property="article:modified_time" content="2017-03-08T00:00:00+00:00"><meta property="article:tag" content="Swift"><meta property="article:tag" content="Cli"><meta name=twitter:card content="summary"><meta name=twitter:title content="CommandMine"><meta name=twitter:description content='Command mine is a concept of a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.
+Definitions CommandMine is about extracting minerals out of your ore.
+let goldmine = Mine<Gold>() // declare your mine .drift( // One way to get to your gold named: "init", digging drift: Drift, // Prepares your Shaft to shaft: execute // your actual program ) Shaft A protocol describing factories of Rails.'><script src=https://vknabel.com/js/feather.min.js></script><link href=https://vknabel.com/css/fonts.2c2227b81b1970a03e760aa2e6121cd01f87c88586803cbb282aa224720a765f.css rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://vknabel.com/css/main.6a0f23ea50fd34b46fee262a5a68e17d458c51a2bc99ba1ba018065de6b180c3.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://vknabel.com/css/dark.50b57e12d401420df23965fed157368aba37b76df0ecefd0b1ecd4da664f01a0.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=/css/overrides.css></head><body><div class=content><header><div class=main><a href=https://vknabel.com/>vknabel</a></div><nav><a href=/>blog</a>
+<a href=/tils>tils</a>
+<a href=/about>about</a>
+<a href=/tags>tags</a></nav></header><main><article><div class=post-container><div class=post-content><div class=title><h1 class=title>CommandMine</h1><div class=meta>Posted on Mar 8, 2017</div></div><section class=body><p>Command mine is a concept of a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.</p><h2 id=definitions>Definitions</h2><p>CommandMine is about extracting minerals out of your ore.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#66d9ef>let</span> goldmine = Mine&lt;Gold&gt;() <span style=color:#75715e>// declare your mine</span>
+</span></span><span style=display:flex><span> .drift( <span style=color:#75715e>// One way to get to your gold</span>
+</span></span><span style=display:flex><span>  named: <span style=color:#e6db74>&#34;init&#34;</span>,
+</span></span><span style=display:flex><span>  digging drift: Drift, <span style=color:#75715e>// Prepares your Shaft</span>
+</span></span><span style=display:flex><span>  to shaft: execute <span style=color:#75715e>// your actual program</span>
+</span></span><span style=display:flex><span> )
+</span></span></code></pre></div><h3 id=shaft>Shaft</h3><p>A protocol describing factories of <em>Rails</em>.</p><h3 id=mine>Mine</h3><p>Your program. Is a Shaft.</p><h3 id=drift>Drift</h3><p>A special form of a Shaft, that parses raw ore (<code>[String]</code>) into minerals.</p><h3 id=ore>Ore</h3><p>The arguments passed to your program.</p><h3 id=lore>Lore</h3><p>An event wrapper around minerals.</p><h3 id=mineral>Mineral</h3><p>The desired mineral of your mine.</p><h3 id=rail>Rail</h3><p>Transports your filled Lores.
+A simple typealias for <em>Observables</em> of <em>Lores</em>.</p><h3 id=elevator>Elevator</h3><p>The fastest connection to the outside. A Rx wrapper around print and read line.</p><p>The idea behind the elevator is to make your CLI embeddable as library without any changes.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#66d9ef>let</span> ele = Elevator&lt;String, String&gt;()
+</span></span><span style=display:flex><span>ele.onNext(.error(<span style=color:#e6db74>&#34;&#34;</span>)) <span style=color:#75715e>//.success(&#34;&#34;)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Elevator.
+</span></span></code></pre></div><h2 id=reusability>Reusability</h2><p>CommandMine tries to keep your CLIs independent from STDIO and may be used asynchronously.</p><p>Additionally it is important to keep parts of your code reusable and replaceable: your CLI may evolve.</p><h3 id=framework-support>Framework Support</h3><p>When it comes to internal or higher level tooling, frameworks suite better than plain CLIs as it eliminates the need to deal with another binary in your path, that your users need to install and keep up to date. Instead it will be compiled within your own target.</p><p>In order to split your project into a framework and CLI, you just declare your mine and drifts in <code>YourMine</code>, everything else in <code>YourShaft</code> and in your executable&rsquo;s <code>main.swift</code> you just start your mine.</p><blockquote><p><em>Hint:</em> you can create this project layout with <code>mine init</code>.</p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>YourMine</span>
+</span></span><span style=display:flex><span>yourMine.runMain()
+</span></span></code></pre></div><p>So <code>YourShaft</code> will be good for everyone who either wants to provide a complete new CLI using your logic, or for non CLIs.
+At first exporting your mine and drifts into <code>YourMine</code> seems awkward, but it may actually help others to embed your project as a subcommand (after all Mines are just complex Shafts) or to just reuse one drift.</p><h2 id=summary>Summary</h2><ul><li><code>Mine</code>: your CLIs, tasks arguments</li><li><code>Drift</code>: parses arguments for Shaft, sync</li><li><code>Cage</code>: the options</li><li><code>Shaft</code>: a command, async</li><li><code>Elevator</code>: user feedback</li></ul><p>A <code>Drift</code> is an <code>Observable</code> Factory that emits one single <code>Lore</code> or an error with its help.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>CommandMine</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> main = Shaft(named: <span style=color:#e6db74>&#34;rock&#34;</span>, summary: <span style=color:#e6db74>&#34;&#34;</span>)
+</span></span><span style=display:flex><span> .drift(named: <span style=color:#e6db74>&#34;init&#34;</span>, explainedBy: <span style=color:#e6db74>&#34;Creates a new project&#34;</span>) { (cage: EmptyLore) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> initObsi
+</span></span><span style=display:flex><span> }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>main.run { result <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>switch</span> result {
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>case</span> .success(<span style=color:#66d9ef>_</span>), .usage(<span style=color:#66d9ef>_</span>, <span style=color:#66d9ef>_</span>), .error(<span style=color:#66d9ef>_</span>):
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span> }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Shaft.name
+</span></span><span style=display:flex><span>Shaft.instructions
+</span></span><span style=display:flex><span>Shaft.drifts
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>enum</span> <span style=color:#a6e22e>MineResult</span>&lt;A&gt; {
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>case</span> success(A)
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>case</span> usage(String?, String?)
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>case</span> error(Error) <span style=color:#75715e>// thrown errors will be inserted</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span><span style=color:#f92672>/</span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Drift</span>&lt;Arguments, Result&gt;: Drifty {
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>let</span> bindTo: (Arguments) -&gt; Observable&lt;MineEvent&lt;Result&gt;<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Drifty.map
+</span></span><span style=display:flex><span>Drifty.flatMap
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span><span style=color:#f92672>/</span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Shaft</span>&lt;A&gt;: Drifty {
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>let</span> usage: (String?, String?)
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>let</span> rootDrift: Drifts<span style=color:#f92672>&lt;</span>[String], A&gt;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Shaft</span> {
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>init</span>(named: String, instructions: String? = <span style=color:#66d9ef>nil</span>)
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>drift</span>&lt;Cage&gt;(named: String, instructions: String? = <span style=color:#66d9ef>nil</span>, cage: Cage.<span style=color:#66d9ef>Type</span> = Cage.<span style=color:#66d9ef>self</span>, <span style=color:#66d9ef>_</span>: @escaping Drift&lt;Cage, A&gt;) -&gt; Shaft&lt;A&gt;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Drift</span> {
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>positional</span>(parameter: @escaping (String) -&gt; Observable&lt;A&gt;) -&gt; [String] -&gt; Observable&lt;MineResult<span style=color:#f92672>&lt;</span>([String], A)<span style=color:#f92672>&gt;&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> { args <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>guard</span> <span style=color:#66d9ef>let</span> arg = args.first <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> .of(.usage(<span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>))
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> Jfkf
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span> }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaustive</span>()
+</span></span><span style=display:flex><span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>optional</span>()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=whats-next>What&rsquo;s next?</h2><p>An alternative concept for modeling CLIs in Swift is <a href=/pages/ArgumentOverture>ArgumentOverture</a>, which would have much less impact on the actual program.</p><p>This concept is probably too big and hard to adapt for the benefit it will provide. Though the name is quite nice. 😅</p></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/swift>swift</a></li><li><a href=/tags/cli>cli</a></li></ul></nav></div></div></div></article></main><footer><div style=display:flex><a class=soc href=https://github.com/vknabel rel=me title=GitHub><svg class="feather"><use href="/svg/feather-sprite.51cf5647cb1987f769b616558f2620fd9423d72058490231b391bf6aa3744b55.svg#github"/></svg></a><a class=border></a><a class=soc href=https://mastodon.social/@vknabel/ rel=me title=Mastodon><svg class="feather"><use href="/svg/feather-sprite.51cf5647cb1987f769b616558f2620fd9423d72058490231b391bf6aa3744b55.svg#at-sign"/></svg></a><a class=border></a></div><div class=footer-info>2025 © Valentin Knabel | <a href=https://github.com/athul/archie>Archie Theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></footer></div></body></html>

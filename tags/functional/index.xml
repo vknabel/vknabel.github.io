@@ -1,0 +1,659 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Functional on vknabel</title><link>https://vknabel.com/tags/functional/</link><description>Recent content in Functional on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Tue, 15 Oct 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/functional/index.xml" rel="self" type="application/rss+xml"/><item><title>ReactifSwift: async function composition</title><link>https://vknabel.com/posts/reactifswift-async-function-composition/</link><pubDate>Tue, 15 Oct 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/reactifswift-async-function-composition/</guid><description>&lt;p>Async operators &lt;code>debounce&lt;/code>, &lt;code>throttle&lt;/code> or &lt;code>delay&lt;/code> that functional reactive programming libraries as &lt;code>RxSwift&lt;/code> and &lt;code>ReactiveSwift&lt;/code> provide are super useful and expressive. Though their biggest benefit lays within composability.&lt;/p>
+&lt;p>This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on &lt;a href="https://github.com/pointfreeco/swift-overture">Overture&lt;/a> in version 0.2.0.&lt;/p>
+&lt;p>&lt;em>Originally written at 2018-06-10&lt;/em>&lt;/p>
+&lt;h2 id="example">Example&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> count = &lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> countChars = with({ count &lt;span style="color:#f92672">+=&lt;/span> $0 }, pipe(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> map(&lt;span style="color:#66d9ef">get&lt;/span>(&lt;span style="color:#960050;background-color:#1e0010">\&lt;/span>String.count)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> throttle(time: &lt;span style="color:#ae81ff">100&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> time = TestingScheduler()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ReactifCurrent.scheduler = time
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>countChars(&lt;span style="color:#e6db74">&amp;#34;A&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>time.tick(&lt;span style="color:#ae81ff">50&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>countChars(&lt;span style="color:#e6db74">&amp;#34;B&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>time.tick(&lt;span style="color:#ae81ff">100&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>countChars(&lt;span style="color:#e6db74">&amp;#34;Abc&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>count &lt;span style="color:#75715e">// 4&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="implementation">Implementation&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// import Overture&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#a6e22e">Foundation&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">typealias&lt;/span> Unary&amp;lt;A&amp;gt; = (A) -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">Invalidatable&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">invalidate&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Timer&lt;/span>: Invalidatable {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">Scheduler&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">now&lt;/span>() -&amp;gt; Date
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> time: TimeInterval, &lt;span style="color:#66d9ef">_&lt;/span> f: @escaping () -&amp;gt; Void) -&amp;gt; Invalidatable
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">TestingScheduler&lt;/span>: Scheduler {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> delayed: [FakeTimer] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> currentInterval: TimeInterval = &lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>() {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">FakeTimer&lt;/span>: Invalidatable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> date: Date
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> fire: (() -&amp;gt; Void)?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(date: Date, fire: @escaping () -&amp;gt; Void) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.fire = fire
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.date = date
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> isValid: Bool {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> fire &lt;span style="color:#f92672">!=&lt;/span> &lt;span style="color:#66d9ef">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">tick&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> now: Date) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> fire = fire, now &lt;span style="color:#f92672">&amp;gt;=&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.date {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> fire()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">invalidate&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.fire = &lt;span style="color:#66d9ef">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">tick&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> interval: TimeInterval) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.currentInterval &lt;span style="color:#f92672">+=&lt;/span> interval
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> currently = now()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.delayed.forEach { $0.tick(currently) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.delayed = &lt;span style="color:#66d9ef">self&lt;/span>.delayed.filter { $0.isValid }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">now&lt;/span>() -&amp;gt; Date {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Date(timeIntervalSince1970: currentInterval)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> interval: TimeInterval, &lt;span style="color:#66d9ef">_&lt;/span> f: @escaping () -&amp;gt; Void) -&amp;gt; Invalidatable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> delayed.append(timer)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> timer
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">TimeScheduler&lt;/span>: Scheduler {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>() {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">now&lt;/span>() -&amp;gt; Date {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Date()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> interval: TimeInterval, &lt;span style="color:#66d9ef">_&lt;/span> f: @escaping () -&amp;gt; Void) -&amp;gt; Invalidatable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Timer(timeInterval: interval, repeats: &lt;span style="color:#66d9ef">false&lt;/span>) { &lt;span style="color:#66d9ef">_&lt;/span> &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">ReactifRuntimeContext&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> scheduler: Scheduler = TimeScheduler()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> ReactifCurrent = ReactifRuntimeContext()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Sink&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">typealias&lt;/span> Completion = () -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> call: (@escaping (@escaping Completion) -&amp;gt; Void) -&amp;gt; Bool
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> call: @escaping (@escaping (@escaping Completion) -&amp;gt; Void) -&amp;gt; Bool) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.call = call
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Sink&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">lock&lt;/span>(name: String? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> lock = NSLock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> lock.name = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Sink { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> lock.&lt;span style="color:#66d9ef">try&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(lock.unlock)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">recursiveLock&lt;/span>(name: String? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> lock = NSRecursiveLock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> lock.name = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Sink { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> lock.&lt;span style="color:#66d9ef">try&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(lock.unlock)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">synchronous&lt;/span>() -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Sink { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f({})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">filter&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> includes: @escaping () -&amp;gt; Bool) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { (sink: Sink) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Sink { (f: @escaping Unary&amp;lt;Sink.Completion&amp;gt;) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> includes() &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> sink.call(f)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">reschedule&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (@escaping Unary&amp;lt;Sink.Completion&amp;gt;, @escaping Sink.Completion) -&amp;gt; Void) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { (sink: Sink) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Sink { (f: @escaping Unary&amp;lt;Sink.Completion&amp;gt;) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sink.call { complete &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> transform(f, complete)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> reschedule { f, completion &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ReactifCurrent.scheduler.delay(time) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(completion)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">extend&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> reschedule { f, completion &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ReactifCurrent.scheduler.delay(time, completion)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">debounce&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> currentAttempt: Invalidatable?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> reschedule { f, completion &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt?.invalidate()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt = ReactifCurrent.scheduler.delay(time) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(completion)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">throttle&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> lastInvocation: Date?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> filter {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> now = ReactifCurrent.scheduler.now()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">defer&lt;/span> { lastInvocation = now }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) &lt;span style="color:#f92672">&amp;lt;&lt;/span> time {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">schedule&lt;/span>&amp;lt;A&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> factory: @escaping &lt;span style="color:#66d9ef">@autoclosure&lt;/span> () -&amp;gt; Sink) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> sink = factory()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span> sink.call { f(a);$0() } }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// &lt;/span>&lt;span style="color:#75715e">TODO:&lt;/span>&lt;span style="color:#75715e"> throttle using time after completion instead of starting time&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">throttle&lt;/span>&amp;lt;A&amp;gt;(time: TimeInterval) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> schedule(with(.synchronous(), throttle(time: time)))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">exhaustA&lt;/span>&amp;lt;A&amp;gt;(ending time: TimeInterval? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> schedule(with(.recursiveLock(), extend(time: &lt;span style="color:#ae81ff">10&lt;/span>)))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">exhaust&lt;/span>&amp;lt;A&amp;gt;(ending time: TimeInterval? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> lock = NSLock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> lock.&lt;span style="color:#66d9ef">try&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(a)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> time = time {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ReactifCurrent.scheduler.delay(time, lock.unlock)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> lock.unlock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">map&lt;/span>&amp;lt;A, B&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (A) -&amp;gt; B) -&amp;gt; (@escaping Unary&amp;lt;B&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span> pipe(transform, f) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">filter&lt;/span>&amp;lt;A&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> include: @escaping (A) -&amp;gt; Bool) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> include(a) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(a)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">debounce&lt;/span>&amp;lt;A&amp;gt;(time: TimeInterval) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> currentAttempt: Invalidatable?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt?.invalidate()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt = ReactifCurrent.scheduler.delay(time) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(a)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.&lt;/p>
+&lt;p>Though as we now have &lt;code>Combine&lt;/code> by Apple, this is more likely to be a niche idea.&lt;/p>
+&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item><item><title>Swifducks: simple Redux store with multiple reducers</title><link>https://vknabel.com/posts/swifducks-simple-redux-store-with-multiple-reducers/</link><pubDate>Tue, 15 Oct 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/swifducks-simple-redux-store-with-multiple-reducers/</guid><description>&lt;p>A simple example implementation of the Redux pattern with multiple reducers and listeners.&lt;/p>
+&lt;p>The name is derived from Swift + Redux = 🏎🦆&lt;/p>
+&lt;p>&lt;em>Originally written at 2018-06-10&lt;/em>&lt;/p>
+&lt;h2 id="definitions">Definitions&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Store&lt;/span>&amp;lt;State, Action&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">typealias&lt;/span> Reducer = (Action, &lt;span style="color:#66d9ef">inout&lt;/span> State) -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">private&lt;/span>(&lt;span style="color:#66d9ef">set&lt;/span>) &lt;span style="color:#66d9ef">var&lt;/span> state: State
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> reducers: [Reducer] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> callbacks: [Weak&amp;lt;Listener&amp;lt;State&amp;gt;&lt;span style="color:#f92672">&amp;gt;&lt;/span>] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(initial state: State) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.state = state
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">select&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> changes: @escaping (State) -&amp;gt; Void) -&amp;gt; Any {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> subscription = Listener(on: changes)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> callbacks.append(Weak(subscription))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> subscription
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">reduce&lt;/span>(with reducer: @escaping Reducer) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> reducers.append(reducer)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">dispatch&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> action: Action) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> state = reducers.reduce(into: state) { intermediate, reducer &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> reducer(action, &amp;amp;intermediate)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> callbacks = callbacks
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .compactMap { $0.value }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .map(Weak.&lt;span style="color:#66d9ef">init&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> callbacks.forEach { $0.value?.onChange(state) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Store&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">convenience&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(initial state: State, reducer: @escaping Reducer) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.&lt;span style="color:#66d9ef">init&lt;/span>(initial: state)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> reduce(with: reducer)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Weak&lt;/span>&amp;lt;A: AnyObject&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">weak&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> value: A?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> value: A?) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.value = value
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Listener&lt;/span>&amp;lt;State&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> onChange: (State) -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(on change: @escaping (State) -&amp;gt; Void) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> onChange = change
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="example-usage">Example Usage&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#a6e22e">IntAction&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> increase
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> decrease
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> root = Store&amp;lt;Int, IntAction&amp;gt;(initial: &lt;span style="color:#ae81ff">0&lt;/span>) { action, state &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> action {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .increase:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> state &lt;span style="color:#f92672">+=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .decrease:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> state &lt;span style="color:#f92672">-=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> sideEffect = &lt;span style="color:#f92672">-&lt;/span>&lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> listener: Any? = root.select {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sideEffect = $0
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.dispatch(.increase)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.state &lt;span style="color:#75715e">// will be 1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sideEffect &lt;span style="color:#75715e">// will be 1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>listener = &lt;span style="color:#66d9ef">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.dispatch(.decrease)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.state &lt;span style="color:#75715e">// will be 0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sideEffect &lt;span style="color:#75715e">// will be 1&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Without explicit support for modularity, supporting multiple reducers as above is probably not needed. Instead some composability functions should be used.&lt;/p>
+&lt;p>On the other hand: it is obvious, that are implementing the Redux pattern and embracing unidirectional data flow is relatively easy.&lt;/p>
+&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item><item><title>Thoughts on: Elegant Objects</title><link>https://vknabel.com/posts/thoughts-on-elegant-objects/</link><pubDate>Tue, 09 Oct 2018 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/thoughts-on-elegant-objects/</guid><description>&lt;p>Writing things down is part of my learning process. These thoughts came up while reading through Yegor Bugayenko’s book Elegant Objects about a more declarative and less procedural approach of object oriented programming.
+This is more a personal document than a book review or summary and as I already knew some topics, I do not mention several chapters or details, I might explain concepts different than the original author and many examples from Java, Ruby or C++ cannot be applied to Swift as they would already solve the issue.&lt;/p>
+&lt;p>The book itself is split into three parts of the lifetime of an object: the birth or initialization, education, employment and retirement or deinitialization.&lt;/p>
+&lt;p>Elegant Objects teaches to &lt;strong>treat all objects as human beings&lt;/strong> and that we should talk with them &lt;code>[].isEmpty&lt;/code> instead of talking about them &lt;code>[].count == 0&lt;/code>.&lt;/p>
+&lt;h2 id="birth">Birth&lt;/h2>
+&lt;ul>
+&lt;li>Objects are not bags of data, they are the data they represent&lt;/li>
+&lt;li>Therefore objects are no algorithms&lt;/li>
+&lt;li>Objects without data make no sense&lt;/li>
+&lt;/ul>
+&lt;h3 id="11-never-use--er-names">1.1 Never use -er names&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/03/09/objects-end-with-er.html">https://www.yegor256.com/2015/03/09/objects-end-with-er.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Names describing algorithms and behavior of the objects instead of their identity are no real OOP. Typical suffixes are &lt;code>er&lt;/code> and &lt;code>or&lt;/code> (exceptions: user, computer, etc):
+&lt;ul>
+&lt;li>Formatter (a format can apply itself, right?)&lt;/li>
+&lt;li>Converter (exchange rate? Metric system?)&lt;/li>
+&lt;li>Manager (repository)&lt;/li>
+&lt;li>Controller (this one is interesting. It holds the view, but how can we name it instead? In UIKit not practical?)&lt;/li>
+&lt;li>Helper (well, yes)&lt;/li>
+&lt;li>Validator (predicate)&lt;/li>
+&lt;li>Router (routing table?)&lt;/li>
+&lt;li>Dispatcher (queue would be too specific)&lt;/li>
+&lt;li>Observer (outside Swift: target, addressee, recipient? Similar: output pipe)&lt;/li>
+&lt;li>Listener (&lt;/li>
+&lt;li>Sorter&lt;/li>
+&lt;li>Encoder&lt;/li>
+&lt;li>Decoder&lt;/li>
+&lt;li>Observable (stream)&lt;/li>
+&lt;li>Probably all &lt;code>able&lt;/code> names, too&lt;/li>
+&lt;li>Encodable, Decodable (quite generic and hard)&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Because of the focus on data: many initializers (5&amp;hellip;10), a few queries (), as little mutations as possible (). Reasoning: makes it much easier to use&lt;/li>
+&lt;li>This data centric approach reminds me of some functional code I‘ve seen before, which impressed me a lot.&lt;/li>
+&lt;/ul>
+&lt;h3 id="12-make-one-constructor-primary">1.2 Make one constructor primary&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/05/28/one-primary-constructor.html">https://www.yegor256.com/2015/05/28/one-primary-constructor.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Have only one primary initializer and many convenience inits&lt;/li>
+&lt;/ul>
+&lt;h3 id="13-keep-constructors-code-free">1.3 Keep constructors code-free&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html">https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Code-free constructors: actually had performance impacts on this in Ionic! Swift‘s &lt;code>lazy&lt;/code> helps a lot here! =&amp;gt; this kind of performance impact should be explicit&lt;/li>
+&lt;li>Rule of thumb: don‘t touch the arguments&lt;/li>
+&lt;li>Suggestion: creation of many, small classes (like a class just for parsing an int out of a string) (reducing overhead with &lt;code>Taggable&lt;/code> like solutions?)&lt;/li>
+&lt;/ul>
+&lt;h2 id="education">Education&lt;/h2>
+&lt;ul>
+&lt;li>Keep objects small (this is a trend in Swift, right? &lt;code>Taggable&lt;/code>)&lt;/li>
+&lt;/ul>
+&lt;h3 id="21-encapsulate-as-little-as-possible">2.1 Encapsulate as little as possible&lt;/h3>
+&lt;ul>
+&lt;li>Rule of thumb: max 4 values per object, otherwise compose&lt;/li>
+&lt;li>What about configuration files? Should their object representations be passed through the whole program or should they be split into more maintainable objects?&lt;/li>
+&lt;li>Every data within an object is part of its identity (in general, yes, but what about database entries and their id? Of course &lt;code>==&lt;/code> should be false if the id is the same, but the name is different)&lt;/li>
+&lt;/ul>
+&lt;h3 id="22-encapsulate-something-at-the-very-least">2.2 Encapsulate something at the very least&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/12/15/how-much-your-objects-encapsulate.html">https://www.yegor256.com/2014/12/15/how-much-your-objects-encapsulate.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Static methods are not pure OOP&lt;/li>
+&lt;li>Objects without data are just static&lt;/li>
+&lt;li>There is only one object encapsulating nothing: the universe (or in swift unit)&lt;/li>
+&lt;li>Doesn‘t like &lt;code>x * z&lt;/code>, but probably not completely applicable to Swift (it changes the way you think)&lt;/li>
+&lt;/ul>
+&lt;h3 id="23-always-use-interfaces">2.3 Always use interfaces&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html">https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Every public method should have their representation within an interface.&lt;/li>
+&lt;li>Do not use object instances directly&lt;/li>
+&lt;li>I think this approach is right, especially easy when using unidirectional data flow architecture. It requires just a few interfaces, but the gains for testability are awesome. If we need to write too much interfaces, we probably picked the wrong abstraction or have too much coupling.&lt;/li>
+&lt;li>Note: in Swift you can use a struct with values of functions instead of methods if it better fits your use case than protocols.&lt;/li>
+&lt;/ul>
+&lt;h3 id="24-choose-method-names-carefully">2.4 Choose method names carefully&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2018/08/22/builders-and-manipulators.html">https://www.yegor256.com/2018/08/22/builders-and-manipulators.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Rule of thumb: queries (builders) are nouns (with adjectives), mutations (manipulators) are verbs (with adverbs).&lt;/li>
+&lt;li>Queries return&lt;/li>
+&lt;li>Mutations mutate and return nothing&lt;/li>
+&lt;li>Reduces side-effects&lt;/li>
+&lt;li>If we need results from the mutation, we should create a new object, which decouples mutations and queries. Generally a good idea, but then you loose compiler safety, that the mutation should have been triggered before reading the results. Using callbacks would just hide the problem, as we would pass the result to the callback. Hence: the mutation would emit data. Exceptions from this would only be thins like &lt;code>Observable&amp;lt;Void&amp;gt;&lt;/code> and &lt;code>Promise&amp;lt;Void&amp;gt;&lt;/code>&lt;/li>
+&lt;li>Booleans should not include &lt;code>is&lt;/code> but should be readable with an &lt;code>is&lt;/code> (prefer is &lt;code>equal(to:)&lt;/code> over &lt;code>equals(_:)&lt;/code>)&lt;/li>
+&lt;/ul>
+&lt;h3 id="25-dont-use-public-constants">2.5 Don‘t use public constants&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2015/07/06/public-static-literals.html">https://www.yegor256.com/2015/07/06/public-static-literals.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Do not use public constants (this includes global constants, singletons, static properties, &amp;hellip;)&lt;/li>
+&lt;li>Constants should be private&lt;/li>
+&lt;li>Instead wrap the constants into a class which &lt;em>uses&lt;/em> it as intended.&lt;/li>
+&lt;li>Example: &lt;code>CRLFString&lt;/code> which automatically appends &lt;code>\r\n&lt;/code> to all strings on &lt;code>toString&lt;/code>.&lt;/li>
+&lt;li>Regarding enums: &lt;code>HTTPMethod&lt;/code> are just constants, too! Instead favor distinct classes for &lt;code>PostRequest&lt;/code>, &lt;code>GetRequest&lt;/code>, &amp;hellip;&lt;/li>
+&lt;li>In my eyes using enums with associated values is fine as they are much more advanced. E.g. &lt;code>LocalizableString&lt;/code> with &lt;code>case priceLabel(amount: Int, currency: String)&lt;/code> and &lt;code>var localized: String { get }&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h3 id="26-be-immutable">2.6 Be Immutable&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html">https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Of course immutability is important!&lt;/li>
+&lt;/ul>
+&lt;h3 id="27-write-tests-instead-of-documentation">2.7 Write tests instead of documentation&lt;/h3>
+&lt;ul>
+&lt;li>Tests are good docs; tests should be easy to read as the code should be&lt;/li>
+&lt;/ul>
+&lt;h3 id="28-dont-mock-use-fakes">2.8 Don‘t mock; use fakes&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/09/23/built-in-fake-objects.html">https://www.yegor256.com/2014/09/23/built-in-fake-objects.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Mocking is fragile (internal knowledge needed)&lt;/li>
+&lt;li>Fakes are more robust&lt;/li>
+&lt;li>Fakes should provide as much customization as possible.&lt;/li>
+&lt;li>It don’t think Fakes should necessarily be implemented next to the interfaces, but they are essential for unit tests and should always be shipped with libraries (either within module &lt;code>LibraryTesting&lt;/code> or in prod code)&lt;/li>
+&lt;li>I even think more libraries (including my own) should ship a basic set of unit tests that each implementation should pass. &lt;a href="https://oleb.net/blog/2016/12/protocols-have-semantics/">Protocols are more than Bags of Syntax&lt;/a>.&lt;/li>
+&lt;/ul>
+&lt;h3 id="29-keep-interfaces-short-use-smarts">2.9 Keep interfaces short; use smarts&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2016/04/26/why-inputstream-design-is-wrong.html">https://www.yegor256.com/2016/04/26/why-inputstream-design-is-wrong.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>As everything, interfaces should only do one thing&lt;/li>
+&lt;li>Applying defaults and providing overloads are more than this one thing: multiple implementations would still need to apply the same defaults. What if the defaults would be different? In that case we would mix up to problems to one n-to-m problem.&lt;/li>
+&lt;li>The proposed solution is the introduction of &lt;code>Smart&lt;/code> classes. With an implementation given, it will provide all overloads, convenience functions and defaults. If the only connection to the outside world is an instance of the interface, it should be okay to keep the &lt;code>Smart&lt;/code>-suffix. In Swift we do not need this helper at all: we can just move all overloads to an extension.&lt;/li>
+&lt;/ul>
+&lt;h2 id="employment">Employment&lt;/h2>
+&lt;h3 id="expose-fewer-than-five-public-methods">Expose fewer than five public methods&lt;/h3>
+&lt;ul>
+&lt;li>Suggests 5 as max amount of public methods in one single class&lt;/li>
+&lt;li>It‘s about cohesion: every method should access all instance variables. Otherwise you might break it up.&lt;/li>
+&lt;li>I guess these smart classes and Stdlib classes don’t fit into this rule&lt;/li>
+&lt;/ul>
+&lt;h3 id="dont-use-static-methods">Don’t use static methods&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/05/05/oop-alternative-to-utility-classes.html">https://www.yegor256.com/2014/05/05/oop-alternative-to-utility-classes.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Should never be used and are no OOP&lt;/li>
+&lt;li>Treat OOP as declarative paradigm instead of a imperative one&lt;/li>
+&lt;/ul>
+&lt;h3 id="325-functional-programming">3.2.5 Functional Programming&lt;/h3>
+&lt;ul>
+&lt;li>Did not understand benefits of declarative OOP over functional programming. (FP is simpler because it has no methods)&lt;/li>
+&lt;li>Is it possible to combine FP with dOOP? Especially in Swift: could we replace Monads by dOOP?&lt;/li>
+&lt;li>Maybe dOOP for the big picture and FP for the small one?&lt;/li>
+&lt;li>Composability over decorators (higher order objects)&lt;/li>
+&lt;li>dOOP would be a perfect fit for a rule editor! Probably more approachable than FP due to the decorators. „I want an array X. It should be an array with unique elements.“&lt;/li>
+&lt;/ul>
+&lt;h3 id="34-be-loyal-and-immutable-or-constant">3.4 Be loyal and immutable, or constant&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/12/22/immutable-objects-not-dumb.html">https://www.yegor256.com/2014/12/22/immutable-objects-not-dumb.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>Loyal: always represents the same real-world entity (e.g. never change the file path or the user id)&lt;/li>
+&lt;li>Immutable: object-state will not change&lt;/li>
+&lt;li>Constant objects are immutable&lt;/li>
+&lt;li>Non-constant but immutable: changes if real-world changes (e.g. after changing files or after manipulating memory)&lt;/li>
+&lt;li>My example: a redux store is immutable but not constant as it does only change accordingly if it‘s represented real-world data changes (the application state). But it must be loyal and must always represent the same application. When diving deeper, there must be a &lt;code>class&lt;/code> wrapper around the state-&lt;code>struct&lt;/code>. This wrapper can apply mutations to the state, but it cannot replace it.&lt;/li>
+&lt;/ul>
+&lt;h3 id="36-dont-use-new-outside-of-secondary-ctors">3.6 Don‘t use &lt;code>new&lt;/code> outside of secondary ctors&lt;/h3>
+&lt;ul>
+&lt;li>Required &lt;code>init&lt;/code>s may never instantiate objects&lt;/li>
+&lt;li>Funcs may never instantiate objects&lt;/li>
+&lt;li>But still, not all initializers may be called within &lt;code>convenience&lt;/code> inits (think of greater dependencies! A convenience init can still hard-code dependencies because of laziness)&lt;/li>
+&lt;li>When needed create a helper function in convenience inits and store it&lt;/li>
+&lt;li>=&amp;gt; Unit tests will be much better&lt;/li>
+&lt;/ul>
+&lt;h2 id="retirement">Retirement&lt;/h2>
+&lt;h3 id="412-alternatives-to-null">4.1.2 Alternatives to null&lt;/h3>
+&lt;ul>
+&lt;li>Use &lt;code>Optional&lt;/code> only for data, but not for errors&lt;/li>
+&lt;/ul>
+&lt;h3 id="421-dont-catch-unless-you-have-to">4.2.1 Don‘t catch unless you have to&lt;/h3>
+&lt;ul>
+&lt;li>Fail early, catch late&lt;/li>
+&lt;/ul>
+&lt;h3 id="423-recover-only-once">4.2.3 Recover only once&lt;/h3>
+&lt;h3 id="424-use-aspect-oriented-programming">4.2.4 Use aspect-oriented programming&lt;/h3>
+&lt;ul>
+&lt;li>Using AOP is not required for this task! Simply create a higher-order function or an object decorator&lt;/li>
+&lt;/ul>
+&lt;h3 id="43-be-either-final-or-abstract">4.3 Be either final or abstract&lt;/h3>
+&lt;p>&lt;a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html">https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>In Swift there are no &lt;code>abstract&lt;/code> classes. Instead we have protocols with default implementations. This is a much better approach. As a result, all Swift classes should be final. Swift classes are implicitly final for external modules when not marked as open.&lt;/li>
+&lt;/ul>
+&lt;h3 id="44-use-raii">4.4 Use RAII&lt;/h3>
+&lt;ul>
+&lt;li>Resource Acquisition Is Initialization&lt;/li>
+&lt;li>Says to lock resources on init and release them on deinit&lt;/li>
+&lt;li>In Swift this approach is already common: Subscription, Disposable, opaque objects for &lt;code>NSNotificationCenter&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2 id="recap">Recap&lt;/h2>
+&lt;p>I still don’t know what I am going to take away from this book as it particularly has strong opinions which do not align with mine. Yet, there are things I have experienced myself and got the same solution. What I found valuable are naming and the rules of thumb as I generally agree on them. Though as in most books, some sentences are too absolute:&lt;/p>
+&lt;ul>
+&lt;li>IMHO it’s okay to use return values for mutations: if the only way to get information when performing side-effects, it should better be explicit.&lt;/li>
+&lt;li>Sometimes we do not use boolean queries directly within conditions. In those cases it might read far better if we still keep the &lt;code>is&lt;/code> prefix. And: &amp;ldquo;is &lt;code>containing&lt;/code>&amp;rdquo; sounds awful when compared to &lt;code>contains&lt;/code>.&lt;/li>
+&lt;li>The approach to make it explicit what you want to optimize your code for and how your code should look like is interesting. Of course this may sound philosophical or too meta, but it may help prioritizing.&lt;/li>
+&lt;li>Regarding static methods and global variables: in general? Agreed. Though, I think the global &lt;code>Current&lt;/code> as proposed by pointfree.co is worth it, as long as it is in-line with your goals and your business: execution-environment specific things should go into &lt;code>Current&lt;/code> (JS: &lt;code>window.open&lt;/code>). Things like sessions should preferably be implemented using classic DI (e.g. Tweetbot hay have multiple sessions).&lt;/li>
+&lt;li>Functions have much less overhead than classes. The proposed declarative OOP snippets read mostly like FP on the usage side: you do not gain any benefits from the fact that objects have methods. On the declaration side, writing a class has a much bigger overhead when compared to a function. Though you gain the ability to replace the implementation when using protocols and polymorphism resulting in more verbosity. I think FP feels less like fighting against the language than declarative OOP would feel like.&lt;/li>
+&lt;li>Of course all these techniques help to improve maintainability, but what‘s often left unsaid: you can also encapsulate dirty hacks that way. And what if we need to touch these parts again? Keep the tests, throw the code away and write everything from scratch, but in clean. If there is no code to maintain (deleted code is no code) and if we cannot break anything (we have tests for our dirty hack), we can easily maintain everything. In most cases these parts will only be written once. Though this approach requires being explicit about it.&lt;/li>
+&lt;/ul></description></item><item><title>Refactoring RxJS Code in Angular</title><link>https://vknabel.com/posts/refactoring-rxjs-in-angular/</link><pubDate>Thu, 28 Sep 2017 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/refactoring-rxjs-in-angular/</guid><description>&lt;p>Do you work with legacy RxJS code? Have you ever revisited your first few observables in your application? Do you need to fix bugs in an app of your learning phase? Are you still learning best practices for writing reactive code? This guide is for you. Even if you don’t have anything to do with Angular, you may find this interesting. I will show you a way of how to improve your reactive streams in order to understand their functionality in many isolated, but tiny steps. Some of them may offer external dependencies, but we will always show, how to do it manually.&lt;/p>
+&lt;p>Within each step we isolate/eliminate side effects, get more explicit about lifetime and learn about how to prevent unintended behavior. If you use this guide to refactor some specific code, you should perform all single steps in order and rerun all tests after each change. If you can‘t find the shown pattern you can take the next step.&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;em>Unit Testing:&lt;/em> If you don‘t have any test create them upfront. Each step is a small refactoring: you may break something. For the guys of you who sit in front of really untestable code: I understand your situation. All ”dangerous” steps are marked. You need to test much more and manually. At least introduce unit tests afterwards. Dependency injection is your friend.&lt;/p>&lt;/blockquote>
+&lt;p>In the beginning, we start easy and just isolate our side effects from our subscriptions. Instead of passing our callbacks directly, we wrap them into &lt;code>do&lt;/code> operators. Whenever you read a &lt;code>do&lt;/code>, you know: that‘s a side effect.
+If you want a slightly more expressive variant try &lt;code>@molecule/do-next&lt;/code>, &lt;code>@molecule/do-error&lt;/code> and &lt;code>@molecule/do-complete&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-javascript" data-lang="javascript">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// previous code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#a6e22e">myObservable$&lt;/span>.&lt;span style="color:#a6e22e">subscribe&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> (&lt;span style="color:#a6e22e">next&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">handleNext&lt;/span>(&lt;span style="color:#a6e22e">next&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> (&lt;span style="color:#a6e22e">error&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">handleError&lt;/span>(&lt;span style="color:#a6e22e">error&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> () =&amp;gt; &lt;span style="color:#a6e22e">handleCompletion&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// refactored code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#a6e22e">myObservable$&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#66d9ef">do&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> (&lt;span style="color:#a6e22e">next&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">handleNext&lt;/span>(&lt;span style="color:#a6e22e">next&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> (&lt;span style="color:#a6e22e">error&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">handleError&lt;/span>(&lt;span style="color:#a6e22e">error&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> () =&amp;gt; &lt;span style="color:#a6e22e">handleCompletion&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#a6e22e">subscribe&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">/* or with @molecule/do-next,
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> * @molecule/do-error,
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> * @molecule/do-complete
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">myObservable$&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#66d9ef">do&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> (&lt;span style="color:#a6e22e">next&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">handleNext&lt;/span>(&lt;span style="color:#a6e22e">next&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> (&lt;span style="color:#a6e22e">error&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">handleError&lt;/span>(&lt;span style="color:#a6e22e">error&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> () =&amp;gt; &lt;span style="color:#a6e22e">handleCompletion&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#a6e22e">subscribe&lt;/span>()
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Well, that was easy. Now let‘s make all of our operators simpler. A good sign, that you tried to do more than one thing inside an operator is the use of closure blocks and explicit return statements (&lt;code>() =&amp;gt; {}&lt;/code>).
+Especially if we extract all side effects from our operators, we know: &lt;em>all&lt;/em> side effects live within &lt;code>do*&lt;/code> and &lt;code>finally&lt;/code>!
+Every statement that is not your &lt;code>return&lt;/code>-statement and no variable declaration, that is used for your &lt;code>return&lt;/code> is a side effect. If the operator is a &lt;code>catch&lt;/code>, move the side effects logically isolated (see above) to &lt;code>do(undefined, yourErrorHandler)&lt;/code>/&lt;code>doError(yourErrorHandler)&lt;/code>. Otherwise extract them to &lt;code>do&lt;/code>/&lt;code>doNext&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-javascript" data-lang="javascript">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// previous code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#a6e22e">myObservable$&lt;/span>.&lt;span style="color:#66d9ef">catch&lt;/span>(&lt;span style="color:#a6e22e">error&lt;/span> =&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#a6e22e">console&lt;/span>.&lt;span style="color:#a6e22e">log&lt;/span>(&lt;span style="color:#960050;background-color:#1e0010">’&lt;/span>&lt;span style="color:#a6e22e">Could&lt;/span> &lt;span style="color:#a6e22e">not&lt;/span> &lt;span style="color:#a6e22e">resolve&lt;/span> &lt;span style="color:#a6e22e">myObservable$&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">’&lt;/span>, &lt;span style="color:#a6e22e">error&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#a6e22e">Observable&lt;/span>.&lt;span style="color:#a6e22e">empty&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// refactored code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#a6e22e">myObservable$&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	 &lt;span style="color:#75715e">// or use .do(undefined, errorHandler)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> .&lt;span style="color:#a6e22e">doError&lt;/span>(&lt;span style="color:#a6e22e">error&lt;/span> =&amp;gt; &lt;span style="color:#a6e22e">console&lt;/span>.&lt;span style="color:#a6e22e">log&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		&lt;span style="color:#960050;background-color:#1e0010">’&lt;/span>&lt;span style="color:#a6e22e">Could&lt;/span> &lt;span style="color:#a6e22e">not&lt;/span> &lt;span style="color:#a6e22e">resolve&lt;/span> &lt;span style="color:#a6e22e">myObservable$&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">’&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		&lt;span style="color:#a6e22e">error&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .&lt;span style="color:#66d9ef">catch&lt;/span>(() =&amp;gt; &lt;span style="color:#a6e22e">Observable&lt;/span>.&lt;span style="color:#a6e22e">empty&lt;/span>());
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>In order to further simplify your operation handler, you can extract the whole block into a new &lt;code>private&lt;/code> method of your class. If it doesn’t even depend on &lt;code>this&lt;/code> you can actually make it &lt;code>static&lt;/code>. The following case may seem a bit awkward at first, but it will keep everything simple and stupid. You will see, one can totally understand &lt;code>previewOfFavorites$&lt;/code> without knowing all those details. And if the underlying API changes, our public methods with all of our business logic just don‘t care.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-javascript" data-lang="javascript">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// previous code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#a6e22e">get&lt;/span> &lt;span style="color:#a6e22e">previewOfFavorites&lt;/span>()&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#a6e22e">Observable&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#a6e22e">Favorite&lt;/span>[]&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#a6e22e">previewSize$&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">this&lt;/span>.&lt;span style="color:#a6e22e">user&lt;/span>.&lt;span style="color:#a6e22e">settings$&lt;/span>.&lt;span style="color:#a6e22e">map&lt;/span>(&lt;span style="color:#a6e22e">settings&lt;/span> =&amp;gt; &lt;span style="color:#a6e22e">settings&lt;/span>.&lt;span style="color:#a6e22e">preview&lt;/span>.&lt;span style="color:#a6e22e">size&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#a6e22e">favorites$&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">this&lt;/span>.&lt;span style="color:#a6e22e">user&lt;/span>.&lt;span style="color:#a6e22e">favorites$&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#a6e22e">Observable&lt;/span>.&lt;span style="color:#a6e22e">combineLatest&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		&lt;span style="color:#a6e22e">previewSize$&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		&lt;span style="color:#a6e22e">previewOfFavorites$&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		(&lt;span style="color:#a6e22e">size&lt;/span>, &lt;span style="color:#a6e22e">favorites&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">favorites&lt;/span>.&lt;span style="color:#a6e22e">slice&lt;/span>(&lt;span style="color:#ae81ff">0&lt;/span>, &lt;span style="color:#ae81ff">3&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// refactored code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#a6e22e">get&lt;/span> &lt;span style="color:#a6e22e">previewOfFavorites$&lt;/span>()&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#a6e22e">Observable&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#a6e22e">Favorite&lt;/span>[]&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#a6e22e">Observable&lt;/span>.&lt;span style="color:#a6e22e">combineLatest&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		&lt;span style="color:#66d9ef">this&lt;/span>.&lt;span style="color:#a6e22e">previewSize$&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		&lt;span style="color:#66d9ef">this&lt;/span>.&lt;span style="color:#a6e22e">previewOfFavorites$&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>		(&lt;span style="color:#a6e22e">size&lt;/span>, &lt;span style="color:#a6e22e">favorites&lt;/span>) =&amp;gt; &lt;span style="color:#a6e22e">favorites&lt;/span>.&lt;span style="color:#a6e22e">slice&lt;/span>(&lt;span style="color:#ae81ff">0&lt;/span>, &lt;span style="color:#ae81ff">3&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#a6e22e">get&lt;/span> &lt;span style="color:#a6e22e">previewSize$&lt;/span>()&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#a6e22e">Observable&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#a6e22e">number&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">this&lt;/span>.&lt;span style="color:#a6e22e">user&lt;/span>.&lt;span style="color:#a6e22e">settings$&lt;/span>.&lt;span style="color:#a6e22e">map&lt;/span>(&lt;span style="color:#a6e22e">settings&lt;/span> =&amp;gt; &lt;span style="color:#a6e22e">settings&lt;/span>.&lt;span style="color:#a6e22e">preview&lt;/span>.&lt;span style="color:#a6e22e">size&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#a6e22e">get&lt;/span> &lt;span style="color:#a6e22e">favorites$&lt;/span>()&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#a6e22e">Observable&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#a6e22e">Favorite&lt;/span>[]&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>	&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">this&lt;/span>.&lt;span style="color:#a6e22e">user&lt;/span>.&lt;span style="color:#a6e22e">favorites$&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Finally we should have mostly single &lt;code>return&lt;/code>-statements as handlers and transformations. In that case we just use the short notation for closures. One exception are object literals, which need to be wrapped in parentheses (&lt;code>() =&amp;gt; ({})&lt;/code>) or leave the explicit return statement if you prefer it.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-javascript" data-lang="javascript">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// previous code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#a6e22e">myObservable$&lt;/span>.&lt;span style="color:#a6e22e">map&lt;/span>((&lt;span style="color:#a6e22e">value&lt;/span>) =&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> [&lt;span style="color:#a6e22e">value&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// refactored code
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#a6e22e">myObservable$&lt;/span>.&lt;span style="color:#a6e22e">map&lt;/span>((&lt;span style="color:#a6e22e">value&lt;/span>) =&amp;gt; [&lt;span style="color:#a6e22e">value&lt;/span>])
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="whats-next">What&amp;rsquo;s next?&lt;/h2>
+&lt;p>This blogpost has never been finished. It wasn&amp;rsquo;t touch for more than a year and I don&amp;rsquo;t understand all my remaining notes anymore.
+Here they are:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>Replace instance variables through Observables they represent&lt;/p>
+&lt;ul>
+&lt;li>Store observable as &lt;code>readonly&lt;/code> and &lt;code>shareReplay(1)&lt;/code> and remove &lt;code>subscribe&lt;/code>.&lt;/li>
+&lt;li>Replace usages with &lt;code>withLatestFrom&lt;/code> or &lt;code>this.xx$.first().mergeMap&lt;/code>&lt;/li>
+&lt;li>When filtered procedural, move logic into observable method for later use&lt;/li>
+&lt;li>Keep visibility (prefer &lt;code>private&lt;/code>, of course)&lt;/li>
+&lt;li>Angular templates should use &lt;code>|async&lt;/code>&lt;/li>
+&lt;li>You can now remove &lt;code>changeDetector.markForCheck()&lt;/code> invocations&lt;/li>
+&lt;li>If param is requires synchronously use &lt;code>Observable.defer().shareReplay(1)&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Remove temporary observable and adjust &lt;code>mergeMap&lt;/code>s&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>If extracted subject with object for parameter, adjust function parameters&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Trigger actions with temporary observable named &lt;code>*Action&lt;/code> (&lt;code>Observable.empty().finally&lt;/code>)&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Sideeffect at the begginning before current operator, otherwise behind&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Keep functions which prevent execution&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>All subjects should always be private: add accessors &lt;code>processDidChange&lt;/code>, &lt;code>processDidFail&lt;/code>, &lt;code>processDidComplete&lt;/code>,&lt;code>processObserver&lt;/code> (just if required)&lt;/p>
+&lt;/li>
+&lt;/ul></description></item></channel></rss>

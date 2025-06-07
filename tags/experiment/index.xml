@@ -1,0 +1,822 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Experiment on vknabel</title><link>https://vknabel.com/tags/experiment/</link><description>Recent content in Experiment on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Tue, 15 Oct 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/experiment/index.xml" rel="self" type="application/rss+xml"/><item><title>InferIt: a Constraint Solving Package Manager</title><link>https://vknabel.com/posts/inferit-a-constraint-solving-package-manager/</link><pubDate>Tue, 15 Oct 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/inferit-a-constraint-solving-package-manager/</guid><description>&lt;p>The initial idea behind InferIt was to create some mixture of a constraint solver and a dependency manager: you would just tell it what to install and it would gather as much information as possible to install it.&lt;/p>
+&lt;p>The goal is to fulfill a requirement. InferIt would then try to resolve all variables by trying to fulfill several requirements. If a requirement has been met, the value can be propagated.&lt;/p>
+&lt;p>The current example does not include side effects or file system lookups. Though this essentially is the key behind this idea and is possible for synchronous operations.&lt;/p>
+&lt;p>&lt;em>Originally written at 2018-01-15&lt;/em>&lt;/p>
+&lt;h2 id="example">Example&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> c = Context()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> name = Variable&amp;lt;String&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;name&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> githubRepository = Variable&amp;lt;String&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;githubRepository&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> workingDirectory = Variable&amp;lt;Path&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;workingDirectory&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> inferConfig = Variable&amp;lt;InferConfig&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;inferConfig&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> repositoryUrl = Variable&amp;lt;URL&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;respositoryUrl&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> projectDirectory = Variable&amp;lt;Path&amp;gt;(&lt;span style="color:#e6db74">&amp;#34;projectDirectory&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(name).by { &lt;span style="color:#e6db74">&amp;#34;vknabel/rock&amp;#34;&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(githubRepository).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name.with { $0.split(separator: &lt;span style="color:#e6db74">&amp;#34;/&amp;#34;&lt;/span>).count == &lt;span style="color:#ae81ff">2&lt;/span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { $0 }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(workingDirectory).by { Path.current }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(inferConfig).by(InferConfig.provider)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(repositoryUrl).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> githubRepository,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { URL(string: &lt;span style="color:#e6db74">&amp;#34;https://github.com/&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>$0&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">.git&amp;#34;&lt;/span>)&lt;span style="color:#f92672">!&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(repositoryUrl).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name.asUrl.toBeDefined,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { $0 }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.provide(projectDirectory).when(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> repositoryUrl,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> workingDirectory,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> { &lt;span style="color:#66d9ef">try&lt;/span> cloneRepository(from: $0, to: $1) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>c.solve(requirement: projectDirectory) &lt;span style="color:#75715e">// this actually runs the application&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="implemenation">Implemenation&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#a6e22e">Foundation&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">InferConfig&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> projectDirectory: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">provider&lt;/span>() &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; InferConfig {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> ResolveError.notImplemented(&lt;span style="color:#66d9ef">#function&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">cloneRepository&lt;/span>(from url: URL, to path: Path) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; Path {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> path &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#e6db74">&amp;#34;/&amp;#34;&lt;/span> &lt;span style="color:#f92672">+&lt;/span> url.lastPathComponent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#a6e22e">ResolveError&lt;/span>: Error, CustomStringConvertible {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> notImplemented(String)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> undeclaredVariable(String)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> couldNotResolveVariable(String)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> conditionalCastFailed(Any, Any.&lt;span style="color:#66d9ef">Type&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">from&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> error: Error) -&amp;gt; ResolveError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> error = error &lt;span style="color:#66d9ef">as&lt;/span>? ResolveError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> error
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> fatalError(&lt;span style="color:#e6db74">&amp;#34;An unknown error occurred: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>error&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> description: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .notImplemented(feature):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Not Implemented: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>feature&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .undeclaredVariable(variable):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Variable not declared: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>variable&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .couldNotResolveVariable(variable):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Variable could not be resolved: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>variable&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .conditionalCastFailed(value, to):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Type error: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>value&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74"> is no &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>to&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">//: Variables don&amp;#39;t depend on a context.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">Requirement&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> associatedtype Source
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> associatedtype Result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> sourceName: String { &lt;span style="color:#66d9ef">get&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">apply&lt;/span>(state: RequirementState&amp;lt;Source&amp;gt;) -&amp;gt; RequirementState&amp;lt;Result&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Variable&lt;/span>&amp;lt;T&amp;gt;: Requirement {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> sourceName: String
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> name: String) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sourceName = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">apply&lt;/span>(state: RequirementState&amp;lt;T&amp;gt;) -&amp;gt; RequirementState&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> state
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Requirement&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">with&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> filter: @escaping (Result) -&amp;gt; Bool) -&amp;gt; AnyRequirement&amp;lt;Source, Result&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> AnyRequirement(named: sourceName) { sourceState &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.apply(state: sourceState) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(source) &lt;span style="color:#66d9ef">where&lt;/span> filter(source):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(source)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .resolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(.notImplemented(&lt;span style="color:#e6db74">&amp;#34;validation mismatch&amp;#34;&lt;/span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">flatMap&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (Result) -&amp;gt; RequirementState&amp;lt;R&amp;gt;) -&amp;gt; AnyRequirement&amp;lt;Source, R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> AnyRequirement(named: sourceName) { sourceState &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.apply(state: sourceState) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(source):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> transform(source) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(result):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(result)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">map&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (Result) -&amp;gt; R) -&amp;gt; AnyRequirement&amp;lt;Source, R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> AnyRequirement(named: sourceName) { sourceState &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.apply(state: sourceState) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(source):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(transform(source))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">AnyRequirement&lt;/span>&amp;lt;Source, Result&amp;gt;: Requirement {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">typealias&lt;/span> Transformation = (RequirementState&amp;lt;Source&amp;gt;) -&amp;gt; RequirementState&amp;lt;Result&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> sourceName: String
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> transformation: Transformation
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(named name: String, transform: @escaping Transformation) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sourceName = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> transformation = transform
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">apply&lt;/span>(state: RequirementState&amp;lt;Source&amp;gt;) -&amp;gt; RequirementState&amp;lt;Result&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> transformation(state)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#a6e22e">RequirementState&lt;/span>&amp;lt;Value&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> resolved(Value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> failed(ResolveError)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(catching factory: () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; Value) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = .resolved(&lt;span style="color:#66d9ef">try&lt;/span> factory())
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = .failed(.from(error))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(catching factory: () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; RequirementState&amp;lt;Value&amp;gt;) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = &lt;span style="color:#66d9ef">try&lt;/span> factory()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span> = .failed(.from(error))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">map&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: (Value) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; R) &lt;span style="color:#66d9ef">rethrows&lt;/span> -&amp;gt; RequirementState&amp;lt;R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">try&lt;/span> .resolved(transform(value))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">flatMap&lt;/span>&amp;lt;R&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: (Value) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; RequirementState&amp;lt;R&amp;gt;) &lt;span style="color:#66d9ef">rethrows&lt;/span> -&amp;gt; RequirementState&amp;lt;R&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">try&lt;/span> transform(value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">casted&lt;/span>&amp;lt;T&amp;gt;(to &lt;span style="color:#66d9ef">_&lt;/span>: T.&lt;span style="color:#66d9ef">Type&lt;/span> = T.&lt;span style="color:#66d9ef">self&lt;/span>) -&amp;gt; RequirementState&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> value = value &lt;span style="color:#66d9ef">as&lt;/span>? T {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .resolved(value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(.conditionalCastFailed(value, T.&lt;span style="color:#66d9ef">self&lt;/span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Variable&lt;/span> &lt;span style="color:#66d9ef">where&lt;/span> T == String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> asUrl: Variable&amp;lt;URL?&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Variable&amp;lt;URL?&lt;span style="color:#f92672">&amp;gt;&lt;/span>(sourceName) &lt;span style="color:#75715e">// &lt;/span>&lt;span style="color:#75715e">TODO:&lt;/span>&lt;span style="color:#75715e"> AnyRequirement&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Variable&lt;/span> &lt;span style="color:#66d9ef">where&lt;/span> T == URL? {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> toBeDefined: Variable&amp;lt;URL&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Variable&amp;lt;URL&amp;gt;(sourceName) &lt;span style="color:#75715e">// &lt;/span>&lt;span style="color:#75715e">TODO:&lt;/span>&lt;span style="color:#75715e"> AnyRequirement&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Provider&lt;/span>&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> context: Context
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> variable: Variable&amp;lt;T&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">for&lt;/span> variable: Variable&amp;lt;T&amp;gt;, &lt;span style="color:#66d9ef">in&lt;/span> context: Context) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.context = context
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.variable = variable
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">by&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> provider: @escaping () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> context.bind(variable: variable, catching: provider)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">when&lt;/span>&amp;lt;R: Requirement&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> precondition: R, &lt;span style="color:#66d9ef">_&lt;/span> resolve: @escaping (R.Result) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> context.bind(variable: variable, to: {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> solution: RequirementState&amp;lt;R.Result&amp;gt; = &lt;span style="color:#66d9ef">self&lt;/span>.context.solve(requirement: precondition)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> solution.flatMap { (value: R.Result) -&amp;gt; RequirementState&amp;lt;T&amp;gt; &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequirementState { &lt;span style="color:#66d9ef">try&lt;/span> resolve(value) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">when&lt;/span>&amp;lt;R0: Requirement, R1: Requirement&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> precondition0: R0, &lt;span style="color:#66d9ef">_&lt;/span> precondition1: R1, &lt;span style="color:#66d9ef">_&lt;/span> resolve: @escaping (R0.Result, R1.Result) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> context.bind(variable: variable, to: {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> solution0 = { &lt;span style="color:#66d9ef">self&lt;/span>.context.solve(requirement: precondition0) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> solution1 = { &lt;span style="color:#66d9ef">self&lt;/span>.context.solve(requirement: precondition1) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> solution0().flatMap { (value0: R0.Result) -&amp;gt; RequirementState&amp;lt;T&amp;gt; &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> solution1().flatMap { (value1: R1.Result) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequirementState { &lt;span style="color:#66d9ef">try&lt;/span> resolve(value0, value1) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>fileprivate &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">VariableBindings&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">typealias&lt;/span> Resolver = () -&amp;gt; RequirementState&amp;lt;Any&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> resolvers: [Resolver] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> state: RequirementState&amp;lt;Any&amp;gt; = .unresolved
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Context&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> bindings: [String: VariableBindings] = [:]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">provide&lt;/span>&amp;lt;T&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> variable: Variable&amp;lt;T&amp;gt;) -&amp;gt; Provider&amp;lt;T&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Provider(&lt;span style="color:#66d9ef">for&lt;/span>: variable, &lt;span style="color:#66d9ef">in&lt;/span>: &lt;span style="color:#66d9ef">self&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">bind&lt;/span>&amp;lt;T&amp;gt;(variable: Variable&amp;lt;T&amp;gt;, catching resolver: @escaping () &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; T) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> bind(variable: variable) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequirementState(catching: resolver)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">bind&lt;/span>&amp;lt;T&amp;gt;(variable: Variable&amp;lt;T&amp;gt;, to resolver: @escaping () -&amp;gt; RequirementState&amp;lt;T&amp;gt;) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> binding = bindings[variable.sourceName] ?? VariableBindings()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> binding.resolvers.append({ resolver().casted() })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> bindings[variable.sourceName] = binding
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">log&lt;/span>(resolver: VariableBindings.Resolver, &lt;span style="color:#66d9ef">for&lt;/span> sourceName: String) -&amp;gt; RequirementState&amp;lt;Any&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> result = resolver()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> result {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .failed(error):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;[FAILED] &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>sourceName&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74"> with &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>error&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> .resolved(value):
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;[SOLVED] &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>sourceName&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74"> as &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>String&lt;span style="color:#e6db74">(&lt;/span>reflecting: value&lt;span style="color:#e6db74">))&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">break&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">solvePure&lt;/span>(sourceName: String) -&amp;gt; RequirementState&amp;lt;Any&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">guard&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> binding = bindings[sourceName] &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;[FAILED] No rules for &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>sourceName&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> .failed(.undeclaredVariable(sourceName))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> binding.state {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> binding.resolvers.reduce(.failed(.couldNotResolveVariable(sourceName))) { result, resolver &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">case&lt;/span> .unresolved = result {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> resolver()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">case&lt;/span> .failed(.couldNotResolveVariable(sourceName)) = result {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> log(resolver: resolver, &lt;span style="color:#66d9ef">for&lt;/span>: sourceName)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> result:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">solve&lt;/span>(sourceName: String) -&amp;gt; RequirementState&amp;lt;Any&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> result = solvePure(sourceName: sourceName)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> bindings[sourceName]?.state = result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> result
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">solve&lt;/span>&amp;lt;R: Requirement&amp;gt;(requirement: R) -&amp;gt; RequirementState&amp;lt;R.Result&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> variableState: RequirementState&amp;lt;R.Source&amp;gt; = solve(sourceName: requirement.sourceName).casted()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> requirement.apply(state: variableState)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Thus I still believe this to be an interesting topic, the amount of variables and requirements seem to explode and to be hard to debug without any additional tools.&lt;/p>
+&lt;p>Furthermore this constraint solver still operates synchronously. To be production ready this needs to be implemented asynchrously, which would then enhance.&lt;/p>
+&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item><item><title>ReactifSwift: async function composition</title><link>https://vknabel.com/posts/reactifswift-async-function-composition/</link><pubDate>Tue, 15 Oct 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/reactifswift-async-function-composition/</guid><description>&lt;p>Async operators &lt;code>debounce&lt;/code>, &lt;code>throttle&lt;/code> or &lt;code>delay&lt;/code> that functional reactive programming libraries as &lt;code>RxSwift&lt;/code> and &lt;code>ReactiveSwift&lt;/code> provide are super useful and expressive. Though their biggest benefit lays within composability.&lt;/p>
+&lt;p>This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on &lt;a href="https://github.com/pointfreeco/swift-overture">Overture&lt;/a> in version 0.2.0.&lt;/p>
+&lt;p>&lt;em>Originally written at 2018-06-10&lt;/em>&lt;/p>
+&lt;h2 id="example">Example&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> count = &lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> countChars = with({ count &lt;span style="color:#f92672">+=&lt;/span> $0 }, pipe(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> map(&lt;span style="color:#66d9ef">get&lt;/span>(&lt;span style="color:#960050;background-color:#1e0010">\&lt;/span>String.count)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> throttle(time: &lt;span style="color:#ae81ff">100&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> time = TestingScheduler()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ReactifCurrent.scheduler = time
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>countChars(&lt;span style="color:#e6db74">&amp;#34;A&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>time.tick(&lt;span style="color:#ae81ff">50&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>countChars(&lt;span style="color:#e6db74">&amp;#34;B&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>time.tick(&lt;span style="color:#ae81ff">100&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>countChars(&lt;span style="color:#e6db74">&amp;#34;Abc&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>count &lt;span style="color:#75715e">// 4&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="implementation">Implementation&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// import Overture&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> &lt;span style="color:#a6e22e">Foundation&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">typealias&lt;/span> Unary&amp;lt;A&amp;gt; = (A) -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">Invalidatable&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">invalidate&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Timer&lt;/span>: Invalidatable {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">Scheduler&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">now&lt;/span>() -&amp;gt; Date
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> time: TimeInterval, &lt;span style="color:#66d9ef">_&lt;/span> f: @escaping () -&amp;gt; Void) -&amp;gt; Invalidatable
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">TestingScheduler&lt;/span>: Scheduler {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> delayed: [FakeTimer] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> currentInterval: TimeInterval = &lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>() {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">FakeTimer&lt;/span>: Invalidatable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> date: Date
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> fire: (() -&amp;gt; Void)?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(date: Date, fire: @escaping () -&amp;gt; Void) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.fire = fire
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.date = date
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> isValid: Bool {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> fire &lt;span style="color:#f92672">!=&lt;/span> &lt;span style="color:#66d9ef">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">tick&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> now: Date) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> fire = fire, now &lt;span style="color:#f92672">&amp;gt;=&lt;/span> &lt;span style="color:#66d9ef">self&lt;/span>.date {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> fire()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">invalidate&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.fire = &lt;span style="color:#66d9ef">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">tick&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> interval: TimeInterval) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.currentInterval &lt;span style="color:#f92672">+=&lt;/span> interval
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> currently = now()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.delayed.forEach { $0.tick(currently) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.delayed = &lt;span style="color:#66d9ef">self&lt;/span>.delayed.filter { $0.isValid }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">now&lt;/span>() -&amp;gt; Date {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Date(timeIntervalSince1970: currentInterval)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> interval: TimeInterval, &lt;span style="color:#66d9ef">_&lt;/span> f: @escaping () -&amp;gt; Void) -&amp;gt; Invalidatable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> delayed.append(timer)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> timer
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">TimeScheduler&lt;/span>: Scheduler {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>() {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">now&lt;/span>() -&amp;gt; Date {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Date()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> interval: TimeInterval, &lt;span style="color:#66d9ef">_&lt;/span> f: @escaping () -&amp;gt; Void) -&amp;gt; Invalidatable {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Timer(timeInterval: interval, repeats: &lt;span style="color:#66d9ef">false&lt;/span>) { &lt;span style="color:#66d9ef">_&lt;/span> &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">ReactifRuntimeContext&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> scheduler: Scheduler = TimeScheduler()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> ReactifCurrent = ReactifRuntimeContext()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Sink&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">typealias&lt;/span> Completion = () -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> call: (@escaping (@escaping Completion) -&amp;gt; Void) -&amp;gt; Bool
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> call: @escaping (@escaping (@escaping Completion) -&amp;gt; Void) -&amp;gt; Bool) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.call = call
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Sink&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">lock&lt;/span>(name: String? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> lock = NSLock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> lock.name = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Sink { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> lock.&lt;span style="color:#66d9ef">try&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(lock.unlock)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">recursiveLock&lt;/span>(name: String? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> lock = NSRecursiveLock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> lock.name = name
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Sink { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> lock.&lt;span style="color:#66d9ef">try&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(lock.unlock)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">synchronous&lt;/span>() -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> Sink { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f({})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">filter&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> includes: @escaping () -&amp;gt; Bool) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { (sink: Sink) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Sink { (f: @escaping Unary&amp;lt;Sink.Completion&amp;gt;) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> includes() &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> sink.call(f)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">reschedule&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (@escaping Unary&amp;lt;Sink.Completion&amp;gt;, @escaping Sink.Completion) -&amp;gt; Void) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { (sink: Sink) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Sink { (f: @escaping Unary&amp;lt;Sink.Completion&amp;gt;) &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sink.call { complete &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> transform(f, complete)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">delay&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> reschedule { f, completion &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ReactifCurrent.scheduler.delay(time) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(completion)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">extend&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> reschedule { f, completion &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ReactifCurrent.scheduler.delay(time, completion)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">debounce&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> currentAttempt: Invalidatable?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> reschedule { f, completion &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt?.invalidate()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt = ReactifCurrent.scheduler.delay(time) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(completion)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">throttle&lt;/span>(time: TimeInterval) -&amp;gt; (Sink) -&amp;gt; Sink {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> lastInvocation: Date?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> filter {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> now = ReactifCurrent.scheduler.now()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">defer&lt;/span> { lastInvocation = now }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) &lt;span style="color:#f92672">&amp;lt;&lt;/span> time {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">schedule&lt;/span>&amp;lt;A&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> factory: @escaping &lt;span style="color:#66d9ef">@autoclosure&lt;/span> () -&amp;gt; Sink) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> sink = factory()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span> sink.call { f(a);$0() } }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// &lt;/span>&lt;span style="color:#75715e">TODO:&lt;/span>&lt;span style="color:#75715e"> throttle using time after completion instead of starting time&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">throttle&lt;/span>&amp;lt;A&amp;gt;(time: TimeInterval) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> schedule(with(.synchronous(), throttle(time: time)))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">exhaustA&lt;/span>&amp;lt;A&amp;gt;(ending time: TimeInterval? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> schedule(with(.recursiveLock(), extend(time: &lt;span style="color:#ae81ff">10&lt;/span>)))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">exhaust&lt;/span>&amp;lt;A&amp;gt;(ending time: TimeInterval? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> lock = NSLock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> lock.&lt;span style="color:#66d9ef">try&lt;/span>() {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(a)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> time = time {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ReactifCurrent.scheduler.delay(time, lock.unlock)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> lock.unlock()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">map&lt;/span>&amp;lt;A, B&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> transform: @escaping (A) -&amp;gt; B) -&amp;gt; (@escaping Unary&amp;lt;B&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span> pipe(transform, f) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">filter&lt;/span>&amp;lt;A&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> include: @escaping (A) -&amp;gt; Bool) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> include(a) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(a)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">debounce&lt;/span>&amp;lt;A&amp;gt;(time: TimeInterval) -&amp;gt; (@escaping Unary&amp;lt;A&amp;gt;) -&amp;gt; Unary&amp;lt;A&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { f &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> currentAttempt: Invalidatable?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { a &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt?.invalidate()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> currentAttempt = ReactifCurrent.scheduler.delay(time) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> f(a)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.&lt;/p>
+&lt;p>Though as we now have &lt;code>Combine&lt;/code> by Apple, this is more likely to be a niche idea.&lt;/p>
+&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item><item><title>Swifducks: simple Redux store with multiple reducers</title><link>https://vknabel.com/posts/swifducks-simple-redux-store-with-multiple-reducers/</link><pubDate>Tue, 15 Oct 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/swifducks-simple-redux-store-with-multiple-reducers/</guid><description>&lt;p>A simple example implementation of the Redux pattern with multiple reducers and listeners.&lt;/p>
+&lt;p>The name is derived from Swift + Redux = 🏎🦆&lt;/p>
+&lt;p>&lt;em>Originally written at 2018-06-10&lt;/em>&lt;/p>
+&lt;h2 id="definitions">Definitions&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Store&lt;/span>&amp;lt;State, Action&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">typealias&lt;/span> Reducer = (Action, &lt;span style="color:#66d9ef">inout&lt;/span> State) -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">private&lt;/span>(&lt;span style="color:#66d9ef">set&lt;/span>) &lt;span style="color:#66d9ef">var&lt;/span> state: State
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> reducers: [Reducer] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> callbacks: [Weak&amp;lt;Listener&amp;lt;State&amp;gt;&lt;span style="color:#f92672">&amp;gt;&lt;/span>] = []
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(initial state: State) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.state = state
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">select&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> changes: @escaping (State) -&amp;gt; Void) -&amp;gt; Any {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> subscription = Listener(on: changes)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> callbacks.append(Weak(subscription))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> subscription
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">reduce&lt;/span>(with reducer: @escaping Reducer) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> reducers.append(reducer)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">dispatch&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> action: Action) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> state = reducers.reduce(into: state) { intermediate, reducer &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> reducer(action, &amp;amp;intermediate)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> callbacks = callbacks
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .compactMap { $0.value }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .map(Weak.&lt;span style="color:#66d9ef">init&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> callbacks.forEach { $0.value?.onChange(state) }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">extension&lt;/span> &lt;span style="color:#a6e22e">Store&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">convenience&lt;/span> &lt;span style="color:#66d9ef">init&lt;/span>(initial state: State, reducer: @escaping Reducer) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.&lt;span style="color:#66d9ef">init&lt;/span>(initial: state)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> reduce(with: reducer)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Weak&lt;/span>&amp;lt;A: AnyObject&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">weak&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> value: A?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> value: A?) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">self&lt;/span>.value = value
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">internal&lt;/span> &lt;span style="color:#66d9ef">final&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Listener&lt;/span>&amp;lt;State&amp;gt; {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> onChange: (State) -&amp;gt; Void
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">init&lt;/span>(on change: @escaping (State) -&amp;gt; Void) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> onChange = change
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="example-usage">Example Usage&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#a6e22e">IntAction&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> increase
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> decrease
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">let&lt;/span> root = Store&amp;lt;Int, IntAction&amp;gt;(initial: &lt;span style="color:#ae81ff">0&lt;/span>) { action, state &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">switch&lt;/span> action {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .increase:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> state &lt;span style="color:#f92672">+=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> .decrease:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> state &lt;span style="color:#f92672">-=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> sideEffect = &lt;span style="color:#f92672">-&lt;/span>&lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">var&lt;/span> listener: Any? = root.select {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> sideEffect = $0
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.dispatch(.increase)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.state &lt;span style="color:#75715e">// will be 1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sideEffect &lt;span style="color:#75715e">// will be 1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>listener = &lt;span style="color:#66d9ef">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.dispatch(.decrease)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root.state &lt;span style="color:#75715e">// will be 0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sideEffect &lt;span style="color:#75715e">// will be 1&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Without explicit support for modularity, supporting multiple reducers as above is probably not needed. Instead some composability functions should be used.&lt;/p>
+&lt;p>On the other hand: it is obvious, that are implementing the Redux pattern and embracing unidirectional data flow is relatively easy.&lt;/p>
+&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item><item><title>ArgumentOverture</title><link>https://vknabel.com/posts/argumentoverture/</link><pubDate>Sun, 30 Sep 2018 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/argumentoverture/</guid><description>&lt;p>A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses &lt;a href="https://github.com/pointfreeco/swift-overture">Overture&lt;/a> and is build for high composability, flexibility and little impact on your project&amp;rsquo;s freedom to evolve.&lt;/p>
+&lt;p>A central use case was &lt;a href="https://github.com/vknabel/archery">Archery&lt;/a>&amp;rsquo;s: only actually interpreted arguments shall be consumed. Any others shall be collected (&lt;code>remaining&lt;/code>) or should prevent execution (&lt;code>exhaust&lt;/code>), depending on the current command.&lt;/p>
+&lt;p>First of all an example usage.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// Experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> (isVerbose, whoToGreet, language, &lt;span style="color:#66d9ef">_&lt;/span>) = &lt;span style="color:#66d9ef">try&lt;/span> with([&lt;span style="color:#e6db74">&amp;#34;-v&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;hi&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;Some string&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;--language&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;en&amp;#34;&lt;/span>], chain(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> flag(&lt;span style="color:#e6db74">&amp;#34;verbose&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;v&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> positional(&lt;span style="color:#e6db74">&amp;#34;Name&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> argument(&lt;span style="color:#e6db74">&amp;#34;language&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;l&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> exhaust
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> print(&lt;span style="color:#e6db74">&amp;#34;Command failed:&amp;#34;&lt;/span>, error)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The implementation of the micro-library itself.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// Errors&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">quoted&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> string: String) -&amp;gt; String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#ae81ff">\&amp;#34;&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>string&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#ae81ff">\&amp;#34;&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">protocol&lt;/span> &lt;span style="color:#a6e22e">StringConvertibleError&lt;/span>: Error, CustomStringConvertible {}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">MissingArgumentError&lt;/span>: StringConvertibleError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> name: String?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> description: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> with(name, pipe(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> map(quoted),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> map { &lt;span style="color:#e6db74">&amp;#34;Missing argument &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>$0&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ??&lt;span style="color:#e6db74">&amp;#34;Missing argument&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">NonExhaustiveArgumentsError&lt;/span>: StringConvertibleError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> remaining: [String]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">var&lt;/span> description: String {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;Unused arguments: &lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>remaining&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// Domain&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">isArgument&lt;/span>(named name: String) -&amp;gt; (String) -&amp;gt; Bool {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { $0 == &lt;span style="color:#e6db74">&amp;#34;-&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>name&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#f92672">||&lt;/span> $0 == &lt;span style="color:#e6db74">&amp;#34;--&lt;/span>&lt;span style="color:#e6db74">\(&lt;/span>name&lt;span style="color:#e6db74">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">isOneArgument&lt;/span>(of names: [String]) -&amp;gt; (String) -&amp;gt; Bool {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { passed &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> names.&lt;span style="color:#66d9ef">lazy&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .map(isArgument(named:))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> .reduce(&lt;span style="color:#66d9ef">false&lt;/span>, { $0 &lt;span style="color:#f92672">||&lt;/span> $1(passed) })
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">private&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">indexOfArguments&lt;/span>(named names: [String]) -&amp;gt; ([String]) -&amp;gt; Array&amp;lt;String&amp;gt;.Index? {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { passed &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> passed.index(&lt;span style="color:#66d9ef">where&lt;/span>: isOneArgument(of: names))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">flag&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> names: String...) -&amp;gt; ([String]) -&amp;gt; ([String], Bool) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> index = arguments.index(&lt;span style="color:#66d9ef">where&lt;/span>: isOneArgument(of: names)) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> result = arguments
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> result.remove(at: index)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (result, &lt;span style="color:#66d9ef">true&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (arguments, &lt;span style="color:#66d9ef">false&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">positional&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> name: String? = &lt;span style="color:#66d9ef">nil&lt;/span>) -&amp;gt; ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], String) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> index = arguments.index(&lt;span style="color:#66d9ef">where&lt;/span>: { &lt;span style="color:#f92672">!&lt;/span>$0.starts(with: &lt;span style="color:#e6db74">&amp;#34;-&amp;#34;&lt;/span>)})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> index = index {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> result = arguments
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> result.remove(at: index)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (result, arguments[index])
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> MissingArgumentError(name: name)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">optional&lt;/span>&amp;lt;A&amp;gt;(&lt;span style="color:#66d9ef">_&lt;/span> f: @escaping ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], A)) -&amp;gt; ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], A?) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">do&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> (remaining, parsed) = &lt;span style="color:#66d9ef">try&lt;/span> f(arguments)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (remaining, .some(parsed))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> &lt;span style="color:#66d9ef">is&lt;/span> MissingArgumentError {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (arguments, &lt;span style="color:#66d9ef">nil&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">catch&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> error
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">argument&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> names: String...) -&amp;gt; ([String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], String) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> { arguments &lt;span style="color:#66d9ef">in&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#66d9ef">let&lt;/span> flagIndex = indexOfArguments(named: names)(arguments), arguments.count &lt;span style="color:#f92672">&amp;gt;=&lt;/span> flagIndex &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#ae81ff">2&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">let&lt;/span> value = arguments[flagIndex &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">var&lt;/span> rest = arguments
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> rest.remove(at: flagIndex &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> rest.remove(at: flagIndex)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> (rest, value)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> MissingArgumentError(name: names.first)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">exhaust&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> arguments: [String]) &lt;span style="color:#66d9ef">throws&lt;/span> -&amp;gt; ([String], Void) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> arguments.isEmpty {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> ([], ())
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> } &lt;span style="color:#66d9ef">else&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">throw&lt;/span> NonExhaustiveArgumentsError(remaining: arguments)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">func&lt;/span> &lt;span style="color:#a6e22e">remaining&lt;/span>(&lt;span style="color:#66d9ef">_&lt;/span> arguments: [String]) -&amp;gt; ([String], [String]) {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> ([], arguments)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="whats-next">What&amp;rsquo;s next?&lt;/h2>
+&lt;p>The same concept could be applied to processes and especially handling interrupts:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-swift" data-lang="swift">&lt;span style="display:flex;">&lt;span>with(Process(), concat(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> setWorkingDir(&lt;span style="color:#e6db74">&amp;#34;tmp&amp;#34;&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> passInterrupt(),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> setBashCommand(&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>) &lt;span style="color:#75715e">// is { concat(setLaunchPath(&amp;#34;/bin/bash&amp;#34;), setArguments([&amp;#34;-c&amp;#34;, $0]) }&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>))
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;em>&lt;a href="./playground.zip">download this playground&lt;/a>&lt;/em>&lt;/p></description></item></channel></rss>
