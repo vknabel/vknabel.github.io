@@ -18,7 +18,7 @@ These are all finished blog posts so far.
 
 - [Designing and scoping my language Lithia](/posts/designing-and-scoping-my-language-lithia/)
 - [The current state of Lithia after 2 years](/posts/the-current-state-of-lithia-after-2-years/)
-- [Blushlog: A new Beginning](/posts/2025-09-16/blushlog-a-new-beginning/)
+- [Blushlog: A new Beginning](/posts/2025-09-16/A-new-Beginning/)
 
 ## My motivations and background
 

@@ -8,7 +8,7 @@ images:
 
 ![The blush logo with an old computer](/images/2025-09-16-A-new-Beginning/cover.png)
 
-After a long time of procrastination I finally resumed my work on my new programming language. [Back then](/posts/the-current-state-of-lithia-after-2-years/) I wrote about the current state of [Lithia](https://github.com/vknabel/lithia) and how I arrived in a dead end regarding the language design. Sure I proposed some large changes, but if a lazy evaluated programming language with a parensless call syntax becomes a strict evaluated programming language with a regular call syntax and multiple additional features, is it still the same ~boat~... language?
+After a long time of procrastination I finally resumed my work on my new programming language. [Back then](/posts/the-current-state-of-lithia-after-2-years/) I wrote about the current state of [Lithia](https://github.com/vknabel/lithia) and how I arrived in a dead end regarding the language design. Sure I proposed some large changes, but if a lazy evaluated programming language with a parensless call syntax becomes a strict evaluated programming language with a regular call syntax and multiple additional features, is it still the same ~~boat~~... language?
 
 Literally every line of code would break. That's why I decided to create a new, currently private, repository for my new programming language called **Blush**.
 
