@@ -54,7 +54,7 @@ Add
 # Result: 42
 ```
 
-> The actual bytcode currently looks like this: `01 00 00 01 00 01 10`. Neat, huh?
+> The actual bytecode currently looks like this: `01 00 00 01 00 01 10`. Neat, huh?
 
 The VM iterates over the bytecode instructions and executes them one by one.
 Here `Cons` loads the constant with the fitting index onto the stack. `Add` pops the top two elements from the stack, adds them and pushes the result back onto the stack.
