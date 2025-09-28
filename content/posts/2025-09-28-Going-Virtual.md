@@ -122,7 +122,7 @@ And these are the results on my machine:
 | 28    | 1           | 5,338 sec  | 1,000,000,000 | 0.1101 ns  | 4,848,486  |
 | 30    | 1           | 13,990 sec | 1,000,000,000 | 0.2860 ns  | 4,891,832  |
 | 32    | 1           | 36,805 sec | 1,000,000,000 | 0.7305 ns  | 5,038,386  |
-| 40    | 1           | (too long) | 1,000,000,000 | 34,238 sec | (too long) |
+| 40    | 0           | (too long) | 1             | 34,238 sec | (too long) |
 
 When I first saw these results, I had to check if I messed something up. We are comparing seconds with nanoseconds here. That's why I added another run with `fib(40)` for Blush to validate the tests. And they were right. Blush is nearly _five million_ times faster than Lithia in this case.
 
