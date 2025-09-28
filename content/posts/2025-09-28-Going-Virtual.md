@@ -6,7 +6,7 @@ tags: [lithia, blush, compilers, golang, devlog]
 
 A few years ago while I started working on [Lithia](https://github.com/vknabel/Lithia), I decided to use whatever takes me to my goal. Getting finished was the primary focus. And I did.
 
-With Blush I want to take less compromise and build a better language. Performance and portability aren't completely irrelevant anymore.
+With [Blush](https://github.com/vknabel/blush) I want to take less compromise and build a better language. Performance and portability aren't completely irrelevant anymore.
 
 _This blog post is part of a [Journey about creating a new programming language](/posts/journey-about-creating-a-new-programming-language/)._
 
