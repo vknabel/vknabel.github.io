@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Lsp on vknabel</title><link>https://vknabel.com/tags/lsp/</link><description>Recent content in Lsp on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Wed, 22 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/lsp/index.xml" rel="self" type="application/rss+xml"/><item><title>Swift, VS Code and you</title><link>https://vknabel.com/posts/swift-vs-code-and-you/</link><pubDate>Wed, 22 Jan 2020 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/swift-vs-code-and-you/</guid><description>&lt;p&gt;Editors like Visual Studio Code live from a wide range of extensions and customization. In contrast there are IDEs like Xcode and AppCode, which have everything set up and are ready to go. In order to provide a rich set of features, they cannot not offer the same level of flexibility. Which editor you might want to use is a highly personal decision.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;em&gt;Disclaimer:&lt;/em&gt; I am the maintainer of the extensions &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swift-development-environment"&gt;Maintained Swift Development Environment&lt;/a&gt;, &lt;a href="https://www.github.com/vknabel/sourcekite"&gt;sourcekite&lt;/a&gt;, &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftlint"&gt;SwiftLint&lt;/a&gt;, &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftformat"&gt;SwiftFormat&lt;/a&gt;, &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-apple-swift-format"&gt;apple-swift-format&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;&lt;/blockquote&gt;
+&lt;h2 id="autocompletion"&gt;Autocompletion&lt;/h2&gt;
+&lt;p&gt;Although Visual Studio Code ships with basic syntax highlighting, it won’t give you any suggestions or diagnostics. In order to get autocompletion working, you have two major possibilities:
+Using &lt;a href="https://github.com/apple/sourcekit-lsp"&gt;Apple’s official VS Code extension&lt;/a&gt; or using &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swift-development-environment"&gt;Maintained Swift Development Environment&lt;/a&gt; (or in short SDE). Apple’s extension needs to be compiled manually with Node JS, SDE has already been published to the marketplace.&lt;/p&gt;
+&lt;p&gt;SDE supports two underlaying drivers: Apple’s SourceKit LSP and its own Sourcekite, while Apple does not. Support thee same degree of freedom.
+If you are not sure install SDE and try both drivers out. Stick with the one that fits your needs best.&lt;/p&gt;
+&lt;h3 id="sourcekit-lsp-in-action"&gt;sourcekit-lsp in action&lt;/h3&gt;
+&lt;p&gt;At the moment of writing, &lt;a href="https://github.com/apple/sourcekit-lsp"&gt;sourcekit-lsp&lt;/a&gt; is more reliable in autocompletion. And as it’s Apple’s official implementation, it will further improve on the long term.
+It does only support Swift Package Manager projects.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/SDE-sourcekit-lsp.gif" alt="SDE with sourcekit-lsp"&gt;&lt;/p&gt;
+&lt;h3 id="sourcekite-in-action"&gt;sourcekite in action&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/apple/sourcekite"&gt;&lt;code&gt;sourcekite&lt;/code&gt;&lt;/a&gt; works out of the box with Swift Package Manager projects, too. Additionally you can manually configure your project structure to support standalone files, Xcode projects, Tensorflow or UIKit projects.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/SDE-sourcekite.gif" alt="SDE with sourcekite"&gt;&lt;/p&gt;
+&lt;h2 id="debugging"&gt;Debugging&lt;/h2&gt;
+&lt;p&gt;Every piece of code needs to be tested and debugged. In contrast to Xcode, you need to manually configure your debugging targets.&lt;/p&gt;
+&lt;p&gt;For this purpose use LLDB Debugger. In case you need more details, read my blog post on &lt;a href="https://vknabel.com/pages/Debugging-Swift-in-VS-Code/"&gt;Debugging Swift in VS Code | Valentin Knabel&lt;/a&gt;. On Linux you might need some additional setup.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/LLDB.png" alt="LLDB Debugger"&gt;&lt;/p&gt;
+&lt;h2 id="swiftlint"&gt;SwiftLint&lt;/h2&gt;
+&lt;p&gt;You probably know SwiftLint. Wouldn&amp;rsquo;t it be great to see all its warnings and errors in VS Code? It is with &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftlint"&gt;SwiftLint&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Of course you need to install &lt;a href="https://github.com/realm/SwiftLint#installation"&gt;SwiftLint&lt;/a&gt; manually. If you add SwiftLint as dependency to your Swift Package Manager project, the extension will prefer the local version.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/Swiftlint.png" alt="SwiftLint"&gt;&lt;/p&gt;
+&lt;h2 id="swiftformat"&gt;SwiftFormat&lt;/h2&gt;
+&lt;p&gt;If you like code formatters, you have two options.
+First &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-swiftformat"&gt;SwiftFormat&lt;/a&gt; which uses &lt;a href="https://www.github.com/nicklockwood/SwiftFormat"&gt;nicklockwood/SwiftFormat&lt;/a&gt; under the hood and second &lt;a href="https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-apple-swift-format"&gt;apple-swift-format&lt;/a&gt; which relies on &lt;a href="https://www.github.com/apple/swift-format"&gt;apple/swift-format&lt;/a&gt;.
+Pick the used extension for your project&amp;rsquo;s tool to avoid unnecessary reformats and merge conflicts.&lt;/p&gt;
+&lt;p&gt;In both cases, you need to install the command line tools manually: either &lt;a href="https://github.com/nicklockwood/SwiftFormat#command-line-tool"&gt;nicklockwood/SwiftFormat&lt;/a&gt; or &lt;a href="https://github.com/apple/swift-format#swift-format"&gt;apple/swift-format&lt;/a&gt;.
+In both cases: if you add the formatter of your choice as dependency to your Swift Package Manager project, the extension will prefer the local version.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Pro tip: enable &lt;code&gt;editor.formatOnSave&lt;/code&gt;!&lt;/p&gt;&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/swift-format.gif" alt="SwiftFormat"&gt;&lt;/p&gt;
+&lt;h2 id="templating"&gt;Templating&lt;/h2&gt;
+&lt;p&gt;There is a lot of tooling built on top of templating languages like Stencil of Leaf. Of course there are some extensions for these languages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use &lt;a href="https://marketplace.visualstudio.com/items?itemName=svanimpe.stencil"&gt;Stencil&lt;/a&gt; for VS Code if you are using Sourcery or Kitura. No additional dependencies are are required.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/Stencil.png" alt="Stencil"&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Vapor users may be interested in &lt;a href="https://marketplace.visualstudio.com/items?itemName=Francisco.html-leaf"&gt;Leaf HTML&lt;/a&gt; for VS Code. Nothing to install here either.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/Swift-VS-Code-and-you/Leaf.png" alt="Leaf"&gt;&lt;/p&gt;
+&lt;h2 id="whats-left"&gt;What’s left&lt;/h2&gt;
+&lt;p&gt;In general there are many features missing when using VS Code for Swift development.
+Here is a non-exhaustive list of all features missing:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;No Xcode project support&lt;/li&gt;
+&lt;li&gt;No Playground support&lt;/li&gt;
+&lt;li&gt;No iOS debugging&lt;/li&gt;
+&lt;li&gt;No refactoring, yet&lt;/li&gt;
+&lt;li&gt;No Swift migrations&lt;/li&gt;
+&lt;li&gt;Missing debugger snippets&lt;/li&gt;
+&lt;li&gt;Missing tasks and commands for SPM&lt;/li&gt;
+&lt;li&gt;Incomplete Language Servers&lt;/li&gt;
+&lt;li&gt;Manual installation of dependencies&lt;/li&gt;
+&lt;li&gt;Convenience plugins for external Tooling (Mint, Sourcery, Rocket, &amp;hellip;)&lt;/li&gt;
+&lt;li&gt;Limited Linux support&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://vknabel.com/pages/Swift-Coverage-for-VS-Code/"&gt;Code Coverage&lt;/a&gt; &lt;em&gt;updated&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;What about you? Have you already tried different editors?
+Do you know any additional extensions or have any questions?
+Let&amp;rsquo;s get in touch on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt; or via &lt;a href="mailto:swift-vscode-and-you@vknabel.com"&gt;email&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>SDE 2.7.0 released</title><link>https://vknabel.com/posts/sde-2-7-0-released/</link><pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/sde-2-7-0-released/</guid><description>&lt;p&gt;Today I released the new &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/releases/tag/2.7.0"&gt;2.7.0 update to SDE for VS Code&lt;/a&gt; and the companion project sourcekite has been updated, too.&lt;/p&gt;
+&lt;p&gt;The new sourcekite &lt;a href="https://github.com/vknabel/sourcekite/releases/tag/0.5.0"&gt;0.5.0&lt;/a&gt; now supports Swift 5, but drops support for Swift 3. If you still need support for Swift 3.1, I also tagged &lt;a href="https://github.com/vknabel/sourcekite/releases/tag/0.4.2"&gt;0.4.2&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Since 2.6.0, SDE already supported Apple‘s official &lt;a href="https://github.com/apple/sourcekit-lsp"&gt;sourcekit-lsp&lt;/a&gt; by using the &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;langserver&amp;quot;&lt;/code&gt; and the &lt;code&gt;swift.languageServerPath&lt;/code&gt; setting.
+As announced in &lt;a href="https://www.vknabel.com/pages/Apples-SourceKit-LSP-and-SDE-Roadmap/"&gt;Apples SourceKit-LSP and SDE Roadmap&lt;/a&gt; SDE 2.7.0 now explicitly mirrors official SourceKit-LSP settings like &lt;code&gt;sourcekit-lsp.serverPath&lt;/code&gt; and &lt;code&gt;sourcekit-lsp.toolchainPath&lt;/code&gt;. These settings will only be respected when explicitly setting &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;sourcekit-lsp&amp;quot;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;I‘d suggest you to configure both &lt;code&gt;sourcekit-lsp&lt;/code&gt; and &lt;code&gt;sourcekite&lt;/code&gt; configs. Depending on your project, you may swap out the actually used LSP by updating &lt;code&gt;sde.languageServerMode&lt;/code&gt;. Both LSP implementations have different benefits. Apple‘s SourceKit-LSP is easier to install, under active development and more robust. On the other hand SDE‘s LSP is more flexible in terms of settings, works for standalone Swift files, Xcode projects (through manual configuration) and handles modules differently.&lt;/p&gt;
+&lt;h2 id="upgrade-if-you-use-sourcekit-lsp"&gt;Upgrade if you use SourceKit-LSP&lt;/h2&gt;
+&lt;p&gt;In your settings replace your &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;langserver&amp;quot;&lt;/code&gt; with &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;sourcekit-lsp&amp;quot;&lt;/code&gt; and &lt;code&gt;swift.languageServerPath&lt;/code&gt; with &lt;code&gt;sourcekit-lsp.serverPath&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;That‘s it.&lt;/p&gt;
+&lt;h2 id="upgrade-if-you-use-sourcekite"&gt;Upgrade if you use Sourcekite&lt;/h2&gt;
+&lt;p&gt;Clone the latest version of sourcekite and open the repo within your terminal.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;On Linux:&lt;/strong&gt; assuming you have already linked your &lt;code&gt;sourcekitdInProc&lt;/code&gt;, you simply need to run &lt;code&gt;swift build -Xlinker -l:sourcekitdInProc -c release&lt;/code&gt; and overwrite your old binary.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;On macOS:&lt;/strong&gt; Run &lt;code&gt;make install LIB_DIR=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/lib&lt;/code&gt; if you have multiple Swift toolchains installed and &lt;code&gt;make install LIB_DIR=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib&lt;/code&gt; otherwise to install the new build to &lt;code&gt;/usr/local/bin/sourcekite&lt;/code&gt;. If you used a different path, override it by adding &lt;code&gt;PREFIX=&amp;lt;your-path&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Your &lt;code&gt;swift.path.sourcekite&lt;/code&gt; should still be valid. Make sure to restart your VS Code before further development.&lt;/p&gt;
+&lt;h2 id="upgrade-if-you-use-ryan-loveletts-langserverswift"&gt;Upgrade if you use Ryan Lovelett‘s LangserverSwift&lt;/h2&gt;
+&lt;p&gt;You have no upgrade steps to do, but you are now able to additionally use SourceKit-LSP.&lt;/p&gt;
+&lt;p&gt;Install SourceKit-LSP and let the global &lt;code&gt;sourcekit-lsp.serverPath&lt;/code&gt; point to the release binary. Now you can swap your language server inside different projects by overriding &lt;code&gt;sde.languageServerMode&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Though as Ryan‘s Langserver is no longer maintained, I‘d recommend you to set your default &lt;code&gt;sde.languageServerMode&lt;/code&gt; to &lt;code&gt;sourcekite&lt;/code&gt; or &lt;code&gt;sourcekit-lsp&lt;/code&gt;.&lt;/p&gt;</description></item><item><title>Apple’s SourceKit LSP and SDE Roadmap</title><link>https://vknabel.com/posts/apples-sourcekit-lsp-and-sde-roadmap/</link><pubDate>Fri, 16 Nov 2018 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/apples-sourcekit-lsp-and-sde-roadmap/</guid><description>&lt;p&gt;Apple recently &lt;a href="https://forums.swift.org/t/new-lsp-language-service-supporting-swift-and-c-family-languages-for-any-editor-and-platform/17024/"&gt;announced&lt;/a&gt; to develop a language server for Swift and C-family languages. Or said more clearly: Apple started development to support every editor implementing the &lt;a href="https://langserver.org/"&gt;language server protocol&lt;/a&gt; like VS Code, Sublime Text, Jet Brains‘ IDEs and Atom.&lt;/p&gt;
+&lt;p&gt;Later they published the &lt;a href="https://github.com/apple/sourcekit-lsp"&gt;source code in GitHub &lt;/a&gt; including &lt;a href="https://github.com/apple/sourcekit-lsp/tree/master/Editors"&gt;support for VS Code and Sublime Text&lt;/a&gt;. It will work on Linux but is currently limited to Swift snapshots and the VS Code extension hasn’t been published yet.&lt;/p&gt;
+&lt;p&gt;I really love Apple’s decision to take over this responsibility. I think they will be able do a much better job than we as a community have done so far. There were quite a few LSPs for Swift, AFAIK all of them started as an experiment. Most of them got stuck at Swift 3.x and never supported Swift 4. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment"&gt;SDE for VS Code&lt;/a&gt; was one of them until I started maintaining it.&lt;/p&gt;
+&lt;h2 id="the-future-of-sde"&gt;The future of SDE&lt;/h2&gt;
+&lt;p&gt;That being said, I feel responsible to inform users (and potential ones) about my plans regarding SDE. TL;DR I will still continue to maintain SDE and fix issues if I can. And, of course, I‘d be happy for any feedback and bug reports.&lt;/p&gt;
+&lt;p&gt;I strongly believe Apple‘s SourceKit LSP will be the way to go once it is stable and supports stable Swift releases. My future goal for SDE is to smoothly prepare the transition to it and Apple’s still unpublished VS Code extension.&lt;/p&gt;
+&lt;p&gt;As SDE comes with its own LSP implementation, I already released &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/releases/tag/2.6.0"&gt;SDE 2.6.0&lt;/a&gt; to support alternative language server implementations like &lt;a href="https://github.com/RLovelett/langserver-swift"&gt;RLovelett‘s LangserverSwift&lt;/a&gt; and Apple’s (back then: unpublished) SourceKit LSP.&lt;/p&gt;
+&lt;p&gt;The following roadmap isn’t final and may actually differ:
+At first I will mirror all &lt;a href="https://github.com/apple/sourcekit-lsp/blob/master/Editors/vscode/package.json"&gt;settings of the VS Code extension&lt;/a&gt; as it reduces barriers and migration issues. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/39"&gt;#39&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Once the extension has been released to VS Code‘s extension registry and it is stable enough, I will add a warning to prefer that instead if not installed yet. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/40"&gt;#40&lt;/a&gt; If it has been installed and activated, SDE will disable itself automatically. &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/41"&gt;#41&lt;/a&gt; These options should be opt-out. The goal within this phase is to decide which extension to use within which project.&lt;/p&gt;
+&lt;p&gt;As soon as I don’t see any reason to keep maintaining SDE, I will add a message as explanation. If SDE will still have features which are not part of Apple’s extension, I will extract them into separate extensions which will still be maintained.&lt;/p&gt;
+&lt;p&gt;I hope you agree with these future plans. If you have more ideas, feedback or if your don’t agree on this, please &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/issues/new"&gt;open an issue&lt;/a&gt; or tell me on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt;.&lt;/p&gt;</description></item></channel></rss>
