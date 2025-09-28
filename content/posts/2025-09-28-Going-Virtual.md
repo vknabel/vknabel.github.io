@@ -1,5 +1,5 @@
 ---
-title: "Blushlog: Going Virutal"
+title: "Blushlog: Going Virtual"
 date: 2025-09-28
 tags: [lithia, blush, compilers, golang, devlog]
 ---
@@ -41,10 +41,10 @@ And this makes the second problem of this clear: everything is hidden behind poi
 
 ## The Bytecode Interpreter
 
-Blush takes a differnt approach to this. It defines a virtual machine (VM) that executes bytecode instructions. Blush's VM is stack based, which is comparable for a simple calculator or a deck of cards: each operation works on the topmost elements of the stack.
+Blush takes a different approach to this. It defines a virtual machine (VM) that executes bytecode instructions. Blush's VM is stack based, which is comparable for a simple calculator or a deck of cards: each operation works on the topmost elements of the stack.
 
 The bytecode itself is separated of all constants. Instead these are in a separate array or slice while the bytecode references them by index.
-In case of the expression `40 + 2`, the constant `40` is at index `0` and `2` is at index `1`. The human readble bytecode to add these two numbers is then:
+In case of the expression `40 + 2`, the constant `40` is at index `0` and `2` is at index `1`. The human readable bytecode to add these two numbers is then:
 
 ```
 # 1 + 2
@@ -56,7 +56,7 @@ Add
 
 > The actual bytcode currently looks like this: `01 00 00 01 00 01 10`. Neat, huh?
 
-The VM iterates of the bytecode instructions and executes them one by one.
+The VM iterates over the bytecode instructions and executes them one by one.
 Here `Cons` loads the constant with the fitting index onto the stack. `Add` pops the top two elements from the stack, adds them and pushes the result back onto the stack.
 That way the stack of the VM grows and shrinks as needed.
 
