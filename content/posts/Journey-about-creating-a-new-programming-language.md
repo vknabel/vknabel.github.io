@@ -18,8 +18,8 @@ These are all finished blog posts so far.
 
 - [Designing and scoping my language Lithia](/posts/designing-and-scoping-my-language-lithia/)
 - [The current state of Lithia after 2 years](/posts/the-current-state-of-lithia-after-2-years/)
-- [Blushlog: A new Beginning](/posts/2025-09-16-A-new-Beginning/)
-- [Blushlog: The Virtual Machine](/posts/2025-09-28-Going-Virtual/)
+- [Blushlog: A new Beginning](/posts/2025-09-16-a-new-beginning/)
+- [Blushlog: The Virtual Machine](/posts/2025-09-28-going-virtual/)
 
 ## My motivations and background
 
