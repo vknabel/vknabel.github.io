@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Devops on vknabel</title><link>https://vknabel.com/tags/devops/</link><description>Recent content in Devops on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Mon, 15 Aug 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/devops/index.xml" rel="self" type="application/rss+xml"/><item><title>Open Policy Agent</title><link>https://vknabel.com/tils/2022-08-15-open-policy-agent/</link><pubDate>Mon, 15 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-08-15-open-policy-agent/</guid><description>&lt;p&gt;With OPA you implement decisions of policies, not their enforcement. This avoids confusion between multiple servers that might come from different implementations of the policies.&lt;/p&gt;
+&lt;p&gt;The decisions themselves are implemented using the Regi programming language.&lt;/p&gt;
+&lt;p&gt;Similar to Prolog, Rego is a declarative and logic programming language. A seldom choice, but a great fit for policies!&lt;/p&gt;</description></item><item><title>Kubernetes without Load Balancers?</title><link>https://vknabel.com/tils/2022-08-06-kubernetes-without-load-balancers/</link><pubDate>Sat, 06 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-08-06-kubernetes-without-load-balancers/</guid><description>&lt;p&gt;All the hosted Kubernetes solutions I know of want you to pay roughly 10$ pre month for each load balancer.&lt;/p&gt;
+&lt;p&gt;If you currently don&amp;rsquo;t expect much traffic, but want to play around with k8s or if many docker-compose files don&amp;rsquo;t fit your needs anymore, this easily doubles your costs.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://downey.io/blog/skip-kubernetes-loadbalancer-with-hostport-daemonset/"&gt;Downey.io – save money and skip the kubernetes load balancer&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Bonus learning: I didn&amp;rsquo;t heard of the &lt;code&gt;DaemonSet&lt;/code&gt; until now!&lt;/p&gt;
+&lt;/blockquote&gt;</description></item><item><title>Kind is the new minikube</title><link>https://vknabel.com/tils/2022-08-05-kind-is-the-new-minikube/</link><pubDate>Fri, 05 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-08-05-kind-is-the-new-minikube/</guid><description>&lt;p&gt;I have been playing around with minikube for quite some time now. Though as I run minikube on my Mac, I experienced multiple bugs regarding accessing the cluster and it&amp;rsquo;s published ports.&lt;/p&gt;
+&lt;p&gt;From my perspective Kind works much better, is faster, more stable on macOS and allows the creation of multiple clusters. Though it is not bug-free on macOS. Although most bugs seem to be related to Docker itself on the Mac.&lt;/p&gt;
+&lt;p&gt;You can even pause the cluster - just pause it&amp;rsquo;s docker container.&lt;/p&gt;</description></item><item><title>Bash scripts with Gum</title><link>https://vknabel.com/tils/2022-08-03-bash-scripts-with-gum/</link><pubDate>Wed, 03 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-08-03-bash-scripts-with-gum/</guid><description>&lt;p&gt;I gave the newest tool of Charm &lt;a href="https://github.com/charmbracelet/gum"&gt;Gum&lt;/a&gt; a try.
+It allows to create interactive bash scripts in just a few lines of code.&lt;/p&gt;
+&lt;p&gt;In my case I gave it a try for Kubernetes. I often want to look at the logs of a pod, but the exact k8s pod differs from time to time.
+And sometimes I forget the exact namespace or the pod&amp;rsquo;s name includes random characters.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;#! /bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# let the user select a namespace&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;NAMESPACE&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;kubectl get namespaces -o name | gum choose | cut -d/ -f2&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# let the user select a pod of the namespace&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;POD&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;kubectl get pods -n &lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;$NAMESPACE&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt; | tail -n +2 | gum choose | cut -d&lt;span style="color:#e6db74"&gt;&amp;#39; &amp;#39;&lt;/span&gt; -f1&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# if you want to repeat, copy the command&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;echo &lt;span style="color:#e6db74"&gt;&amp;#34;&amp;gt; kubectl logs -n \&amp;#34;&lt;/span&gt;$NAMESPACE&lt;span style="color:#e6db74"&gt;\&amp;#34; \&amp;#34;&lt;/span&gt;$POD&lt;span style="color:#e6db74"&gt;\&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# print the logs&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;kubectl logs -n &lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;$NAMESPACE&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;$POD&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>Ultra-fast Hugo GitHub actions</title><link>https://vknabel.com/tils/2022-07-24-ultra-fast-hugo-github-actions/</link><pubDate>Sun, 24 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-07-24-ultra-fast-hugo-github-actions/</guid><description>&lt;p&gt;I created a &lt;a href="https://github.com/vknabel/vknabel.github.io/blob/main/.github/workflows/pages.yml"&gt;GitHub workflow&lt;/a&gt; to automatically build and deploy my website to GitHub Pages.&lt;/p&gt;
+&lt;p&gt;It uses &lt;a href="https://github.com/peaceiris/actions-hugo"&gt;peaceiris/actions-hugo@v2&lt;/a&gt; to build the website with Hugo and &lt;a href="https://github.com/peaceiris/actions-gh-pages"&gt;peaceiris/actions-gh-pages@v3&lt;/a&gt; to deploy it to GitHub Pages.&lt;/p&gt;</description></item><item><title>Go Data Race Detector</title><link>https://vknabel.com/tils/2022-07-09-go-data-race-detector/</link><pubDate>Sat, 09 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-07-09-go-data-race-detector/</guid><description>&lt;p&gt;You can run your Go program or your tests with the Data Race detection enabled. This might cost some performance and memory, but in case a data race is being detected, that&amp;rsquo;s worth it!&lt;/p&gt;
+&lt;p&gt;Perfect for your CI!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go run --race ./cmd/app
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go test --race ./...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>Kubernetes Overview for Beginners</title><link>https://vknabel.com/tils/2022-05-25-kubernetes-overview/</link><pubDate>Wed, 25 May 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2022-05-25-kubernetes-overview/</guid><description>&lt;p&gt;I have never done anything productive with Kubernetes before. But it is a really tough topic to get started with. It&amp;rsquo;s overwhelming.&lt;/p&gt;
+&lt;p&gt;Luckily I found an excellent &lt;a href="https://www.youtube.com/watch?v=X48VuDVv0do"&gt;Kubernetes tutorial on Youtube&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I made some personal notes while watching. Mostly to keep some overview for all the different concepts.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Today I haven&amp;rsquo;t finished the video, so the overview is only a rough draft. Some missing concepts are Storage Classes, Ingress Controllers and more!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="kubernetes-concepts"&gt;Kubernetes Concepts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;a &lt;strong&gt;Pod&lt;/strong&gt; is an abstraction of usually one container.&lt;/li&gt;
+&lt;li&gt;all &lt;strong&gt;IP addresses&lt;/strong&gt; are assigned and changed with every restart&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Pods&lt;/strong&gt; communicate using &lt;strong&gt;Services&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;External Services&lt;/strong&gt; are accessible by IP and port&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Ingress&lt;/strong&gt; is used for external access using domains&lt;/li&gt;
+&lt;li&gt;A &lt;strong&gt;ConfigMap&lt;/strong&gt; holds configuration data. Changing the config map prevents whole rebuilds and redeploys of specifc pods&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Secrets&lt;/strong&gt; are like &lt;strong&gt;ConfigMaps&lt;/strong&gt;, but for sensitive data. Values are by default base64 encoded in the YAML.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Volumes&lt;/strong&gt; connect storage (local or remote) to a &lt;strong&gt;Pod&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Kubernetes does not handle storage!&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;LoadBalancers&lt;/strong&gt; are a type of &lt;strong&gt;Services&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Replicas&lt;/strong&gt; are the amount of &lt;strong&gt;Deployments&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Deployments&lt;/strong&gt; are blueprints for &lt;strong&gt;Pods&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;StatefulSets&lt;/strong&gt; are like &lt;strong&gt;Deployments&lt;/strong&gt;, but stateful.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;They are designed to databases etc to avoid data inconsistency.&lt;/li&gt;
+&lt;li&gt;Harder to get right than a simple &lt;strong&gt;Deployment&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;Databases are often deployed outside the cluster.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;StatefulSet&lt;/strong&gt; has volume claim templates, to create independent storage for each replica.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;volumeClaimTemplates&lt;/code&gt; create a volume claim for each replica.&lt;/p&gt;
+&lt;h2 id="kubernetes-architecture"&gt;Kubernetes Architecture&lt;/h2&gt;
+&lt;p&gt;Master nodes and worker nodes are kept separate to keep the cluster controllable. Imagine you couldn&amp;rsquo;t manage your cluster to increase the number of worker nodes or replicas.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Worker Nodes&lt;/strong&gt;
+Runs multiple pods.&lt;/p&gt;
+&lt;p&gt;3 processes are running on each node:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;container runtime&lt;/li&gt;
+&lt;li&gt;the Kubelet connects container runtime and the configuration&lt;/li&gt;
+&lt;li&gt;the kube proxy routes requests to services)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Master Nodes&lt;/strong&gt;
+Manage the worker nodes.&lt;/p&gt;
+&lt;p&gt;Runs 4 processes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Api Server / cluster gateway / authentication&lt;/li&gt;
+&lt;li&gt;the Scheduler that decides which worker node gets workload&lt;/li&gt;
+&lt;li&gt;Controller Manager observes the state of the cluster and makes changes&lt;/li&gt;
+&lt;li&gt;etcd is a Key-Value-Store for k8n&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Updating Bitrise binary uploads</title><link>https://vknabel.com/tils/2021-05-20-updating-bitrise-binary-uploads/</link><pubDate>Thu, 20 May 2021 00:00:00 +0000</pubDate><guid>https://vknabel.com/tils/2021-05-20-updating-bitrise-binary-uploads/</guid><description>&lt;p&gt;Bitrise binary uploads cannot be updated after saving. Instead they need to be deleted and recreated.
+Thus all workflow steps need to be updated if they rely on the data.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Pro-tip:&lt;/strong&gt; when copy-pasting, skip the &lt;code&gt;BITRISE_IO&lt;/code&gt; and &lt;code&gt;_URL&lt;/code&gt; parts – they will be inserted automatically when using the web UI.&lt;/p&gt;</description></item></channel></rss>
