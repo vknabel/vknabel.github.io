@@ -14,8 +14,9 @@
 	<link rel="icon" type="image/png" href={{ .Site.Params.favicon }} />
 	{{- end -}}
 
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="me" href="https://mastodon.social/@vknabel">
 	<meta name="fediverse:creator" content="@vknabel@mastodon.social">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{if .IsPage}}{{ .Summary }}{{ else }}{{ with .Site.Params.description }}{{ . }}{{ end }}{{ end }}{{ end }}" />
 	<meta property="og:image" content="{{ .Site.Params.og_image }}"/>
 	{{ with .OutputFormats.Get "rss" -}}
