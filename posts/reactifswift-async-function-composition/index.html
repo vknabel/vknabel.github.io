@@ -1,0 +1,524 @@
+<!doctype html><html><head lang=en><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><title>ReactifSwift: async function composition - vknabel</title><link rel=icon type=image/png href=/images/vknabel.jpg><link rel=me href=https://mastodon.social/@vknabel><meta name=fediverse:creator content="@vknabel@mastodon.social"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content='Async operators debounce, throttle or delay that functional reactive programming libraries as RxSwift and ReactiveSwift provide are super useful and expressive. Though their biggest benefit lays within composability.
+This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on Overture in version 0.2.0.
+Originally written at 2018-06-10
+Example
+
+var count = 0
+let countChars = with({ count += $0 }, pipe(
+    map(get(\String.count)),
+    throttle(time: 100)
+))
+
+let time = TestingScheduler()
+ReactifCurrent.scheduler = time
+countChars("A")
+time.tick(50)
+countChars("B")
+time.tick(100)
+countChars("Abc")
+count // 4
+Implementation
+// import Overture
+import Foundation
+
+typealias Unary<A> = (A) -> Void
+
+protocol Invalidatable {
+    func invalidate()
+}
+extension Timer: Invalidatable {}
+
+protocol Scheduler {
+    func now() -> Date
+    func delay(_ time: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable
+}
+
+final class TestingScheduler: Scheduler {
+    private var delayed: [FakeTimer] = []
+    private var currentInterval: TimeInterval = 0
+
+    init() {}
+
+    private final class FakeTimer: Invalidatable {
+        let date: Date
+        var fire: (() -> Void)?
+
+        init(date: Date, fire: @escaping () -> Void) {
+            self.fire = fire
+            self.date = date
+        }
+
+        var isValid: Bool {
+            return fire != nil
+        }
+
+        func tick(_ now: Date) {
+            if let fire = fire, now >= self.date {
+                fire()
+            }
+        }
+
+        func invalidate() {
+            self.fire = nil
+        }
+    }
+
+    func tick(_ interval: TimeInterval) {
+        self.currentInterval += interval
+        let currently = now()
+        self.delayed.forEach { $0.tick(currently) }
+        self.delayed = self.delayed.filter { $0.isValid }
+    }
+
+    func now() -> Date {
+        return Date(timeIntervalSince1970: currentInterval)
+    }
+
+    func delay(_ interval: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable {
+        let timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f)
+        delayed.append(timer)
+        return timer
+    }
+}
+
+final class TimeScheduler: Scheduler {
+    init() {}
+
+    func now() -> Date {
+        return Date()
+    }
+
+    func delay(_ interval: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable {
+        return Timer(timeInterval: interval, repeats: false) { _ in
+            f()
+        }
+    }
+}
+
+struct ReactifRuntimeContext {
+    var scheduler: Scheduler = TimeScheduler()
+}
+
+var ReactifCurrent = ReactifRuntimeContext()
+
+struct Sink {
+    typealias Completion = () -> Void
+    let call: (@escaping (@escaping Completion) -> Void) -> Bool
+    init(_ call: @escaping (@escaping (@escaping Completion) -> Void) -> Bool) {
+        self.call = call
+    }
+}
+
+extension Sink {
+    static func lock(name: String? = nil) -> Sink {
+        let lock = NSLock()
+        lock.name = name
+        return Sink { f in
+            if lock.try() {
+                f(lock.unlock)
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+
+    static func recursiveLock(name: String? = nil) -> Sink {
+        let lock = NSRecursiveLock()
+        lock.name = name
+        return Sink { f in
+            if lock.try() {
+                f(lock.unlock)
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+
+    static func synchronous() -> Sink {
+        return Sink { f in
+            f({})
+            return true
+        }
+    }
+}
+
+func filter(_ includes: @escaping () -> Bool) -> (Sink) -> Sink {
+    return { (sink: Sink) in
+        Sink { (f: @escaping Unary<Sink.Completion>) in
+            includes() && sink.call(f)
+        }
+    }
+}
+
+func reschedule(_ transform: @escaping (@escaping Unary<Sink.Completion>, @escaping Sink.Completion) -> Void) -> (Sink) -> Sink {
+    return { (sink: Sink) in
+        Sink { (f: @escaping Unary<Sink.Completion>) in
+            sink.call { complete in
+                transform(f, complete)
+            }
+        }
+    }
+}
+
+func delay(time: TimeInterval) -> (Sink) -> Sink {
+    return reschedule { f, completion in
+        ReactifCurrent.scheduler.delay(time) {
+            f(completion)
+        }
+    }
+}
+
+func extend(time: TimeInterval) -> (Sink) -> Sink {
+    return reschedule { f, completion in
+        f {
+            ReactifCurrent.scheduler.delay(time, completion)
+        }
+    }
+}
+
+func debounce(time: TimeInterval) -> (Sink) -> Sink {
+    var currentAttempt: Invalidatable?
+    return reschedule { f, completion in
+        currentAttempt?.invalidate()
+        currentAttempt = ReactifCurrent.scheduler.delay(time) {
+            f(completion)
+        }
+    }
+}
+
+func throttle(time: TimeInterval) -> (Sink) -> Sink {
+    var lastInvocation: Date?
+    return filter {
+        let now = ReactifCurrent.scheduler.now()
+        defer { lastInvocation = now }
+        if let lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) < time {
+            return false
+        } else {
+            return true
+        }
+    }
+}
+
+func schedule<A>(_ factory: @escaping @autoclosure () -> Sink) -> (@escaping Unary<A>) -> Unary<A> {
+    return { f in
+        let sink = factory()
+        return { a in sink.call { f(a);$0() } }
+    }
+}
+
+// TODO: throttle using time after completion instead of starting time
+func throttle<A>(time: TimeInterval) -> (@escaping Unary<A>) -> Unary<A> {
+    return schedule(with(.synchronous(), throttle(time: time)))
+}
+
+func exhaustA<A>(ending time: TimeInterval? = nil) -> (@escaping Unary<A>) -> Unary<A> {
+    return schedule(with(.recursiveLock(), extend(time: 10)))
+}
+func exhaust<A>(ending time: TimeInterval? = nil) -> (@escaping Unary<A>) -> Unary<A> {
+    return { f in
+        var lock = NSLock()
+        return { a in
+            if lock.try() {
+                f(a)
+                if let time = time {
+                    ReactifCurrent.scheduler.delay(time, lock.unlock)
+                } else {
+                    lock.unlock()
+                }
+            }
+        }
+    }
+}
+
+func map<A, B>(_ transform: @escaping (A) -> B) -> (@escaping Unary<B>) -> Unary<A> {
+    return { f in pipe(transform, f) }
+}
+
+func filter<A>(_ include: @escaping (A) -> Bool) -> (@escaping Unary<A>) -> Unary<A> {
+    return { f in
+        return { a in
+            if include(a) {
+                f(a)
+            }
+        }
+    }
+}
+
+func debounce<A>(time: TimeInterval) -> (@escaping Unary<A>) -> Unary<A> {
+    return { f in
+        var currentAttempt: Invalidatable?
+        return { a in
+            currentAttempt?.invalidate()
+            currentAttempt = ReactifCurrent.scheduler.delay(time) {
+                f(a)
+            }
+        }
+    }
+}
+Conclusion
+I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.'><meta property="og:image" content><meta property="og:url" content="https://vknabel.com/posts/reactifswift-async-function-composition/"><meta property="og:site_name" content="vknabel"><meta property="og:title" content="ReactifSwift: async function composition"><meta property="og:description" content='Async operators debounce, throttle or delay that functional reactive programming libraries as RxSwift and ReactiveSwift provide are super useful and expressive. Though their biggest benefit lays within composability.
+This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on Overture in version 0.2.0.
+Originally written at 2018-06-10
+Example var count = 0 let countChars = with({ count += $0 }, pipe( map(get(\String.count)), throttle(time: 100) )) let time = TestingScheduler() ReactifCurrent.scheduler = time countChars("A") time.tick(50) countChars("B") time.tick(100) countChars("Abc") count // 4 Implementation // import Overture import Foundation typealias Unary<A> = (A) -> Void protocol Invalidatable { func invalidate() } extension Timer: Invalidatable {} protocol Scheduler { func now() -> Date func delay(_ time: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable } final class TestingScheduler: Scheduler { private var delayed: [FakeTimer] = [] private var currentInterval: TimeInterval = 0 init() {} private final class FakeTimer: Invalidatable { let date: Date var fire: (() -> Void)? init(date: Date, fire: @escaping () -> Void) { self.fire = fire self.date = date } var isValid: Bool { return fire != nil } func tick(_ now: Date) { if let fire = fire, now >= self.date { fire() } } func invalidate() { self.fire = nil } } func tick(_ interval: TimeInterval) { self.currentInterval += interval let currently = now() self.delayed.forEach { $0.tick(currently) } self.delayed = self.delayed.filter { $0.isValid } } func now() -> Date { return Date(timeIntervalSince1970: currentInterval) } func delay(_ interval: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable { let timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f) delayed.append(timer) return timer } } final class TimeScheduler: Scheduler { init() {} func now() -> Date { return Date() } func delay(_ interval: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable { return Timer(timeInterval: interval, repeats: false) { _ in f() } } } struct ReactifRuntimeContext { var scheduler: Scheduler = TimeScheduler() } var ReactifCurrent = ReactifRuntimeContext() struct Sink { typealias Completion = () -> Void let call: (@escaping (@escaping Completion) -> Void) -> Bool init(_ call: @escaping (@escaping (@escaping Completion) -> Void) -> Bool) { self.call = call } } extension Sink { static func lock(name: String? = nil) -> Sink { let lock = NSLock() lock.name = name return Sink { f in if lock.try() { f(lock.unlock) return true } else { return false } } } static func recursiveLock(name: String? = nil) -> Sink { let lock = NSRecursiveLock() lock.name = name return Sink { f in if lock.try() { f(lock.unlock) return true } else { return false } } } static func synchronous() -> Sink { return Sink { f in f({}) return true } } } func filter(_ includes: @escaping () -> Bool) -> (Sink) -> Sink { return { (sink: Sink) in Sink { (f: @escaping Unary<Sink.Completion>) in includes() && sink.call(f) } } } func reschedule(_ transform: @escaping (@escaping Unary<Sink.Completion>, @escaping Sink.Completion) -> Void) -> (Sink) -> Sink { return { (sink: Sink) in Sink { (f: @escaping Unary<Sink.Completion>) in sink.call { complete in transform(f, complete) } } } } func delay(time: TimeInterval) -> (Sink) -> Sink { return reschedule { f, completion in ReactifCurrent.scheduler.delay(time) { f(completion) } } } func extend(time: TimeInterval) -> (Sink) -> Sink { return reschedule { f, completion in f { ReactifCurrent.scheduler.delay(time, completion) } } } func debounce(time: TimeInterval) -> (Sink) -> Sink { var currentAttempt: Invalidatable? return reschedule { f, completion in currentAttempt?.invalidate() currentAttempt = ReactifCurrent.scheduler.delay(time) { f(completion) } } } func throttle(time: TimeInterval) -> (Sink) -> Sink { var lastInvocation: Date? return filter { let now = ReactifCurrent.scheduler.now() defer { lastInvocation = now } if let lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) < time { return false } else { return true } } } func schedule<A>(_ factory: @escaping @autoclosure () -> Sink) -> (@escaping Unary<A>) -> Unary<A> { return { f in let sink = factory() return { a in sink.call { f(a);$0() } } } } // TODO: throttle using time after completion instead of starting time func throttle<A>(time: TimeInterval) -> (@escaping Unary<A>) -> Unary<A> { return schedule(with(.synchronous(), throttle(time: time))) } func exhaustA<A>(ending time: TimeInterval? = nil) -> (@escaping Unary<A>) -> Unary<A> { return schedule(with(.recursiveLock(), extend(time: 10))) } func exhaust<A>(ending time: TimeInterval? = nil) -> (@escaping Unary<A>) -> Unary<A> { return { f in var lock = NSLock() return { a in if lock.try() { f(a) if let time = time { ReactifCurrent.scheduler.delay(time, lock.unlock) } else { lock.unlock() } } } } } func map<A, B>(_ transform: @escaping (A) -> B) -> (@escaping Unary<B>) -> Unary<A> { return { f in pipe(transform, f) } } func filter<A>(_ include: @escaping (A) -> Bool) -> (@escaping Unary<A>) -> Unary<A> { return { f in return { a in if include(a) { f(a) } } } } func debounce<A>(time: TimeInterval) -> (@escaping Unary<A>) -> Unary<A> { return { f in var currentAttempt: Invalidatable? return { a in currentAttempt?.invalidate() currentAttempt = ReactifCurrent.scheduler.delay(time) { f(a) } } } } Conclusion I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.'><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-10-15T00:00:00+00:00"><meta property="article:modified_time" content="2019-10-15T00:00:00+00:00"><meta property="article:tag" content="Swift"><meta property="article:tag" content="Experiment"><meta property="article:tag" content="Functional"><meta name=twitter:card content="summary"><meta name=twitter:title content="ReactifSwift: async function composition"><meta name=twitter:description content='Async operators debounce, throttle or delay that functional reactive programming libraries as RxSwift and ReactiveSwift provide are super useful and expressive. Though their biggest benefit lays within composability.
+This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on Overture in version 0.2.0.
+Originally written at 2018-06-10
+Example var count = 0 let countChars = with({ count += $0 }, pipe( map(get(\String.count)), throttle(time: 100) )) let time = TestingScheduler() ReactifCurrent.scheduler = time countChars("A") time.tick(50) countChars("B") time.tick(100) countChars("Abc") count // 4 Implementation // import Overture import Foundation typealias Unary<A> = (A) -> Void protocol Invalidatable { func invalidate() } extension Timer: Invalidatable {} protocol Scheduler { func now() -> Date func delay(_ time: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable } final class TestingScheduler: Scheduler { private var delayed: [FakeTimer] = [] private var currentInterval: TimeInterval = 0 init() {} private final class FakeTimer: Invalidatable { let date: Date var fire: (() -> Void)? init(date: Date, fire: @escaping () -> Void) { self.fire = fire self.date = date } var isValid: Bool { return fire != nil } func tick(_ now: Date) { if let fire = fire, now >= self.date { fire() } } func invalidate() { self.fire = nil } } func tick(_ interval: TimeInterval) { self.currentInterval += interval let currently = now() self.delayed.forEach { $0.tick(currently) } self.delayed = self.delayed.filter { $0.isValid } } func now() -> Date { return Date(timeIntervalSince1970: currentInterval) } func delay(_ interval: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable { let timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f) delayed.append(timer) return timer } } final class TimeScheduler: Scheduler { init() {} func now() -> Date { return Date() } func delay(_ interval: TimeInterval, _ f: @escaping () -> Void) -> Invalidatable { return Timer(timeInterval: interval, repeats: false) { _ in f() } } } struct ReactifRuntimeContext { var scheduler: Scheduler = TimeScheduler() } var ReactifCurrent = ReactifRuntimeContext() struct Sink { typealias Completion = () -> Void let call: (@escaping (@escaping Completion) -> Void) -> Bool init(_ call: @escaping (@escaping (@escaping Completion) -> Void) -> Bool) { self.call = call } } extension Sink { static func lock(name: String? = nil) -> Sink { let lock = NSLock() lock.name = name return Sink { f in if lock.try() { f(lock.unlock) return true } else { return false } } } static func recursiveLock(name: String? = nil) -> Sink { let lock = NSRecursiveLock() lock.name = name return Sink { f in if lock.try() { f(lock.unlock) return true } else { return false } } } static func synchronous() -> Sink { return Sink { f in f({}) return true } } } func filter(_ includes: @escaping () -> Bool) -> (Sink) -> Sink { return { (sink: Sink) in Sink { (f: @escaping Unary<Sink.Completion>) in includes() && sink.call(f) } } } func reschedule(_ transform: @escaping (@escaping Unary<Sink.Completion>, @escaping Sink.Completion) -> Void) -> (Sink) -> Sink { return { (sink: Sink) in Sink { (f: @escaping Unary<Sink.Completion>) in sink.call { complete in transform(f, complete) } } } } func delay(time: TimeInterval) -> (Sink) -> Sink { return reschedule { f, completion in ReactifCurrent.scheduler.delay(time) { f(completion) } } } func extend(time: TimeInterval) -> (Sink) -> Sink { return reschedule { f, completion in f { ReactifCurrent.scheduler.delay(time, completion) } } } func debounce(time: TimeInterval) -> (Sink) -> Sink { var currentAttempt: Invalidatable? return reschedule { f, completion in currentAttempt?.invalidate() currentAttempt = ReactifCurrent.scheduler.delay(time) { f(completion) } } } func throttle(time: TimeInterval) -> (Sink) -> Sink { var lastInvocation: Date? return filter { let now = ReactifCurrent.scheduler.now() defer { lastInvocation = now } if let lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) < time { return false } else { return true } } } func schedule<A>(_ factory: @escaping @autoclosure () -> Sink) -> (@escaping Unary<A>) -> Unary<A> { return { f in let sink = factory() return { a in sink.call { f(a);$0() } } } } // TODO: throttle using time after completion instead of starting time func throttle<A>(time: TimeInterval) -> (@escaping Unary<A>) -> Unary<A> { return schedule(with(.synchronous(), throttle(time: time))) } func exhaustA<A>(ending time: TimeInterval? = nil) -> (@escaping Unary<A>) -> Unary<A> { return schedule(with(.recursiveLock(), extend(time: 10))) } func exhaust<A>(ending time: TimeInterval? = nil) -> (@escaping Unary<A>) -> Unary<A> { return { f in var lock = NSLock() return { a in if lock.try() { f(a) if let time = time { ReactifCurrent.scheduler.delay(time, lock.unlock) } else { lock.unlock() } } } } } func map<A, B>(_ transform: @escaping (A) -> B) -> (@escaping Unary<B>) -> Unary<A> { return { f in pipe(transform, f) } } func filter<A>(_ include: @escaping (A) -> Bool) -> (@escaping Unary<A>) -> Unary<A> { return { f in return { a in if include(a) { f(a) } } } } func debounce<A>(time: TimeInterval) -> (@escaping Unary<A>) -> Unary<A> { return { f in var currentAttempt: Invalidatable? return { a in currentAttempt?.invalidate() currentAttempt = ReactifCurrent.scheduler.delay(time) { f(a) } } } } Conclusion I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.'><script src=https://vknabel.com/js/feather.min.js></script><link href=https://vknabel.com/css/fonts.2c2227b81b1970a03e760aa2e6121cd01f87c88586803cbb282aa224720a765f.css rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://vknabel.com/css/main.a87126a5d38398207e58225b2d1a9faf97f546982f44b3ffb9715a264da36c90.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://vknabel.com/css/dark.f163b79c6de51d14a766ff9f0563053de7f06a4d1bf7b85a59608bf96e566710.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=/css/overrides.css></head><body><div class=content><header><div class=main><a href=https://vknabel.com/>vknabel</a></div><nav><a href=/>blog</a>
+<a href=/tils>tils</a>
+<a href=/about>about</a>
+<a href=/tags>tags</a></nav></header><main><article><div class=post-container><div class=post-content><div class=title><h1 class=title>ReactifSwift: async function composition</h1><div class=meta>Posted on Oct 15, 2019</div></div><section class=body><p>Async operators <code>debounce</code>, <code>throttle</code> or <code>delay</code> that functional reactive programming libraries as <code>RxSwift</code> and <code>ReactiveSwift</code> provide are super useful and expressive. Though their biggest benefit lays within composability.</p><p>This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on <a href=https://github.com/pointfreeco/swift-overture>Overture</a> in version 0.2.0.</p><p><em>Originally written at 2018-06-10</em></p><h2 id=example>Example</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> count = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> countChars = with({ count <span style=color:#f92672>+=</span> $0 }, pipe(
+</span></span><span style=display:flex><span>    map(<span style=color:#66d9ef>get</span>(<span style=color:#960050;background-color:#1e0010>\</span>String.count)),
+</span></span><span style=display:flex><span>    throttle(time: <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> time = TestingScheduler()
+</span></span><span style=display:flex><span>ReactifCurrent.scheduler = time
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;A&#34;</span>)
+</span></span><span style=display:flex><span>time.tick(<span style=color:#ae81ff>50</span>)
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;B&#34;</span>)
+</span></span><span style=display:flex><span>time.tick(<span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;Abc&#34;</span>)
+</span></span><span style=display:flex><span>count <span style=color:#75715e>// 4</span>
+</span></span></code></pre></div><h2 id=implementation>Implementation</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#75715e>// import Overture</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>Foundation</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>typealias</span> Unary&lt;A&gt; = (A) -&gt; Void
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>protocol</span> <span style=color:#a6e22e>Invalidatable</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>invalidate</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Timer</span>: Invalidatable {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>protocol</span> <span style=color:#a6e22e>Scheduler</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> time: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TestingScheduler</span>: Scheduler {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> delayed: [FakeTimer] = []
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> currentInterval: TimeInterval = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FakeTimer</span>: Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> date: Date
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> fire: (() -&gt; Void)?
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>init</span>(date: Date, fire: @escaping () -&gt; Void) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.fire = fire
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.date = date
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> isValid: Bool {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> fire <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tick</span>(<span style=color:#66d9ef>_</span> now: Date) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> fire = fire, now <span style=color:#f92672>&gt;=</span> <span style=color:#66d9ef>self</span>.date {
+</span></span><span style=display:flex><span>                fire()
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>invalidate</span>() {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.fire = <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tick</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.currentInterval <span style=color:#f92672>+=</span> interval
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> currently = now()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.delayed.forEach { $0.tick(currently) }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.delayed = <span style=color:#66d9ef>self</span>.delayed.filter { $0.isValid }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Date(timeIntervalSince1970: currentInterval)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f)
+</span></span><span style=display:flex><span>        delayed.append(timer)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> timer
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TimeScheduler</span>: Scheduler {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Date()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Timer(timeInterval: interval, repeats: <span style=color:#66d9ef>false</span>) { <span style=color:#66d9ef>_</span> <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            f()
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>ReactifRuntimeContext</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> scheduler: Scheduler = TimeScheduler()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> ReactifCurrent = ReactifRuntimeContext()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Sink</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>typealias</span> Completion = () -&gt; Void
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> call: (@escaping (@escaping Completion) -&gt; Void) -&gt; Bool
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>(<span style=color:#66d9ef>_</span> call: @escaping (@escaping (@escaping Completion) -&gt; Void) -&gt; Bool) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.call = call
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Sink</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>lock</span>(name: String? = <span style=color:#66d9ef>nil</span>) -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> lock = NSLock()
+</span></span><span style=display:flex><span>        lock.name = name
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(lock.unlock)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>recursiveLock</span>(name: String? = <span style=color:#66d9ef>nil</span>) -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> lock = NSRecursiveLock()
+</span></span><span style=display:flex><span>        lock.name = name
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(lock.unlock)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>synchronous</span>() -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            f({})
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>filter</span>(<span style=color:#66d9ef>_</span> includes: @escaping () -&gt; Bool) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { (sink: Sink) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        Sink { (f: @escaping Unary&lt;Sink.Completion&gt;) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            includes() <span style=color:#f92672>&amp;&amp;</span> sink.call(f)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>reschedule</span>(<span style=color:#66d9ef>_</span> transform: @escaping (@escaping Unary&lt;Sink.Completion&gt;, @escaping Sink.Completion) -&gt; Void) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { (sink: Sink) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        Sink { (f: @escaping Unary&lt;Sink.Completion&gt;) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            sink.call { complete <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>                transform(f, complete)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>            f(completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>extend</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        f {
+</span></span><span style=display:flex><span>            ReactifCurrent.scheduler.delay(time, completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>debounce</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> currentAttempt: Invalidatable?
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        currentAttempt?.invalidate()
+</span></span><span style=display:flex><span>        currentAttempt = ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>            f(completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>throttle</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> lastInvocation: Date?
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> filter {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> now = ReactifCurrent.scheduler.now()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>defer</span> { lastInvocation = now }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) <span style=color:#f92672>&lt;</span> time {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>schedule</span>&lt;A&gt;(<span style=color:#66d9ef>_</span> factory: @escaping <span style=color:#66d9ef>@autoclosure</span> () -&gt; Sink) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> sink = factory()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span> sink.call { f(a);$0() } }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// </span><span style=color:#75715e>TODO:</span><span style=color:#75715e> throttle using time after completion instead of starting time</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>throttle</span>&lt;A&gt;(time: TimeInterval) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> schedule(with(.synchronous(), throttle(time: time)))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaustA</span>&lt;A&gt;(ending time: TimeInterval? = <span style=color:#66d9ef>nil</span>) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> schedule(with(.recursiveLock(), extend(time: <span style=color:#ae81ff>10</span>)))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaust</span>&lt;A&gt;(ending time: TimeInterval? = <span style=color:#66d9ef>nil</span>) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> lock = NSLock()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> time = time {
+</span></span><span style=display:flex><span>                    ReactifCurrent.scheduler.delay(time, lock.unlock)
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                    lock.unlock()
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>map</span>&lt;A, B&gt;(<span style=color:#66d9ef>_</span> transform: @escaping (A) -&gt; B) -&gt; (@escaping Unary&lt;B&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span> pipe(transform, f) }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>filter</span>&lt;A&gt;(<span style=color:#66d9ef>_</span> include: @escaping (A) -&gt; Bool) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> include(a) {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>debounce</span>&lt;A&gt;(time: TimeInterval) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> currentAttempt: Invalidatable?
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            currentAttempt?.invalidate()
+</span></span><span style=display:flex><span>            currentAttempt = ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.</p><p>Though as we now have <code>Combine</code> by Apple, this is more likely to be a niche idea.</p><p><em><a href=./playground.zip>download this playground</a></em></p></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/swift/>swift</a></li><li><a href=/tags/experiment/>experiment</a></li><li><a href=/tags/functional/>functional</a></li></ul></nav></div></div></div></article></main><footer><div style=display:flex><a class=soc href=https://github.com/vknabel rel=me title=GitHub><svg class="feather"><use href="/svg/feather-sprite.51cf5647cb1987f769b616558f2620fd9423d72058490231b391bf6aa3744b55.svg#github"/></svg></a><a class=border></a><a class=soc href=https://mastodon.social/@vknabel/ rel=me title=Mastodon><svg class="feather"><use href="/svg/feather-sprite.51cf5647cb1987f769b616558f2620fd9423d72058490231b391bf6aa3744b55.svg#at-sign"/></svg></a><a class=border></a></div><div class=footer-info>2026 © Valentin Knabel | <a href=https://github.com/athul/archie>Archie Theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></footer></div></body></html>

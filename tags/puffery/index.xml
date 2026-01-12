@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Puffery on vknabel</title><link>https://vknabel.com/tags/puffery/</link><description>Recent content in Puffery on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Fri, 29 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/puffery/index.xml" rel="self" type="application/rss+xml"/><item><title>Announcing Puffery for macOS and the command line</title><link>https://vknabel.com/posts/announcing-puffery-for-macos-and-the-command-line/</link><pubDate>Fri, 29 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/announcing-puffery-for-macos-and-the-command-line/</guid><description>&lt;p&gt;Two years ago, I created &lt;a href="https://apps.apple.com/de/app/puffery/id1508776889"&gt;Puffery for iOS&lt;/a&gt;, which allows sending push notifications to your iOS devices.&lt;/p&gt;
+&lt;p&gt;You can follow other&amp;rsquo;s channels and directly receive updates. There is no algorithm that decides wether you should receive notifications or not.&lt;/p&gt;
+&lt;p&gt;From the beginning scripting is part of puffery&amp;rsquo;s DNA: you were able to send messages with Siri Shortcuts and a simple &lt;code&gt;curl&lt;/code&gt; command.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;If you want to take a deeper look, feel free to check out the &lt;a href="https://github.com/vknabel/puffery"&gt;GitHub repository&lt;/a&gt; including the Swift Server written in Vapor, and the iOS app built with SwiftUI in a single mono-repo.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="puffery-for-macos"&gt;Puffery for macOS&lt;/h2&gt;
+&lt;p&gt;&lt;img src="./puffery-macos-showcase.png" alt=""&gt;&lt;/p&gt;
+&lt;p&gt;If you do no share your channels, sending and receiving messages and thus push notifications from the same iOS device is kind of useless in the long run.&lt;/p&gt;
+&lt;p&gt;Some of your most productive time of the day, you are probably sitting in front of your Mac. And a macOS app better integrates into your daily workflow.&lt;/p&gt;
+&lt;p&gt;Of course, you can use your Shortcuts from your iOS device. But what&amp;rsquo;s special on macOS is the ability to pin specific workflows to the dock or the status bar. Even adding workflows to your share menus is possible!&lt;/p&gt;
+&lt;p&gt;No need to open Puffery directly if you don&amp;rsquo;t want to. No distractions.&lt;/p&gt;
+&lt;p&gt;If you are a user of macOS widgets, you are covered, too! They work exactly the same way as on iOS.&lt;/p&gt;
+&lt;h2 id="puffery-for-the-command-line"&gt;Puffery for the command line&lt;/h2&gt;
+&lt;p&gt;&lt;img src="./puffery-cli-showcase.png" alt=""&gt;&lt;/p&gt;
+&lt;p&gt;With the next announcement, we are slowly moving outside of the Apple ecosystem. Puffery is now available as a command line tool. Currently it has a limited scope and has not yet received feature parity with the iOS or macOS apps, but it does not only support macOS, but also Linux &lt;em&gt;and&lt;/em&gt; Windows.&lt;/p&gt;
+&lt;p&gt;It provides a tui / text based interface to scroll through lists of channels and messages. You can also send messages to a previously selected channel.&lt;/p&gt;
+&lt;p&gt;You can even signup or login with your existing account.&lt;/p&gt;
+&lt;p&gt;To give it a try, have a look on the &lt;a href="https://github.com/vknabel/go-puffery#installation"&gt;puffery installation instructions&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;It has been built in Go and &lt;a href="https://charm.sh/"&gt;Charm&lt;/a&gt;&amp;rsquo;s &lt;a href="https://github.com/charmbracelet/bubbletea"&gt;Bubble Tea library&lt;/a&gt;. As all of Puffery, it is open source and licensed under the &lt;a href="https://github.com/vknabel/go-puffery/blob/main/LICENSE"&gt;MIT license&lt;/a&gt;.&lt;/p&gt;</description></item></channel></rss>
