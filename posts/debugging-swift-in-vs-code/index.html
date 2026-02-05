@@ -1,0 +1,85 @@
+<!doctype html><html><head lang=en><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><title>Debugging Swift in VS Code the old way - vknabel</title><link rel=icon type=image/png href=/images/vknabel.jpg><link rel=me href=https://mastodon.social/@vknabel><meta name=fediverse:creator content="@vknabel@mastodon.social"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Running and debugging your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode.
+In VS Code we require extensions and configs for this purpose.
+
+Update from 2022: the Swift Server Work Group released their own official VS Code extension which dramatically improves the debugging user experience. Here is the new, updated blog post.
+
+Within this blog post, we will set up debugging for a Swift Package Manager project. As a bonus we will also prepare debugging your unit tests."><meta property="og:image" content><meta property="og:url" content="https://vknabel.com/posts/debugging-swift-in-vs-code/"><meta property="og:site_name" content="vknabel"><meta property="og:title" content="Debugging Swift in VS Code the old way"><meta property="og:description" content="Running and debugging your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode. In VS Code we require extensions and configs for this purpose.
+Update from 2022: the Swift Server Work Group released their own official VS Code extension which dramatically improves the debugging user experience. Here is the new, updated blog post.
+Within this blog post, we will set up debugging for a Swift Package Manager project. As a bonus we will also prepare debugging your unit tests."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-11-21T00:00:00+00:00"><meta property="article:modified_time" content="2019-11-21T00:00:00+00:00"><meta property="article:tag" content="Vscode"><meta property="article:tag" content="Swift"><meta name=twitter:card content="summary"><meta name=twitter:title content="Debugging Swift in VS Code the old way"><meta name=twitter:description content="Running and debugging your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode. In VS Code we require extensions and configs for this purpose.
+Update from 2022: the Swift Server Work Group released their own official VS Code extension which dramatically improves the debugging user experience. Here is the new, updated blog post.
+Within this blog post, we will set up debugging for a Swift Package Manager project. As a bonus we will also prepare debugging your unit tests."><script src=https://vknabel.com/js/feather.min.js></script><link href=https://vknabel.com/css/fonts.2c2227b81b1970a03e760aa2e6121cd01f87c88586803cbb282aa224720a765f.css rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://vknabel.com/css/main.a87126a5d38398207e58225b2d1a9faf97f546982f44b3ffb9715a264da36c90.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://vknabel.com/css/dark.f163b79c6de51d14a766ff9f0563053de7f06a4d1bf7b85a59608bf96e566710.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=/css/overrides.css></head><body><div class=content><header><div class=main><a href=https://vknabel.com/>vknabel</a></div><nav><a href=/>blog</a>
+<a href=/tils>tils</a>
+<a href=/about>about</a>
+<a href=/tags>tags</a></nav></header><main><article><div class=post-container><div class=post-content><div class=title><h1 class=title>Debugging Swift in VS Code the old way</h1><div class=meta>Posted on Nov 21, 2019</div></div><section class=body><p>Running and debugging your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode.
+In VS Code we require extensions and configs for this purpose.</p><blockquote><p><strong>Update from 2022:</strong> the Swift Server Work Group released their own <a href="https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang">official VS Code extension</a> which dramatically improves the debugging user experience. <a href=/pages/Debugging-Swift-in-VS-Code-in-2022/>Here is the new, updated blog post</a>.</p></blockquote><p>Within this blog post, we will set up debugging for a Swift Package Manager project. As a bonus we will also prepare debugging your unit tests.</p><p>First we need to install an extension as VS Code does not come with Swift debugger: <a href="https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb">LLDB Debugger</a>.</p><p>Now let’s create a new project on open it in VS Code!</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>$ swift package init --type executable
+</span></span><span style=display:flex><span>Creating executable package: MyProject
+</span></span><span style=display:flex><span>Creating Package.swift
+</span></span><span style=display:flex><span>Creating README.md
+</span></span><span style=display:flex><span>Creating .gitignore
+</span></span><span style=display:flex><span>Creating Sources/
+</span></span><span style=display:flex><span>Creating Sources/MyProject/main.swift
+</span></span><span style=display:flex><span>Creating Tests/
+</span></span><span style=display:flex><span>Creating Tests/LinuxMain.swift
+</span></span><span style=display:flex><span>Creating Tests/MyProjectTests/
+</span></span><span style=display:flex><span>Creating Tests/MyProjectTests/MyProjectTests.swift
+</span></span><span style=display:flex><span>Creating Tests/MyProjectTests/XCTestManifests.swift
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ code . <span style=color:#75715e># if not found: open -a &#34;Visual Studio Code&#34; .</span>
+</span></span></code></pre></div><p>As we’ve prepared all prerequisites, we are ready to set up our first debugging target! In the debuggers tab in your vscode window, select the drop down and then &ldquo;Add configuration&mldr;&rdquo;. This will now create a new file called <code>.vscode/launch.json</code>.</p><p>Below is an example configuration supporting running executable targets, unit tests on macOS and Linux. Relevant files will be compiled using the pre-launch-tasks.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-json data-lang=json><span style=display:flex><span><span style=color:#75715e>// .vscode/launch.json
+</span></span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;0.2.0&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;configurations&#34;</span>: [
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Running executables
+</span></span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;lldb&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;request&#34;</span>: <span style=color:#e6db74>&#34;launch&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;Run your Executable&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;program&#34;</span>: <span style=color:#e6db74>&#34;${workspaceFolder}/.build/debug/your-executable&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;args&#34;</span>: [],
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;cwd&#34;</span>: <span style=color:#e6db74>&#34;${workspaceFolder}&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;preLaunchTask&#34;</span>: <span style=color:#e6db74>&#34;swift-build&#34;</span>
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Running unit tests
+</span></span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;lldb&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;request&#34;</span>: <span style=color:#e6db74>&#34;launch&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;Debug tests on macOS&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;program&#34;</span>: <span style=color:#e6db74>&#34;&lt;path to xctest executable&gt;&#34;</span>, <span style=color:#75715e>//For example /Applications/Xcode.app/Contents/Developer/usr/bin/xctest
+</span></span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;args&#34;</span>: [<span style=color:#e6db74>&#34;${workspaceFolder}/.build/debug/&lt;xctest bundle name&gt;.xctest&#34;</span>],
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;preLaunchTask&#34;</span>: <span style=color:#e6db74>&#34;swift-build-tests&#34;</span>
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;lldb&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;request&#34;</span>: <span style=color:#e6db74>&#34;launch&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;Debug tests on Linux&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;program&#34;</span>: <span style=color:#e6db74>&#34;./.build/x86_64-unknown-linux/debug/YourPackageTests.xctest&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;preLaunchTask&#34;</span>: <span style=color:#e6db74>&#34;swift-build-tests&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>And here are the promised pre-launched-tasks:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-json data-lang=json><span style=display:flex><span><span style=color:#75715e>// .vscode/tasks.json
+</span></span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;2.0.0&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;tasks&#34;</span>: [
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// compile your SPM project
+</span></span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;swift-build&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;command&#34;</span>: <span style=color:#e6db74>&#34;swift build&#34;</span> <span style=color:#75715e>// for TensorFlow add -Xlinker -ltensorflow
+</span></span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// compile your SPM tests
+</span></span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;swift-build-tests&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;process&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;command&#34;</span>: <span style=color:#e6db74>&#34;swift&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;group&#34;</span>: <span style=color:#e6db74>&#34;build&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;args&#34;</span>: [
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;build&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;--build-tests&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// for TensorFlow add &#34;-Xlinker&#34;, &#34;-ltensorflow&#34;
+</span></span></span><span style=display:flex><span>      ]
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Sadly this approach currently does not work when debugging iOS or macOS apps, but Swift Package Manager projects and CLIs work great!
+I hope you enjoy your increased productivity!</p></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/vscode/>vscode</a></li><li><a href=/tags/swift/>swift</a></li></ul></nav></div></div></div></article></main><footer><div style=display:flex><a class=soc href=https://github.com/vknabel rel=me title=GitHub><svg class="feather"><use href="/svg/feather-sprite.51cf5647cb1987f769b616558f2620fd9423d72058490231b391bf6aa3744b55.svg#github"/></svg></a><a class=border></a><a class=soc href=https://mastodon.social/@vknabel/ rel=me title=Mastodon><svg class="feather"><use href="/svg/feather-sprite.51cf5647cb1987f769b616558f2620fd9423d72058490231b391bf6aa3744b55.svg#at-sign"/></svg></a><a class=border></a></div><div class=footer-info>2026 © Valentin Knabel | <a href=https://github.com/athul/archie>Archie Theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></footer></div></body></html>

@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Vapor on vknabel</title><link>https://vknabel.com/tags/vapor/</link><description>Recent content in Vapor on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Mon, 15 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/vapor/index.xml" rel="self" type="application/rss+xml"/><item><title>Adopting Swift Async Await in Vapor</title><link>https://vknabel.com/posts/adopting-swift-async-await-in-vapor/</link><pubDate>Mon, 15 Nov 2021 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/adopting-swift-async-await-in-vapor/</guid><description>&lt;p&gt;A few months ago Swift 5.5 has been released and made &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt; available. And in &lt;a href="https://github.com/vapor/vapor/releases/tag/4.50.0"&gt;4.50.0&lt;/a&gt; Vapor added support for it, too!&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;If you are still on Vapor 3, you first need to &lt;a href="https://www.vknabel.com/pages/Upgrading-a-server-side-Swift-project-to-Vapor-4/"&gt;upgrade your server to Vapor 4&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Now we can migrate most usages of Swift NIO&amp;rsquo;s &lt;code&gt;EventLoopFuture&lt;/code&gt; with &lt;code&gt;async&lt;/code&gt;. But we don&amp;rsquo;t have to! This is not a breaking change. I recently performed this upgrade for the server of my app &lt;a href="https://github.com/vknabel/puffery"&gt;Puffery&lt;/a&gt; and as both, the client and the server are open source I will include links to the respective git commits.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Puffery&lt;/strong&gt; is an app to send messages into channels using Shortcuts or HTTP. This will trigger a push notification to all clients that have subscribed. Within the app you can view your messages and channels.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I wouldn&amp;rsquo;t recommend to directly replace all occurrences of &lt;code&gt;EventLoopFuture&lt;/code&gt;. If you aren&amp;rsquo;t going to touch specific code paths in a while, there is no need to migrate those. But we&amp;rsquo;ll come back to that later.&lt;/p&gt;
+&lt;h2 id="upgrading-to-swift-55"&gt;Upgrading to Swift 5.5&lt;/h2&gt;
+&lt;p&gt;If you haven&amp;rsquo;t already, you need to upgrade your Swift Tools Version within your &lt;code&gt;Package.swift&lt;/code&gt;-manifest:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// swift-tools-version:5.5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;PackageDescription&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now a few lines later we need to upgrade to a newer macOS version, because &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt; not only requires Swift 5.5, but also macOS 12 Monterey. Make sure you have upgraded accordingly. Otherwise you&amp;rsquo;d need to work on a linux machine or within a docker container.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; package = Package(
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; name: &lt;span style="color:#e6db74"&gt;&amp;#34;PufferyServer&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; platforms: [
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; .macOS(.v12), &lt;span style="color:#75715e"&gt;// upgrade to .v12&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ],
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Next up, we need to bump our dependencies. As we want to rely on special features of the new Vapor, we explicitly go &lt;code&gt;from: &amp;quot;4.50.0&amp;quot;&lt;/code&gt;. Repeat this with other dependencies like Fluent.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#75715e"&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; dependencies: [
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#75715e"&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 .package(url: &lt;span style="color:#e6db74"&gt;&amp;#34;https://github.com/vapor/vapor.git&amp;#34;&lt;/span&gt;, from: &lt;span style="color:#e6db74"&gt;&amp;#34;4.50.0&amp;#34;&lt;/span&gt;), &lt;span style="color:#75715e"&gt;// upgrade to 4.50.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#75715e"&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		],
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now, to silence a warning, we need to explicitly declare our &lt;code&gt;Run&lt;/code&gt; target as &lt;code&gt;executableTarget&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; targets: [
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#75715e"&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 .executableTarget(name: &lt;span style="color:#e6db74"&gt;&amp;#34;Run&amp;#34;&lt;/span&gt;, dependencies: [&lt;span style="color:#e6db74"&gt;&amp;#34;App&amp;#34;&lt;/span&gt;]),
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#75715e"&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		]
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If you use a Dockerfile, build &lt;code&gt;FROM swift:5.5 as build&lt;/code&gt;. Also if present don&amp;rsquo;t forget to update your &lt;code&gt;.swift-version&lt;/code&gt;-file and your CI.&lt;/p&gt;
+&lt;p&gt;Now update your packages using &lt;code&gt;swift package update&lt;/code&gt;. If you use Xcode, also update your dependencies using &lt;code&gt;File &amp;gt; Packages &amp;gt; Update to Latest Package Versions&lt;/code&gt; to keep them in sync. In theory &lt;code&gt;swift build&lt;/code&gt; and &lt;code&gt;swift test&lt;/code&gt; should run without any errors. If it does, fix those and proceed.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href="https://github.com/vknabel/puffery/commit/1c41e5ae5c49748c1389b4491e03d595e5b0f406"&gt;&lt;code&gt;git commit -am &amp;quot;Upgraded PufferyServer to Swift 5.5&amp;quot;&lt;/code&gt;&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="adopting-async-await"&gt;Adopting Async Await&lt;/h2&gt;
+&lt;p&gt;Now that we upgraded our new Swift version and updated our dependencies, let&amp;rsquo;s get started with our migration.&lt;/p&gt;
+&lt;p&gt;We will incrementally do tiny steps and migrate every function after another. But it doesn&amp;rsquo;t make sense to migrate all functions immediately. If you haven&amp;rsquo;t touched specific files in a while, there is no need to do so now. A great example are your database migrations. You won&amp;rsquo;t touch them anyways. Just write new ones with &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt; and you are fine.&lt;/p&gt;
+&lt;p&gt;In my opinion, controllers are the easiest place to get started. Later you can tackle migrate &lt;code&gt;Jobs&lt;/code&gt; or &lt;code&gt;ScheduledJob&lt;/code&gt;s. Then your services and your repositories.&lt;/p&gt;
+&lt;p&gt;The easiest places to upgrade will most likely be your Fluent queries: there are overloads for &lt;code&gt;.find()&lt;/code&gt; and &lt;code&gt;.all()&lt;/code&gt; to return &lt;code&gt;EventLoopFuture&lt;/code&gt; and &lt;code&gt;async throws&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id="migrate-the-function-signature"&gt;Migrate the function signature&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-diff" data-lang="diff"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;- 	func messagesForAllChannels(_ req: Request) throws -&amp;gt; EventLoopFuture&amp;lt;[MessageResponse]&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+ 	func messagesForAllChannels(_ req: Request) async throws -&amp;gt; [MessageResponse] {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now fix all issues within the function. Then fix the errors of all callers.&lt;/p&gt;
+&lt;p&gt;If you temporarily converted invocations of this method from &lt;code&gt;EventLoopFuture&lt;/code&gt; to an async function using &lt;code&gt;.get()&lt;/code&gt;, it is now time to remove it.&lt;/p&gt;
+&lt;h3 id="migrate-protocol-methods-if-directly-affected"&gt;Migrate Protocol Methods if directly affected&lt;/h3&gt;
+&lt;p&gt;Most protocols need to be prefixed with &lt;code&gt;Async&lt;/code&gt; like &lt;code&gt;AsyncJob&lt;/code&gt; or &lt;code&gt;AsyncScheduledJob&lt;/code&gt;. Then you can replace all function signatures.&lt;/p&gt;
+&lt;h3 id="i-need-async-but-i-have-an-eventloopfuture"&gt;I need async, but I have an EventLoopFuture&lt;/h3&gt;
+&lt;p&gt;To convert a not yet converted &lt;code&gt;EventLoopFuture&lt;/code&gt;, we call &lt;code&gt;EventLoopFuture&amp;lt;V&amp;gt;.get() async throws -&amp;gt; V&lt;/code&gt;. You can migrate the function later.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; await theEventLoopFuture.&lt;span style="color:#66d9ef"&gt;get&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="i-need-an-eventloopfuture-but-i-have-an-async-function"&gt;I need an EventLoopFuture, but I have an async function&lt;/h3&gt;
+&lt;p&gt;Sometimes I decided to keep some function signatures as they were and I did not migrate them. For those cases I created a small helper function to create an &lt;code&gt;EventLoopFuture&lt;/code&gt; from an async task.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;extension&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;EventLoop&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;from&lt;/span&gt;&amp;lt;T&amp;gt;(task: @escaping () async &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; -&amp;gt; T) -&amp;gt; EventLoopFuture&amp;lt;T&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; promise = makePromise(of: T.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; promise.completeWithTask { &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; await task() }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; promise.futureResult
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;For example executing multiple futures in parallel is easy with &lt;code&gt;eventLoop.flatten&lt;/code&gt;, but it&amp;rsquo;s much harder with &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id="migrate-flatmap"&gt;Migrate &lt;code&gt;.flatMap&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;Migrate &lt;code&gt;.flatMap({ messages in doSomething(messages) })&lt;/code&gt; to &lt;code&gt;let result = try await doSomething(messages).get()&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id="migrate-flatmapthrowing"&gt;Migrate &lt;code&gt;.flatMapThrowing&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;Migrate &lt;code&gt;.flatMapThrowing({ messages in doSomething(messages) })&lt;/code&gt; to &lt;code&gt;let result = try doSomething(messages)&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id="migrate-eventloopflatten"&gt;Migrate &lt;code&gt;eventLoop.flatten&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;Executing multiple futures in parallel is easy with &lt;code&gt;eventLoop.flatten&lt;/code&gt;, but it&amp;rsquo;s much harder with &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;d recommend to keep this part as is, and to keep this part as &lt;code&gt;EventLoopFuture&lt;/code&gt;.
+See [I need an EventLoopFuture, but I have async](#I need an EventLoopFuture, but I have async).&lt;/p&gt;
+&lt;h3 id="migrate-transformto"&gt;Migrate &lt;code&gt;.transform(to:)&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;This is straight forward: use the value directly. Typically you&amp;rsquo;d return this.&lt;/p&gt;
+&lt;p&gt;Sometimes I used &lt;code&gt;transform&lt;/code&gt; within a &lt;code&gt;flatMap&lt;/code&gt; to keep the same return value. Now, just &lt;code&gt;try await&lt;/code&gt; these side effects.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-diff" data-lang="diff"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;-	.flatMap({ user in
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;-		user.update(on: req.db)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;-			.transform(to: user)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;-	})
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+	try await update(on: req.db)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="migrate-always_"&gt;Migrate &lt;code&gt;.always(_:)&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;.always&lt;/code&gt; will be executed when an &lt;code&gt;EventLoopFuture&lt;/code&gt; fails and when it succeeds. This is the same behaviour of &lt;code&gt;defer&lt;/code&gt; with &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt;!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-diff" data-lang="diff"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;-	return computeSomething()
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;- .always { _ in
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;- 	doSomething()
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;- }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+ defer {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+		doSomething()
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+ }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+	return try await computeSomething()
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Attention:&lt;/strong&gt; you probably need to move your defer up. Using &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt; will likely introduce more return and throw statements which will exit your functions early.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="returning-constant-futures"&gt;Returning constant futures&lt;/h3&gt;
+&lt;p&gt;If you currently throw a failing future, just throw the error directly.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-diff" data-lang="diff"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;- return req.eventLoop.future(error: Abort(.notFound))
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+ throw Abort(.notFound)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;To replace a succeeding future, return the value directly.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-diff" data-lang="diff"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;- return req.eventLoop.future(success: value)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;+ return value
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If thee &lt;code&gt;future(error:)&lt;/code&gt; was embedded within a &lt;code&gt;do&lt;/code&gt;-&lt;code&gt;catch&lt;/code&gt; to lift errors to an &lt;code&gt;EventLoopFuture&lt;/code&gt;, you can probably remove the &lt;code&gt;do&lt;/code&gt;-&lt;code&gt;catch&lt;/code&gt; and mark the function as &lt;code&gt;throws&lt;/code&gt; instead.&lt;/p&gt;
+&lt;h3 id="test-and-commit"&gt;Test and Commit&lt;/h3&gt;
+&lt;p&gt;Do not forget to regularly run your tests and to keep your project in a green state. From time to time, do some commits.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href="https://github.com/vknabel/puffery/commit/17825477cb1d2709dc16e0669a9b943e2d978fd4"&gt;&lt;code&gt;git commit -am &amp;quot;Use async/await for Vapor&amp;quot;&lt;/code&gt;&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="real-world-examples"&gt;Real World Examples&lt;/h2&gt;
+&lt;p&gt;In case you need guidance, here are typical examples for Vapor-endpoints. These examples should look familiar.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;All code snippets are actual code from Puffery.&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id="example-for-a-fluent-query"&gt;Example for a Fluent query&lt;/h3&gt;
+&lt;p&gt;This function is part of the &lt;code&gt;SubscriptionRepository&lt;/code&gt;. It is meant to be used from &lt;code&gt;Controllers&lt;/code&gt; to consistently access, filter and sort the channel subscriptions of a user.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;all&lt;/span&gt;(of user: User) -&amp;gt; EventLoopFuture&lt;span style="color:#f92672"&gt;&amp;lt;&lt;/span&gt;[Subscription]&lt;span style="color:#f92672"&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;do&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; Subscription.query(on: db)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			.filter(&lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;Subscription.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;user.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;id == user.requireID())
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			.sort(&lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;createdAt, .descending)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			.all()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	} &lt;span style="color:#66d9ef"&gt;catch&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; eventLoop.future(error: error)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We start by changing the type signature to &lt;code&gt;async throws&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;To fix the type errors, we could drop &lt;code&gt;do&lt;/code&gt;-&lt;code&gt;catch&lt;/code&gt; as the new variant is throwing. Previously it wasn&amp;rsquo;t throwing as there is no overload of &lt;code&gt;EventLoopFuture.flatMap&lt;/code&gt; that accepts throwing &lt;code&gt;EventLoopFuture&lt;/code&gt;s. Therefore &lt;code&gt;all(of:)&lt;/code&gt; was required to lift thrown errors to futures.&lt;/p&gt;
+&lt;p&gt;As there is no distinction between directly throwing and a query failure with &lt;code&gt;async&lt;/code&gt;/&lt;code&gt;await&lt;/code&gt; we can get rid of the &lt;code&gt;do&lt;/code&gt;-&lt;code&gt;catch&lt;/code&gt;. And as Fluent has overloads for both &lt;code&gt;EventLoopFuture&lt;/code&gt; and &lt;code&gt;async throws&lt;/code&gt; we&amp;rsquo;re done here.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;all&lt;/span&gt;(of user: User) async &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; -&amp;gt; [Subscription] {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; await Subscription.query(on: db)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 .filter(&lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;Subscription.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;user.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;id == user.requireID())
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; .sort(&lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;createdAt, .descending)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; .all()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="example-migrations-for-simple-read-only-endpoints"&gt;Example Migrations for simple read-only endpoints&lt;/h3&gt;
+&lt;p&gt;My &lt;code&gt;MessageController&lt;/code&gt; looked like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;final&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;class&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;MessageController&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;messagesForAllChannels&lt;/span&gt;(&lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; req: Request) &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; -&amp;gt; EventLoopFuture&lt;span style="color:#f92672"&gt;&amp;lt;&lt;/span&gt;[MessageResponse]&lt;span style="color:#f92672"&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; user = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; req.auth.require(User.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; req.subscriptions.all(of: user)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 .flatMap(req.messages.latestSubscribed(&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt;:))
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; .flatMapThrowing { messages &lt;span style="color:#66d9ef"&gt;in&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; messages.map {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; MessageResponse($0.message, subscription: $0.subscription)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;				}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// other endpoints ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This code should be familiar to any Vapor developer. I started migration with the function signature, replaced &lt;code&gt;flatMap&lt;/code&gt; and &lt;code&gt;flatMapThrowing&lt;/code&gt; and inserted the &lt;code&gt;.get()&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;messagesForAllChannels&lt;/span&gt;(&lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; req: Request) async &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; -&amp;gt; [MessageResponse] {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; user = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; req.auth.require(User.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; subs = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; await req.subscriptions.all(of: user).&lt;span style="color:#66d9ef"&gt;get&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; messages = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; await req.messages.latestSubscribed(&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt;: subs).&lt;span style="color:#66d9ef"&gt;get&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; messages.map {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; MessageResponse($0.message, subscription: $0.subscription)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After I migrated my &lt;code&gt;SubscriptionRepository&lt;/code&gt;, I could even get rid of the trailing &lt;code&gt;.get()&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id="example-migration-for-simple-write-endpoints"&gt;Example Migration for simple write-endpoints&lt;/h3&gt;
+&lt;p&gt;This function&amp;rsquo;s migration path was more complex.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;confirmEmailIfNeeded&lt;/span&gt;(&lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; user: User) &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; -&amp;gt; EventLoopFuture&amp;lt;Void&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;guard&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; emailAddress = user.email &lt;span style="color:#66d9ef"&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; req.eventLoop.future()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; confirmation = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; Confirmation(scope: &lt;span style="color:#e6db74"&gt;&amp;#34;email&amp;#34;&lt;/span&gt;, snapshot: emailAddress, user: user)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; confirmation.create(on: req.db)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		.flatMapThrowing { &lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;in&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; Email(&lt;span style="color:#75715e"&gt;/*...*/&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		.flatMap { email &lt;span style="color:#66d9ef"&gt;in&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.req.queue.dispatch(SendEmailJob.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;, email)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here we could completely remove the empty &lt;code&gt;req.eventLoop.future()&lt;/code&gt;. A simple, blank &lt;code&gt;return&lt;/code&gt; statement is enough. And creating models doesn&amp;rsquo;t force us anymore to nest everything one level deeper. We &lt;code&gt;await&lt;/code&gt; the result, but we discard it.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;confirmEmailIfNeeded&lt;/span&gt;(&lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; user: User) async &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;guard&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; emailAddress = user.email &lt;span style="color:#66d9ef"&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;return&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; confirmation = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; Confirmation(scope: &lt;span style="color:#e6db74"&gt;&amp;#34;email&amp;#34;&lt;/span&gt;, snapshot: emailAddress, user: user)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; await confirmation.create(on: req.db)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; email = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; Email(&lt;span style="color:#75715e"&gt;/*...*/&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; await req.queue.dispatch(SendEmailJob.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;, email)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;Within this post we upgraded our Swift version, Package manifest, docker / CI Swift versions and our dependencies. Then we incrementally migrated portions of our codebase by following a set of rules. What was your migration like? Did you experience any problems?&lt;/p&gt;
+&lt;p&gt;If you wish, check out the open source repository of &lt;a href="https://github.com/vknabel/puffery"&gt;Puffery&lt;/a&gt; or check it out on the &lt;a href="https://apps.apple.com/de/app/puffery/id1508776889"&gt;App Store&lt;/a&gt;. If you have any questions or feedback don&amp;rsquo;t hesitate to ask me on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt; or join the &lt;a href="https://github.com/vknabel/puffery/discussions"&gt;Puffery disussions&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Upgrading a server-side Swift project to Vapor 4</title><link>https://vknabel.com/posts/upgrading-a-server-side-swift-project-to-vapor-4/</link><pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/upgrading-a-server-side-swift-project-to-vapor-4/</guid><description>&lt;p&gt;The past few days I created a new server using &lt;a href="https://vapor.codes"&gt;Vapor&lt;/a&gt; and hit &lt;code&gt;vapor new &amp;lt;project&amp;gt; --auth&lt;/code&gt; which created a Vapor 3 server. Later I upgraded the young project to Vapor 4, but found some lack of practical information about the upgrade on the internet. So here I share my subjective experience and try to give you some tips.&lt;/p&gt;
+&lt;p&gt;The app itself is relatively simple:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;it has user authentication and registration&lt;/li&gt;
+&lt;li&gt;users don‘t have any profile and cannot interact with each other&lt;/li&gt;
+&lt;li&gt;on certain events, we notify multiple users on all of their devices&lt;/li&gt;
+&lt;li&gt;users have their personal list of notifications&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;After a while, when most parts of the MVP were finished, I wanted to add &lt;a href="https://github.com/vapor/apns"&gt;vapor/apns&lt;/a&gt;, which required the new Vapor 4. But hasn’t Vapor 4 been released recently? Yes, but it seems like the Vapor team probably decided to keep Vapor 3 the default until the documentation and all surrounding has been finished (which is a good thing!).&lt;/p&gt;
+&lt;p&gt;The &lt;a href="https://forums.swift.org/t/whats-new-in-vapor-4/31832"&gt;list of changes&lt;/a&gt; reads nicely, new services API, new model API built on top of property wrappers looks gorgeous, synchronously decoding contents improves controllers far more than you might expect and eager loading is great to tune up performance and to even reduce the amount of nested futures to be handled.&lt;/p&gt;
+&lt;p&gt;As mentioned I was especially interested in APNS. Additionally I need background jobs, which come as &lt;a href="https://github.com/vapor/queues"&gt;vapor/queues&lt;/a&gt; , too.
+For me the decision was an obvious one: let‘s upgrade the code base!&lt;/p&gt;
+&lt;h2 id="starting-the-migration-from-vapor-3-to-vapor-4"&gt;Starting the Migration from Vapor 3 to Vapor 4&lt;/h2&gt;
+&lt;p&gt;At that time, the server had only 4 controllers, 10 routes, 13 request_response structs_enums, 6 models, only empty migrations, zero services and zero repositories. It was still using an SQLite in-memory database with SQLite imports and types spread across the whole project. Also it obviously didn‘t send any Push Notifications (although they were already stored).&lt;/p&gt;
+&lt;p&gt;So as a first step to upgrade Vapor, I head over to their &lt;a href="https://docs.vapor.codes/4.0/upgrading/"&gt;Upgrading Docs&lt;/a&gt; and started with updating the Package.swift manifest dependencies and platforms as proposed. Apparently I could even drop the vapor/auth dependency as it is now included in Vapor 4. You might stumble upon &lt;code&gt;platforms: [.macOS(.v10_15)]&lt;/code&gt;: no worries, it still supports Linux. 👍&lt;/p&gt;
+&lt;h3 id="configure"&gt;Configure&lt;/h3&gt;
+&lt;p&gt;Next I copied the new proposed contents of &lt;code&gt;Sources/Run/main.swift&lt;/code&gt;, deleted &lt;code&gt;Sources/App/app.swift&lt;/code&gt;, &lt;code&gt;Sources/App/boot.swift&lt;/code&gt; (it was still empty) and changed &lt;code&gt;configure(_:_:_:)&lt;/code&gt; and &lt;code&gt;routes(_:_:)&lt;/code&gt; to be of type &lt;code&gt;(Application) throws -&amp;gt; Void&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;As I already touched &lt;code&gt;configure(_:)&lt;/code&gt; and &lt;code&gt;routes(_:)&lt;/code&gt;, I wanted to make those two files compile first, before moving to the next files, but the upgrading docs didn‘t really serve me well here. After some time reading through docs, I decided to generate a new Vapor 4 reference project using &lt;code&gt;vapor-beta new Example&lt;/code&gt; which used &lt;a href="https://github.com/vapor/template"&gt;vapor/template&lt;/a&gt; as template.&lt;/p&gt;
+&lt;p&gt;When comparing &lt;a href="https://github.com/vapor/api-template/blob/master/Sources/App/configure.swift"&gt;Vapor 3 api-template configure.swift&lt;/a&gt; with the &lt;a href="https://github.com/vapor/template/blob/master/Sources/App/configure.swift"&gt;new one&lt;/a&gt; I came to the conclusion, I could drop the most code.&lt;/p&gt;
+&lt;p&gt;In Vapor 3 we usually started creating a &lt;code&gt;XxxConfig&lt;/code&gt; where we added types of migrations or used middlewares or databases.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Vapor&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Fluent&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;FluentSQLite&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;public&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;configure&lt;/span&gt;(&lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; config: &lt;span style="color:#66d9ef"&gt;inout&lt;/span&gt; Config, &lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; env: &lt;span style="color:#66d9ef"&gt;inout&lt;/span&gt; Environment, &lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; services: &lt;span style="color:#66d9ef"&gt;inout&lt;/span&gt; Services) &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// Register providers first&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; services.register(FluentSQLiteProvider())
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// Register routes to the router&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; router = EngineRouter.&lt;span style="color:#66d9ef"&gt;default&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; routes(router)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	services.register(router, &lt;span style="color:#66d9ef"&gt;as&lt;/span&gt;: Router.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// Configure a SQLite database&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; sqlite = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; SQLiteDatabase(storage: .memory)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// Register the configured SQLite database to the database config.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; databases = DatabasesConfig()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	databases.add(database: sqlite, &lt;span style="color:#66d9ef"&gt;as&lt;/span&gt;: .sqlite)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	services.register(databases)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// Register middleware&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; middlewares = MiddlewareConfig()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	middlewares.use(ErrorMiddleware.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	services.register(middlewares)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// Register migrations&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; migrations = MigrationConfig()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	migrations.add(model: User.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;, database: .sqlite) &lt;span style="color:#75715e"&gt;// Note: it‘s a type!&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	services.register(migrations)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With Vapor 4, we just add instances of those types to &lt;code&gt;app.xxx&lt;/code&gt; directly instead. Much more readable!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Vapor&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Fluent&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;FluentSQLiteDriver&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;public&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;configure&lt;/span&gt;(&lt;span style="color:#66d9ef"&gt;_&lt;/span&gt; app: Application) &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; app.databases.use(.sqlite(.memory), &lt;span style="color:#66d9ef"&gt;as&lt;/span&gt;: DatabaseID.sqlite)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	app.middleware.use(ErrorMiddleware.&lt;span style="color:#66d9ef"&gt;default&lt;/span&gt;(environment: app.environment))
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	app.migrations.add(CreateUser()) &lt;span style="color:#75715e"&gt;// Note: here it‘s an instance!&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; routes(app)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now our &lt;code&gt;configure.swift&lt;/code&gt; should only complain about our migrations, so let‘s head over to fix those!&lt;/p&gt;
+&lt;h3 id="models"&gt;Models&lt;/h3&gt;
+&lt;p&gt;Before we can fix our migrations, we should upgrade our models! For this step, it’s best to start bottom up from your simplest models to your most complex ones with lots of relations. Be patient and do one step at a time.&lt;/p&gt;
+&lt;p&gt;Here is our example model in Vapor 3:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Vapor&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;FluentSQLite&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;final&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;class&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;DeviceToken&lt;/span&gt;: SQLiteModel {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;typealias&lt;/span&gt; Database = SQLiteDatabase
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; createdAtKey: TimestampKey? = &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.createdAt
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; id: Int? &lt;span style="color:#75715e"&gt;// Note the Int? As id!&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; value: String
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; userID: User.ID
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; createdAt: Date?
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; user: Parent&amp;lt;DeviceToken, User&amp;gt; { parent(&lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.userID) }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;init&lt;/span&gt;(id: Int? = &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt;, value: String, user: User) &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.id = id
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.value = value
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		 &lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.userID = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; user.requireID()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And here is the interesting part: our new Vapor 4 variant of &lt;code&gt;DeviceToken&lt;/code&gt;!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Fluent&lt;/span&gt; &lt;span style="color:#75715e"&gt;// 1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;final&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;class&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;DeviceToken&lt;/span&gt;: Model {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; schema = &lt;span style="color:#e6db74"&gt;&amp;#34;device_tokens&amp;#34;&lt;/span&gt; &lt;span style="color:#75715e"&gt;// 2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	@ID(key: .id) &lt;span style="color:#75715e"&gt;// 3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; id: Int?
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	@Field(key: &lt;span style="color:#e6db74"&gt;&amp;#34;value&amp;#34;&lt;/span&gt;) &lt;span style="color:#75715e"&gt;// 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; value: String
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	@Parent(key: &lt;span style="color:#e6db74"&gt;&amp;#34;user_id&amp;#34;&lt;/span&gt;) &lt;span style="color:#75715e"&gt;// 5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; user: User
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	@Timestamp(key: &lt;span style="color:#e6db74"&gt;&amp;#34;created_at&amp;#34;&lt;/span&gt;, on: .create) &lt;span style="color:#75715e"&gt;// 6&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; createdAt: Date?
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;init&lt;/span&gt;() {} &lt;span style="color:#75715e"&gt;// 7 this is required, but in my case always empty ^^&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;init&lt;/span&gt;(id: UUID? = &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt;, value: String, user: User) &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.id = id
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.value = value
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#75715e"&gt;// 8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#75715e"&gt;// ATTENTION: using self.user = user crashes&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;user.id = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; user.requireID()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;user.value = user
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Quite a lot to explain here, although it should be rather straight-forward. Essentially we:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;drop the fluent database import&lt;/li&gt;
+&lt;li&gt;replace the database typealias with the name of our schema (e.g. table name)&lt;/li&gt;
+&lt;li&gt;add the &lt;code&gt;@ID(key: .id)&lt;/code&gt; property wrapper&lt;/li&gt;
+&lt;li&gt;mark every field with &lt;code&gt;@Field(key: &amp;quot;name_of_field_in_schema&amp;quot;)&lt;/code&gt; (giving the column name)&lt;/li&gt;
+&lt;li&gt;declare the parent
+&lt;ol&gt;
+&lt;li&gt;remove old &lt;code&gt;var userID: User.ID&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;replace old computed &lt;code&gt;var user: Parent&amp;lt;DeviceToken, User&amp;gt; { parent(\.userID) }&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;with &lt;code&gt;@Parent(key: &amp;quot;user_id&amp;quot;) var user: User&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;The same rules apply to children and siblings&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Instead of declaring static &lt;code&gt;createdAtKey&lt;/code&gt;, &lt;code&gt;updatedAtKey&lt;/code&gt; and &lt;code&gt;deletedAtKey&lt;/code&gt; use &lt;code&gt;@Timestamp(key: FieldKey, on: TimestampTrigger)&lt;/code&gt; as seen above&lt;/li&gt;
+&lt;li&gt;add an empty &lt;code&gt;init() {}&lt;/code&gt;. Not sure when to customize and what its for 🤔&lt;/li&gt;
+&lt;li&gt;Here you need to pay attention! You may never set your relations directly, always use &lt;code&gt;$user.value =&lt;/code&gt; or &lt;code&gt;$user.id =&lt;/code&gt;. In this case we set both resulting in an already eager loaded &lt;code&gt;user&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Oh and if your models conform to &lt;code&gt;Parameter&lt;/code&gt;: just remove it. It has been removed.&lt;/p&gt;
+&lt;h3 id="migrations"&gt;Migrations&lt;/h3&gt;
+&lt;p&gt;As our models are fine now, let’s dive into their migrations!&lt;/p&gt;
+&lt;p&gt;Previously it was a common practice to conform your models to &lt;code&gt;Migration&lt;/code&gt; and to even let Fluent derive a default migration from your &lt;code&gt;Model&lt;/code&gt;. Though with Vapor 4 we need to actually implement those. I mean, conforming your models to migration isn‘t scalable anyways. So after all it‘s a good change.&lt;/p&gt;
+&lt;p&gt;Although I am generally a fan of doing just one single change at a time, I think this a great opportunity to move your migrations into separate files inside a &lt;code&gt;Migrations&lt;/code&gt; folder, if they are still in the same file as their models.&lt;/p&gt;
+&lt;p&gt;From all I know, your existing migrations will break, but they should be rather easy to migrate. Anyways I didn‘t have real migrations, just the default ones:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Fluent&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;extension&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;DeviceToken&lt;/span&gt;: Migration { }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// Alternatively manual migrations&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;FluentPostgreSQL&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;extension&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Domain&lt;/span&gt;: Migration {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;prepare&lt;/span&gt;(on conn: PostgreSQLConnection) -&amp;gt; Future&amp;lt;Void&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; PostgreSQLDatabase.create(DeviceToken.&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;, on: conn) { builder &lt;span style="color:#66d9ef"&gt;in&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; builder.field(&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt;: &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.id, isIdentifier: &lt;span style="color:#66d9ef"&gt;true&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; builder.field(&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt;: &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.value)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; builder.field(&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt;: &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.userID)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; builder.reference(from: &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.userID, to: &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;User.id)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			 builder.field(&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt;: &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.createdAt)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			 builder.unique(on: &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.value)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Some personal note:&lt;/strong&gt; I prefer to use the actual relation entities the in initializers. That way I have compiler guarantees, that their id actually exist!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;So let‘s get our hands dirty and write some migrations in Vapor 4.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Fluent&lt;/span&gt; &lt;span style="color:#75715e"&gt;// Note: we don‘t have to specify the database type!&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;struct&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;CreateDeviceToken&lt;/span&gt;: Migration {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;prepare&lt;/span&gt;(on: database: Database) -&amp;gt; EventLoopFuture&amp;lt;Void&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; database.schema(&lt;span style="color:#e6db74"&gt;&amp;#34;device_tokens&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			.id() &lt;span style="color:#75715e"&gt;// &amp;lt;- oops! This is always .uuid, not .int which is not available on SQLite&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			.field(&lt;span style="color:#e6db74"&gt;&amp;#34;value&amp;#34;&lt;/span&gt;, .string, .&lt;span style="color:#66d9ef"&gt;required&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			.field(&lt;span style="color:#e6db74"&gt;&amp;#34;user_id&amp;#34;&lt;/span&gt;, .uuid, .&lt;span style="color:#66d9ef"&gt;required&lt;/span&gt;, .references(&lt;span style="color:#e6db74"&gt;&amp;#34;users&amp;#34;&lt;/span&gt;, &lt;span style="color:#e6db74"&gt;&amp;#34;id“))
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;			.field(&amp;#34;&lt;/span&gt;created_at&lt;span style="color:#e6db74"&gt;&amp;#34;, .datetime, .required)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;			.unique(on: &amp;#34;&lt;/span&gt;value&lt;span style="color:#e6db74"&gt;&amp;#34;)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;			.create()
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;	func revert(on database: Database) -&amp;gt; EventLoopFuture&amp;lt;Void&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;		return database.schema(&amp;#34;&lt;/span&gt;device_tokens&lt;span style="color:#e6db74"&gt;&amp;#34;).delete()
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;At first, we notice much more strings than key paths and that all migrations have to rewritten! Though the upgrade should be comparably easy. If you have a lot migrations, you might have a though job as &lt;code&gt;revert(on:)&lt;/code&gt; is mandatory now. Hopefully we will never need to revert any migrations in production!&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Another thing to note: I was using SQLite, but the &lt;code&gt;.id()&lt;/code&gt;-shorthand is hard-coded to use type &lt;code&gt;.uuid&lt;/code&gt;:&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// From Fluent’s source code&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;public&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;final&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;class&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;SchemaBuilder&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;public&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;id&lt;/span&gt;() -&amp;gt; &lt;span style="color:#66d9ef"&gt;Self&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; 		&lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;.field(.id, .uuid, .identifier(auto: &lt;span style="color:#66d9ef"&gt;false&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;As the models and migrations were already independent of the database technology, I decided to switch from SQLite to Postgres, especially as models are now independent of the underlaying database (you import &lt;code&gt;Fluent&lt;/code&gt; instead of &lt;code&gt;Fluent{Database}&lt;/code&gt;), this change was quite easy and did only affect &lt;code&gt;Package.swift&lt;/code&gt; and &lt;code&gt;configure.swift&lt;/code&gt;. If you don‘t, you probably need to use &lt;code&gt;.field(.id, .int, .identifier(auto: true))&lt;/code&gt; instead of &lt;code&gt;.id&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;If you don’t use any authentication, &lt;code&gt;configure.swift&lt;/code&gt;, all your models and migrations should compile without any errors!&lt;/p&gt;
+&lt;h3 id="authentication"&gt;Authentication&lt;/h3&gt;
+&lt;p&gt;As I didn’t tune my current authentication implementation, I tried to stick as close as possible to the new &lt;a href="https://docs.vapor.codes/4.0/authentication/"&gt;Vapor: Security → Authentication&lt;/a&gt; docs.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Because the app will have a password less login, I didn’t use any basic authentication, which is therefore missing below. But according to the docs, it should be relatively easy to implement.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; Vapor 3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Vapor&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Authentication&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;extension&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;User&lt;/span&gt;: TokenAuthenticatable {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;/// See `TokenAuthenticatable`.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;typealias&lt;/span&gt; TokenType = UserToken
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;final&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;class&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;UserToken&lt;/span&gt;: SQLiteModel {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;create&lt;/span&gt;(userID: User.ID) &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; -&amp;gt; UserToken {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;// generate a random 128-bit, base64-encoded string.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; string = &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; CryptoRandom().generateData(count: &lt;span style="color:#ae81ff"&gt;16&lt;/span&gt;).base64EncodedString()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;// init a new `UserToken` from that string.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; .&lt;span style="color:#66d9ef"&gt;init&lt;/span&gt;(string: string, userID: userID)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;/// Allows this model to be used as a TokenAuthenticatable’s token.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;extension&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;UserToken&lt;/span&gt;: Token {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;/// See `Token`.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;typealias&lt;/span&gt; UserType = User
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;/// See `Token`.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; tokenKey: WritableKeyPath&amp;lt;UserToken, String&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.string
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;/// See `Token`.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; userIDKey: WritableKeyPath&amp;lt;UserToken, User.ID&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;.userID
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Actually upgrading this, took me some time, since parts of the logic are now reversed.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// 1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;Vapor&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// 2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;extension&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;User&lt;/span&gt;: Authenticatable {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 &lt;span style="color:#75715e"&gt;// 3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;generateToken&lt;/span&gt;() &lt;span style="color:#66d9ef"&gt;throws&lt;/span&gt; -&amp;gt; UserToken {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;try&lt;/span&gt; UserToken(
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; value: [UInt8].random(count: &lt;span style="color:#ae81ff"&gt;16&lt;/span&gt;).base64,
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; user: &lt;span style="color:#66d9ef"&gt;self&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; )
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;extension&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;UserToken&lt;/span&gt;: ModelTokenAuthenticatable {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; valueKey = &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;UserToken.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;value
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; 	&lt;span style="color:#66d9ef"&gt;static&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; userKey = &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;UserToken.&lt;span style="color:#960050;background-color:#1e0010"&gt;$&lt;/span&gt;user
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// 5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; isValid: Bool {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	 Date() &lt;span style="color:#f92672"&gt;&amp;gt;=&lt;/span&gt; expiresAt ?? Date()
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol&gt;
+&lt;li&gt;First of all: drop the Authentication import. Vapor is enough.&lt;/li&gt;
+&lt;li&gt;Now we mark &lt;code&gt;User&lt;/code&gt; as &lt;code&gt;Authenticatable&lt;/code&gt; instead of &lt;code&gt;TokenAuthenticatable&lt;/code&gt;. This allows you to decode it in your controllers!&lt;/li&gt;
+&lt;li&gt;Essentially we moved the static &lt;code&gt;UserToken.create&lt;/code&gt; to &lt;code&gt;User.generateToken&lt;/code&gt; and updated it to use Swift’s latest APIs. Completely optional.&lt;/li&gt;
+&lt;li&gt;The old &lt;code&gt;Token&lt;/code&gt; protocol will be replaced by &lt;code&gt;ModelTokenAuthenticatable&lt;/code&gt; where we get rid of the &lt;code&gt;UserType&lt;/code&gt;-typealias and rename the static constants for key paths. And we prefix them with &lt;code&gt;$&lt;/code&gt; to select the field property wrappers instead of their values.&lt;/li&gt;
+&lt;li&gt;The docs proposed &lt;code&gt;isValid&lt;/code&gt; to always be &lt;code&gt;true&lt;/code&gt;, though as I kept &lt;code&gt;expiredAt&lt;/code&gt;, I chose a real implementation.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;At this point, your models, migrations and your configure should be free from errors.&lt;/p&gt;
+&lt;p&gt;Some small changes in your routes and we can put a check at authentication. Though as these are very well documented and highly specific to your application, I’ll keep this short!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-swift" data-lang="swift"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; bearer = router.grouped(User.tokenAuthMiddleware())
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// &lt;/span&gt;&lt;span style="color:#75715e"&gt;MARK:&lt;/span&gt;&lt;span style="color:#75715e"&gt; - Vapor 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;let&lt;/span&gt; bearer = app.grouped(UserToken.authenticator()) &lt;span style="color:#75715e"&gt;// note the UserToken instead of User&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="services-and-repositories"&gt;Services and Repositories&lt;/h3&gt;
+&lt;p&gt;As I didn’t use services and repositories yet, I have no more detailed help for you, but from reading the appropriate upgrading chapters &lt;a href="https://docs.vapor.codes/4.0/upgrading/#services"&gt;Upgrading Services&lt;/a&gt; and &lt;a href="https://docs.vapor.codes/4.0/upgrading/#repositories"&gt;Upgrading Repositories&lt;/a&gt;, it should be straightforward anyways.&lt;/p&gt;
+&lt;h3 id="routes-and-controllers-learnings"&gt;Routes and Controllers, Learnings&lt;/h3&gt;
+&lt;p&gt;Now only routes and controllers should be left. As routes and controllers are tied together, I both simultaneously. One route and method at a time.&lt;/p&gt;
+&lt;p&gt;Here I won’t provide lots of actual code diffs as above, because even the list of all subtle changes is impressive and far from complete.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;instead of &lt;code&gt;Model.parameter&lt;/code&gt; in your routes name it &lt;code&gt;&amp;quot;:model_id&amp;quot;&lt;/code&gt;, in your controller replace &lt;code&gt;req.parameters.next(_:)&lt;/code&gt;with &lt;code&gt;Model.find(req.parameters.get(&amp;quot;model_id&amp;quot;), on: req.db)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;if you have route components with a &lt;code&gt;/&lt;/code&gt; inside, split them up&lt;/li&gt;
+&lt;li&gt;There are less extensions on &lt;code&gt;req&lt;/code&gt;, but more vars
+_ Use &lt;code&gt;req.auth.require(_:)&lt;/code&gt;instead of&lt;code&gt;req.requireAuthenticated(_:)&lt;/code&gt;
+_ &lt;code&gt;DeviceToken.query(on: req.db)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;req.content.decode(_:)&lt;/code&gt; is now synchronous&lt;/li&gt;
+&lt;li&gt;In queries, your key paths should end with fields (just share some $)
+_ &lt;code&gt;.filter(\.$token == deviceToken)&lt;/code&gt;_&lt;code&gt;.filter(\.$user.$id == user.id)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;.save(on:)&lt;/code&gt; now returns &lt;code&gt;Void&lt;/code&gt;
+_ either add a new func &lt;code&gt;saveAndReturn(on database: Database) -&amp;gt; EventLoopFuture&amp;lt;Self&amp;gt;&lt;/code&gt; on &lt;code&gt;Model&lt;/code&gt;
+_ or use &lt;code&gt;x.save(on: req.db).transform(to: x)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Async
+_ &lt;code&gt;map&lt;/code&gt; and &lt;code&gt;flatMap&lt;/code&gt; may not throw anymore (you can temporarily add overloads marked as &lt;code&gt;@available(_, deprecated)&lt;/code&gt;to get warnings) * there is no global&lt;code&gt;flatMap(_:_:)&lt;/code&gt;anymore, instead use&lt;code&gt;.and(_:).flatMap(_:)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Relations
+_ direct access of relations like &lt;code&gt;token.user&lt;/code&gt; crashes if not loaded eagerly using &lt;code&gt;.with(\.$user)&lt;/code&gt; (&lt;code&gt;QueryBuilder&amp;lt;Model&amp;gt;.with(_:KeyPath&amp;lt;Self, Relation&amp;gt;)&lt;/code&gt;) _ for save, synchronous access use&lt;code&gt;token.$user.value?&lt;/code&gt;or for async access&lt;code&gt;token.$user.get(on:)&lt;/code&gt;or&lt;code&gt;.query(on:)&lt;/code&gt;_ directly setting&lt;code&gt;token.user =&lt;/code&gt;always fails; use&lt;code&gt;token.$user.value =&lt;/code&gt;or&lt;code&gt;token.$user.id =&lt;/code&gt;_ when setting&lt;code&gt;token.$user.value =&lt;/code&gt;, it does not update&lt;code&gt;token.$user.id&lt;/code&gt;! You need to do both, but then your data has been loaded eagerly!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="where-to-go-from-here"&gt;Where to go from here?&lt;/h2&gt;
+&lt;p&gt;Most of your server should be migrated. What’s missing are view renderers, your tests (though they should not break) and more advanced feature. But most effort should be finished.&lt;/p&gt;
+&lt;p&gt;Even in my small application, the upgrade required a reasonable amount of work, though it was mostly about diffing existing code and documentation. On the other hand the Vapor team did a great job to produce compile errors instead of runtime errors!
+As someone who upgraded several large single page web apps, this was a bless!&lt;/p&gt;
+&lt;p&gt;Did this help you? Have you found a bug? What was your upgrade like? Let’s have a chat on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt; and feel free to &lt;a href="https://github.com/vknabel/vknabel.github.io/issues/new"&gt;open an issue on GitHub&lt;/a&gt;.&lt;/p&gt;</description></item></channel></rss>
