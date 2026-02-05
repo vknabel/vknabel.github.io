@@ -7,3 +7,7 @@ article p:first-of-type img[title], .article-image--bottom img {
 .article-image--bottom img {
   object-position: bottom;
 }
+
+a:hover, a:focus {
+  outline: none;
+}
