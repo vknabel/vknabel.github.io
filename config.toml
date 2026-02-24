@@ -12,6 +12,10 @@ favicon = "/images/vknabel.jpg"
 mainSections = ["posts"]
 customCSS = ['/css/overrides.css']
 
+[parms.author]
+name = "Valentin Knabel"
+email = "clarity_jogger219@ucmi.icu"
+
 [sitemap]
 changefreq = "weekly"
 filename = "sitemap.xml"
