@@ -10,5 +10,6 @@ translation = ""
 publishUrl = "https://www.dumont-buchverlag.de/buch/andreas-izquierdo-kein-guter-mann-9783755805151-t-5976"
 +++
 
-Langsam erzählt, etwas zäh in der Mitte. Zwischendurch unangenehm zu lesende Passagen, da diese nicht richtig zu dem Zeitpunkt reflektiert wurden. Schönes, emotionales Ende.
-Aber man fragt sich beim Lesen öfters wieso. Aber genauso solche Menschen gibt es und waren in der Zeit normal.
+Slowly told, a bit sluggish in the middle. Occasionally, there are uncomfortable passages to read because they aren’t properly reflected upon at the time.
+
+A beautiful, emotional ending. But as you read, you often wonder why. Yet, people like that existed and were considered normal for the time.
