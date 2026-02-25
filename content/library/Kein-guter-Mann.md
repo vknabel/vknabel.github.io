@@ -10,6 +10,6 @@ translation = ""
 publishUrl = "https://www.dumont-buchverlag.de/buch/andreas-izquierdo-kein-guter-mann-9783755805151-t-5976"
 +++
 
-Slowly told, a bit sluggish in the middle. Occasionally, there are uncomfortable passages to read because they aren’t properly reflected upon at the time.
+It is slowly told and a bit sluggish in the middle. There are occasionally uncomfortable passages to read because they aren’t properly reflected upon at the time.
 
-A beautiful, emotional ending. But as you read, you often wonder why. Yet, people like that existed and were considered normal for the time.
+The ending is beautiful and emotional. But, as you read, you often wonder why. Yet people like that existed and were considered normal for the time.
