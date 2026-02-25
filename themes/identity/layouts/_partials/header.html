@@ -1,0 +1,3 @@
+{{ partial "menu.html" (dict "menuID" "main" "page" .) }}
+<a href="/" class="logo">{{ or site.Params.initiales site.Title }}</a>
+{{ partial "menu.html" (dict "menuID" "secondary" "page" .) }}

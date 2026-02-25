@@ -1,0 +1,125 @@
+baseURL = 'https://vknabel.com/'
+languageCode = 'en-us'
+title = 'vknabel'
+copyright = "© Valentin Knabel"
+theme = "identity"
+summaryLength = 1
+
+[params]
+initiales = "vk"
+favicon = "/images/vknabel.jpg"
+attribution = "Made with ♥ by a human."
+mainSections = ["posts", "library"]
+customCSS = ['/css/overrides.css']
+
+[sitemap]
+changefreq = "weekly"
+filename = "sitemap.xml"
+priority = 0.5
+
+# Main menu Items
+
+[[menu.main]]
+name = "Blog"
+url = "/posts"
+weight = 1
+
+[[menu.main]]
+name = "Library"
+url = "/library"
+weight = 2
+
+[[menu.secondary]]
+name = "About"
+url = "/about"
+weight = 3
+
+[[menu.tertiary]]
+name = "Now"
+url = "/now"
+weight = 1
+
+[[menu.tertiary]]
+name = "Colophon"
+url = "/colophon"
+weight = 2
+
+[[menu.tertiary]]
+name = "Projects"
+url = "/projects"
+weight = 3
+
+[[menu.tertiary]]
+name = "Sovereignity"
+url = "/sovereignity"
+weight = 3
+
+[[menu.tertiary]]
+name = "Tags"
+url = "/tags"
+weight = 4
+
+# Social Tags
+
+[[menu.social]]
+name = "GitHub"
+weight = 1
+icon = "github"
+url = "https://github.com/vknabel"
+
+[[menu.social]]
+name = "Mastodon"
+weight = 2
+icon = "at-sign"
+url = "https://mastodon.social/@vknabel/"
+
+[[menu.social]]
+name = "code.knabel.dev"
+weight = 3
+icon = "at-sign"
+url = "https://code.knabel.dev/explore/repos"
+
+[[menu.social]]
+name = "RSS"
+url = "/rss"
+weight = 4
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      definitionList = true
+      footnote = true
+      linkify = true
+      linkifyProtocol = 'https'
+      strikethrough = true
+      table = true
+      taskList = true
+      [markup.goldmark.extensions.cjk]
+        eastAsianLineBreaks = false
+        eastAsianLineBreaksStyle = 'simple'
+        enable = false
+        escapedSpace = false
+      [markup.goldmark.extensions.typographer]
+        apostrophe = '&rsquo;'
+        disable = false
+        ellipsis = '&hellip;'
+        emDash = '&mdash;'
+        enDash = '&ndash;'
+        leftAngleQuote = '&laquo;'
+        leftDoubleQuote = '&ldquo;'
+        leftSingleQuote = '&lsquo;'
+        rightAngleQuote = '&raquo;'
+        rightDoubleQuote = '&rdquo;'
+        rightSingleQuote = '&rsquo;'
+    [markup.goldmark.parser]
+      autoHeadingID = true
+      autoHeadingIDType = 'github'
+      wrapStandAloneImageWithinParagraph = true
+      [markup.goldmark.parser.attribute]
+        block = true
+        title = true
+    [markup.goldmark.renderer]
+      hardWraps = false
+      unsafe = false
+      xhtml = false
+

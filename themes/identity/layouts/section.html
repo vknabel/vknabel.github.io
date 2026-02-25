@@ -1,0 +1,51 @@
+{{ define "main" }}
+  {{ .Content }}
+
+  {{ range .Pages.GroupByDate "2006" }}
+  {{ if eq (len .Pages) 0 }}
+    {{ continue }}
+  {{ end }}
+  <h2>{{ .Key }}</h2>
+    {{ range .Pages }}
+    <section class="article-compact">
+      {{ $p := . }}
+      {{- $images := .Params.images }}
+      {{- with index $images 0 }}
+        {{- $img := resources.Get . -}}
+        {{- with $img -}}
+          <a href="{{ $p.RelPermalink }}">
+            <img src="{{ $img.RelPermalink }}" class="article-feature">
+          </a>
+        {{- end -}}
+      {{- end -}}
+
+      {{- with .Params.cover  }}
+        {{- $img := resources.Get . -}}
+        {{- with $img -}}
+          <a href="{{ $p.RelPermalink }}">
+            <img src="{{ $img.RelPermalink }}" class="article-feature">
+          </a>
+        {{- end -}}
+      {{- end -}}
+      <div>
+        <a class="inline-title" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+
+        {{ if .Draft }}
+          <span class="tags-item tags-item--draft">Draft</span>
+        {{ end }}
+
+        &nbsp;—&nbsp;
+
+        {{- if eq .Type "library" -}}
+        <small><a href="{{ .Params.publishUrl }}">{{ .Params.author }}, {{ .Params.publisher }}</a></small>
+        <br>
+        {{- end -}}
+        <span class="inline-summary">{{ .Summary }}</span>
+        {{ if .Truncated }}
+          <a href="{{ .RelPermalink }}"><i>Read &raquo;</i></a>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+  {{ end }}
+{{ end }}

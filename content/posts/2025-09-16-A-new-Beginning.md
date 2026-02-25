@@ -1,35 +1,33 @@
 ---
-title: "Blushlog: A new Beginning"
+title: "Zirric: A new Beginning"
 date: 2025-09-16
-tags: [lithia, blush, compilers, golang, devlog]
+tags: [lithia, zirric, compilers, golang, devlog]
 images:
   - /images/2025-09-16-A-new-Beginning/cover.png
 ---
 
-![The blush logo with an old computer](/images/2025-09-16-A-new-Beginning/cover.png)
-
 After a long time of procrastination I finally resumed my work on my new programming language. [Back then](/posts/the-current-state-of-lithia-after-2-years/) I wrote about the current state of [Lithia](https://github.com/vknabel/lithia) and how I arrived in a dead end regarding the language design. Sure I proposed some large changes, but if a lazy evaluated programming language with a parensless call syntax becomes a strict evaluated programming language with a regular call syntax and multiple additional features, is it still the same ~~boat~~... language?
 
-Literally every line of code would break. That's why I decided to create a new, currently private, repository for my new programming language called **Blush**.
+Literally every line of code would break. That's why I decided to create a new, currently private, repository for my new programming language called **zirric**.
 
 _This blog post is part of a [Journey about creating a new programming language](/posts/journey-about-creating-a-new-programming-language/)._
 
-## What will Blush be like?
+## What will zirric be like?
 
-Similarly to Lithia, Blush will still be simple, but it will still be much more feature rich than Lithia.
+Similarly to Lithia, zirric will still be simple, but it will still be much more feature rich than Lithia.
 
 First to get the boring stuff out of the way:
 
-- Blush will be dynamically but strongly typed as Lithia is.
-- Blush will be strict evaluated while Lithia is lazy evaluated.
+- zirric will be dynamically but strongly typed as Lithia is.
+- zirric will be strict evaluated while Lithia is lazy evaluated.
 - The call syntax might now look slightly familiar as `f(a, b)` instead of `f a, b`.
 
 ### Annotations
 
-Regarding the type system Blush adds the new `annotation` types to Lithia's `data` and `enum` types.
+Regarding the type system zirric adds the new `annotation` types to Lithia's `data` and `enum` types.
 An `annotation` is declared like a `data` type, but can be instantiated with an `@` before declarations.
 
-```blush
+```zirric
 annotation Countable {
   @Returns(Int)
   length(@Has(Countable) value)
@@ -44,7 +42,7 @@ data Bag {
 In contrast to decorators in other languages, annotations only store data. They cannot change the behavior of functions or types.
 To use annotations, a new reflection API will be provided.
 
-```blush
+```zirric
 import reflect
 
 @Returns(Int)
@@ -61,10 +59,10 @@ As you might have noticed, the new annotations *can* but don't have to be used t
 
 In Lithia there were no control flow constructs like `if` statements or `for` loops except the `type` expression. Instead everything was expressed via functions and recursion. This was slow and cumbersome.
 
-Blush now comes with classic `if` and `switch` statements as well as `for` loops.
+zirric now comes with classic `if` and `switch` statements as well as `for` loops.
 `if` statements will support multiple branches and `else if` as well as inline variable declarations.
 
-```blush
+```zirric
 if condition {
   doSomething()
 } else if otherCondition {
@@ -76,7 +74,7 @@ if condition {
 
 `switch` statements will support type matching as well as value matching.
 
-```blush
+```zirric
 switch value {
 case @SomeType:
   doSomething(value)
@@ -89,7 +87,7 @@ case _:
 
 `for` loops will support iterating over ranges, arrays, maps and custom iterators and infinite loops with `for { }`.
 
-```blush
+```zirric
 for {
   if condition {
     break
@@ -103,7 +101,7 @@ for i in Range(0, 10) {
 
 In contrast to other languages, there will also be `if`, `switch` and `for` expressions that can be used inline to assign values. In there only variable declarations and one expression per branch are allowed.
 
-```blush
+```zirric
 let filtered = for num -> items {
   if num % 13 == 0 {
     break
@@ -121,7 +119,7 @@ let filtered = for num -> items {
 
 ### A few more things
 
-Blush will come with a working package manager out of the box, it will have a new design and mascot (you might have noticed) and in the long term the language server and tooling will be much better and more accurate than Lithia's.
+zirric will come with a working package manager out of the box, it will have a new design and mascot (you might have noticed) and in the long term the language server and tooling will be much better and more accurate than Lithia's.
 
 A much better performance is also a goal, but don't expect miracles here. Lithia was just really slow.
 
@@ -129,7 +127,7 @@ More on all of that later.
 
 ## What is the current state?
 
-As of now, Blush is still in a very early stage. Blush can parse lots of the syntax although large parts are still missing. Though the execution side is still in its infancy and only supports a few basic mathematical operations, arrays, bools, and `if` statements and expressions. Variables and functions will be the next big step.
+As of now, zirric is still in a very early stage. zirric can parse lots of the syntax although large parts are still missing. Though the execution side is still in its infancy and only supports a few basic mathematical operations, arrays, bools, and `if` statements and expressions. Variables and functions will be the next big step.
 
 At the tooling side, the core of the package manager is already present.
 

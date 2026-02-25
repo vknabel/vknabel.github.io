@@ -1,0 +1,29 @@
+{{ define "main" }}
+  <h1>{{ .Title }}</h1>
+
+  <small class="meta">
+  {{ if .Date}}
+  {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+  {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+  {{ $dateHuman := .Date | time.Format "2006-01-02" }}
+    <i>
+      Posted on <time datetime="{{ $dateMachine }}">{{ $dateHuman }}</time>
+    </i>
+  {{ end }}
+  &ndash;
+  <a href="{{ .Params.publishUrl }}">{{ .Params.author }}, {{ .Params.publisher }}, ISBN {{ .Params.isbn }}</a> {{ .Params.translation }}
+  {{ $cover := resources.Get .Params.cover }}
+  </small>
+
+  <div class="library-book">
+    {{ if $cover }}
+    <img class="library-book-cover" src="{{ $cover.RelPermalink }}" alt="{{ .LinkTitle }}">
+    {{ end }}
+
+    <div class="library-book-content">
+      {{ .Content }}
+    </div>
+  </div>
+
+  {{ partial "terms.html" (dict "taxonomy" "tags" "page" .) }}
+{{ end }}

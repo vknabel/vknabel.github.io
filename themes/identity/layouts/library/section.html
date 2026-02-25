@@ -1,0 +1,20 @@
+{{ define "main" }}
+  <section class="library">
+    <h1>{{ .Title }}</h1>
+    {{ .Content }}
+    <div class="library-grid">
+      {{ range .Pages }}
+        {{ $cover := resources.Get .Params.cover }}
+        <a href="{{ .RelPermalink }}" class="cover {{ if not $cover }}cover--missing{{end}}">
+        {{ if $cover }}
+          <img src="{{ $cover.RelPermalink }}" alt="{{ .LinkTitle }}">
+        {{ else }}
+          <span class="cover-title">
+            {{ .Title }}
+          </span>
+        {{ end }}
+        </a>
+      {{ end }}
+    </div>
+  </section>
+{{ end }}

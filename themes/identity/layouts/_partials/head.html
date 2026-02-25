@@ -1,0 +1,31 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+{{ $title := printf "%s | %s" .Title site.Title }}
+<title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ printf "%s | %s" .Title site.Title }}{{ end }}</title>
+{{ partialCached "head/css.html" . }}
+{{ partialCached "head/fonts.html" . }}
+{{ partialCached "head/js.html" . }}
+
+
+{{- if isset .Site.Params "favicon" -}}
+<link rel="icon" type="image/png" href={{ .Site.Params.favicon }} />
+{{- end -}}
+
+<link rel="me" href="https://mastodon.social/@vknabel">
+<meta name="fediverse:creator" content="@vknabel@mastodon.social">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{if .IsPage}}{{ .Summary }}{{ else }}{{ with .Site.Params.description }}{{ . }}{{ end }}{{ end }}{{ end }}" />
+<meta property="og:image" content="{{ .Site.Params.og_image }}"/>
+
+{{- template "_internal/opengraph.html" . -}}
+{{- template "_internal/twitter_cards.html" . -}}
+
+<link rel="alternate" type="application/rss+xml" href="{{ .Site.BaseURL }}index.xml" title="News">
+<link rel="alternate" type="application/rss+xml" href="{{ .Site.BaseURL }}posts/index.xml" title="Posts">
+<link rel="alternate" type="application/rss+xml" href="{{ .Site.BaseURL }}library/index.xml" title="Library">
+
+{{ range .Site.Taxonomies.tags }}
+  {{ $title := printf "Tagged with %s" .Page.Title }}
+  {{ $link := printf "%sindex.xml" .Page.Permalink }}
+  {{ printf `<link rel="alternate" type="application/rss+xml" href=%q title=%q>` $link $title | safeHTML }}
+{{ end }}

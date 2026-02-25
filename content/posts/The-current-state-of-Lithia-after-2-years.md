@@ -6,9 +6,6 @@ images:
   - /images/feature/lithia-strelitzia-lush.jpeg
 ---
 
-![A Strelizia nicolai with a tiny Lithia logo](/images/feature/lithia-strelitzia-lush.jpeg "The name and logo of the Lithia programming language are derived from the Strelitzia nicolai.")
-{.article-image--bottom}
-
 In 2021 I started working on the current Go implementation of my own experimental programming language called [Lithia](https://github.com/vknabel/lithia). Now it is available in version v0.0.19. Infrequently I also wrote some words about it on this blog.
 It has been designed to be an experiment, that is able to teach some lessons and that can be fulfilled.
 

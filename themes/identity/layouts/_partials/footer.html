@@ -1,0 +1,15 @@
+<div>
+  <small>{{ now.Year }} {{ .Site.Copyright }}</small><br>
+  {{- with .Site.Params.attribution -}}
+  <small>{{ . }}</small><br>
+  {{- end -}}
+</div>
+
+<div>
+  <h6 id="menu-social">Social</h6>
+  {{ partial "menu.html" (dict "menuID" "social" "page" .) }}
+</div>
+<div>
+  <h6 id="menu-links">Links</h6>
+  {{ partial "menu.html" (dict "menuID" "tertiary" "page" .) }}
+</div>

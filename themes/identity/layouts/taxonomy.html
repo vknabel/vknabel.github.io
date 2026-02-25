@@ -1,0 +1,25 @@
+{{ define "main" }}
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+  
+  {{ range .Pages }}
+    <div>
+      <span><a class="inline-title" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></span>
+      {{ if .Content }}
+
+        {{ if .Draft }}
+          <span class="tags-item tags-item--draft">Draft</span>
+        {{ end }}
+
+        &nbsp;—&nbsp;
+
+        <span class="inline-summary">{{ .Summary }}</span>
+        {{ if .Truncated }}
+          <a href="{{ .RelPermalink }}"><i>Read &raquo;</i></a>
+        {{ end }}
+
+      {{ end }}
+    </div>
+  {{ end }}
+
+{{ end }}
