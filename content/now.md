@@ -10,5 +10,7 @@ Currently I mostly do some Homelab stuff, riding my bicyle and enjoying my life 
 - During rain, [books](/library) are great!
 - Trying to break 5.5k by bicycle.
 
-For more see [projects](/projects) and [sovereignity](/sovereignity).
+At the moment I mostly focus on my homelab and digital [sovereignity](/sovereignity).
+Other than that, most side [projects](/projects) are currently on hold.
 
+Stuff outside of the digital world is just too joyful right now.

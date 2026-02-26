@@ -179,11 +179,13 @@ a {
   position: relative;
 }
 
-a:hover {
+a:hover,
+a.active {
   color: var(--text-color);
 }
 
-a:hover::after {
+a:hover::after,
+a.active::after {
   max-width: calc(100% + 8px);
   opacity: 0.8;
 }

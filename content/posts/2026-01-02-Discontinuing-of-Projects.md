@@ -7,7 +7,7 @@ tags: [announcement, devlog, swift, zirric, lithia]
 Starting with this year, I have decided to discontinue all of my open source projects.
 
 Most notably this affects my VS Code extensions for Swift.
-I archieved the reposiroties and requested to deprecate the extensions in the Visual Studio Marketplace.
+I archieved the repositories and requested to deprecate the extensions in the Visual Studio Marketplace.
 
 Also I decided to stop my work on my toy programming language.
 

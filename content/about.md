@@ -1,26 +1,24 @@
 ---
-title: About Me
+title: About
 aliases: [/pages/About-Me/]
 date: 2022-07-22
-# images: [/images/vknabel.jpg]
+images: [/images/vknabel.jpg]
 ---
 
-I’m Valentin Knabel, vknabel on [GitHub](https://github.com/vknabel) and on [@mastodon.social@vknabel](https://mastodon.social/@vknabel). I maintain several open source projects including the [Maintained Swift Development Environment](https://github.com/vknabel/vscode-swift-development-environment) extension for Visual Studio Code.
+I’m Valentin Knabel, a developer, a cyclist, coffee nerd, vegan and a human.
+When possible I prefer real-world stuff, open source and privacy.
 
-![vknabel](/images/vknabel.jpg)
+I value simplicity, kindness and honesty. It is fine to be imperfect, as long as  we are honest and have fun along the way.
 
-Currently I work at [x-cellent](https://www.x-cellent.com) on [metal-stack](https://metal-stack.io). In my free time I mainly work on developer tooling like improving VS Code support for the Swift ecosystem and on my own toy-programming language written in Go, of course, including a Docker image, a Language Server and a VS Code extension.
+Usually I am `@vknabel` everywhere like on [GitHub](https://github.com/vknabel) and [@mastodon.social@vknabel](https://mastodon.social/@vknabel)
 
-## My latest open source projects
+I work at [x-cellent](https://www.x-cellent.com) on [metal-stack](https://metal-stack.io).
 
-- [Lithia](https://github.com/vknabel/lithia) is my experimental, functional programming language. _Go, Docker, GitHub CI, Tree-Sitter, Language Server, Typescript, VS Code extension and more._
-- [Maintained Swift Development Environment (SDE)](https://github.com/vknabel/vscode-swift-development-environment) provides Swift autocompletion to VS Code on macOS and Linux. _Swift, Typescript, Docker, Language Server, VS Code extension and more._
-- [Puffery](https://github.com/vknabel/puffery) is a SwiftUI iOS App and Vapor Server to send push notifications fueled by Siri Shortcuts. _Swift, Vapor, Docker, GitHub CI, Bitrise, Xcode Cloud, PostgreSQL, Redis._
-- [go puffery](https://github.com/vknabel/go-puffery). The TUI for Puffery. _Go, Bubble Tea, GoReleaser._
-- [SwiftLint for VS Code](https://github.com/vknabel/vscode-swiftlint): a plugin for [SwiftLint](https://github.com/realm/SwiftLint). _Typescript, VS Code extension._
-- [apple/swift-format for VS Code](https://github.com/vknabel/vscode-apple-swift-format): a plugin for [apple/swift-format](https://github.com/apple/swift-format). _Typescript, VS Code extension._
-- [SwiftFormat for VS Code](https://github.com/vknabel/vscode-swiftformat): a plugin for [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) on macOS. _Typescript, VS Code extension._
-- [Archery](https://github.com/vknabel/Archery) allows you to declare all your project's metadata and what you can do with it in one single place. _Swift, Docker, GitHub CI._
+## Curious for more?
 
-_Visit my [GitHub profile](https://github.com/vknabel) for all open source contributions._
-_For an up-to date overview of all VS Code extensions, visit [my marketplace publisher site](https://marketplace.visualstudio.com/publishers/vknabel)._
+If you want to dig deeper into my thoughts, priorities and projects, feel free to check out the following pages:
+
+- [Now](/now) - describes my priorities and what's on my mind and what I’m currently working on.
+- [Colophon](/colophon) - how this website is built and what tools and technologies I use to build it.
+- [Projects](/projects) - a list of projects I maintain or regularly contribute to.
+- [Sovereignity](/sovereignity) - my current progress towards digital sovereignity using European services or self-hosted software.

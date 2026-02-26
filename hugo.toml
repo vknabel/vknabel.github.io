@@ -22,41 +22,49 @@ priority = 0.5
 [[menu.main]]
 name = "Blog"
 url = "/posts"
+pageRef= "/posts"
 weight = 1
 
 [[menu.main]]
 name = "Library"
 url = "/library"
+pageRef = "/library"
 weight = 2
 
 [[menu.secondary]]
 name = "About"
 url = "/about"
+pageRef = "/about"
 weight = 3
 
 [[menu.tertiary]]
 name = "Now"
 url = "/now"
+pageRef = "/now"
 weight = 1
 
 [[menu.tertiary]]
 name = "Colophon"
 url = "/colophon"
+pageRef = "/colophon"
 weight = 2
 
 [[menu.tertiary]]
 name = "Projects"
 url = "/projects"
+pageRef = "/projects"
 weight = 3
 
 [[menu.tertiary]]
 name = "Sovereignity"
 url = "/sovereignity"
+pageRef = "/sovereignity"
 weight = 3
 
 [[menu.tertiary]]
 name = "Tags"
 url = "/tags"
+pageRef = "/tags"
 weight = 4
 
 # Social Tags
@@ -82,6 +90,7 @@ url = "https://code.knabel.dev/explore/repos"
 [[menu.social]]
 name = "RSS"
 url = "/rss"
+pageRef = "/rss"
 weight = 4
 
 [markup]

@@ -15,7 +15,9 @@
   {{- with index $images 0 }}
     {{- $img := resources.Get . -}}
     {{- with $img -}}
-      <img src="{{ $img.RelPermalink }}" class="article-feature">
+      <p>
+        <img src="{{ $img.RelPermalink }}" class="article-feature">
+      </p>
     {{- end -}}
   {{- end -}}
 
