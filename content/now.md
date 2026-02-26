@@ -1,5 +1,6 @@
 ---
 title: "Now"
+date: 2026-02-26
 ---
 
 Currently I mostly do some Homelab stuff, riding my bicyle and enjoying my life in general.
