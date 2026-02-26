@@ -9,6 +9,7 @@ translation = ""
 language = 'en-EN'
 publishUrl = "https://www.yegor256.com/elegant-objects.html"
 aliases = ["/pages/Thoughts-on-Elegant-Objects/", "/posts/thoughts-on-elegant-objects/"]
+tags = ["books"]
 +++
 
 Writing things down is part of my learning process. These thoughts came up while reading through Yegor Bugayenko’s book Elegant Objects about a more declarative and less procedural approach of object oriented programming.

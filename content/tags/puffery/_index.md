@@ -1,5 +1,7 @@
 ---
 title: 'Puffery'
+images:
+  - /images/tags/puffery.png
 ---
 
 A push notification app for iOS. Discontued.

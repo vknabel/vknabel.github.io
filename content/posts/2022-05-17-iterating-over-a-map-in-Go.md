@@ -1,7 +1,7 @@
 ---
 title: Iterating over a map in Go
 date: 2022-05-17
-tags: [golang]
+tags: [go]
 ---
 
 Iterating over a map in Go is not predictable.

@@ -1,7 +1,7 @@
 ---
 title: "Zirric: A new Beginning"
 date: 2025-09-16
-tags: [lithia, zirric, compilers, golang, devlog]
+tags: [lithia, zirric, go]
 images:
   - /images/2025-09-16-A-new-Beginning/cover.png
 ---

@@ -1,7 +1,7 @@
 ---
 title: "Zirric: Going Virtual"
 date: 2025-09-28
-tags: [lithia, zirric, compilers, golang, devlog]
+tags: [zirric, tooling, go]
 ---
 
 A few years ago while I started working on [Lithia](https://code.knabel.dev/lithia-lang/lithia), I decided to use whatever takes me to my goal. Getting finished was the primary focus. And I did.

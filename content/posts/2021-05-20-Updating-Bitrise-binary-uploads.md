@@ -1,7 +1,7 @@
 ---
 title: 'Updating Bitrise binary uploads'
 date: '2021-05-20'
-tags: [devops, swift]
+tags: [swift, tooling]
 ---
 
 Bitrise binary uploads cannot be updated after saving. Instead they need to be deleted and recreated.

@@ -8,6 +8,7 @@ author = "Gaea Schoeters"
 publisher = "btb"
 translation = "from Dutch by Lisa Mensing"
 publishUrl = "https://www.penguin.de/buecher/gaea-schoeters-trophaee/taschenbuch/9783442775248"
+tags = ["books"]
 +++
 
 This book captivates from the very first minute.

@@ -1,7 +1,7 @@
 ---
 title: 'There is a modular version manager: asdf!'
 date: '2021-11-16'
-tags: [cli]
+tags: [tooling]
 ---
 
 Today I learned about [asdf](https://github.com/asdf-vm/asdf), which is a pluggable version manager.

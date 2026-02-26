@@ -1,7 +1,7 @@
 ---
 title: 'Having two admin dev accounts is a bad idea'
 date: '2021-11-15'
-tags: [cli]
+tags: [tooling]
 ---
 
 I tried to keep my work stuff separate from my personal stuff on the same machine.

@@ -1,7 +1,7 @@
 ---
 title: 'Swift, VS Code and you'
 aliases: [/pages/Swift-VS-Code-and-you/]
-tags: [swift, vscode, lsp]
+tags: [swift, tooling]
 date: 2020-01-22
 images:
   - /images/Swift-VS-Code-and-you/Swiftlint.png

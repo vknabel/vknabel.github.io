@@ -1,7 +1,7 @@
 ---
 title: Starting the journey about creating a new programming language
 date: 2022-07-22
-tags: [lithia, compilers]
+tags: [lithia, tooling]
 ---
 
 This is planned to be a series of blog posts about designing and developing my own programming language, where I want to share some pitfalls, my learnings, design decisions, experience and the development process.

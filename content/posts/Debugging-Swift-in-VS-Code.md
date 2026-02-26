@@ -2,7 +2,7 @@
 title: Debugging Swift in VS Code the old way
 aliases: [/pages/Debugging-Swift-in-VS-Code/]
 date: 2019-11-21
-tags: [vscode, swift]
+tags: [tooling, swift]
 ---
 
 Running and debugging your targets in Visual Studio Code is not prepared by default. Especially for us Swift developers this might come unexpected, especially in comparison to Xcode.

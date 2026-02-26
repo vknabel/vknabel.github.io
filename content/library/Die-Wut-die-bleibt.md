@@ -9,5 +9,6 @@ publisher = "rowohlt"
 translation = ""
 language = 'de-DE'
 publishUrl = "https://www.rowohlt.de/buch/mareike-fallwickl-die-wut-die-bleibt-9783499009129"
+tags = ["books"]
 +++
 

@@ -8,6 +8,7 @@ author = "Andreas Izquierdo"
 publisher = "DuMont"
 translation = ""
 publishUrl = "https://www.dumont-buchverlag.de/buch/andreas-izquierdo-kein-guter-mann-9783755805151-t-5976"
+tags = ["books"]
 +++
 
 It is slowly told and a bit sluggish in the middle. There are occasionally uncomfortable passages to read because they aren’t properly reflected upon at the time.

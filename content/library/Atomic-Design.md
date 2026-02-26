@@ -2,6 +2,9 @@
 title: Atomic Design
 date: 2022-08-17
 tags: [books, web]
+cover: "library/cover/Atomic-Design.svg"
+author: "Brad Frost"
+publishUrl: https://brad-frost.myshopify.com/?shpxid=fd5bbc27-8e94-4f06-8e95-f8aa4e3fb36a
 ---
 
 Today I stumbled upon [Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/). It is some kind of architectural pattern for the user interface. The goal is to build a reusable UI that is easy to understand and maintain.

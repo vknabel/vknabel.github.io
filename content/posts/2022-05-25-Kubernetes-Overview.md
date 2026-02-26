@@ -1,7 +1,7 @@
 ---
 title: Kubernetes Overview for Beginners
 date: 2022-05-25
-tags: [devops]
+tags: [hosting]
 ---
 
 I have never done anything productive with Kubernetes before. But it is a really tough topic to get started with. It's overwhelming.

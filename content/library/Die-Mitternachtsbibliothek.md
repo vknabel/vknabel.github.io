@@ -8,6 +8,7 @@ publisher = "Droemer"
 translation = "Translated by Sabine Hübner"
 language = 'de-DE'
 publishUrl = "https://www.droemer-knaur.de/buch/matt-haig-die-mitternachtsbibliothek-9783426562307"
+tags = ["books"]
 +++
 
 The book opens with a shocking moment. Trigger warning: themes of suicide and depression.

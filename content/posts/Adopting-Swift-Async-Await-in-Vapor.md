@@ -2,7 +2,7 @@
 title: Adopting Swift Async Await in Vapor
 aliases: [/pages/Adopting-Swift-Async-Await-in-Vapor/]
 date: 2021-11-15
-tags: [swift, vapor, migration]
+tags: [swift, tooling]
 ---
 
 A few months ago Swift 5.5 has been released and made `async`/`await` available. And in [4.50.0](https://github.com/vapor/vapor/releases/tag/4.50.0) Vapor added support for it, too!

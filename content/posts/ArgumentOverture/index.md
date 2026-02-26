@@ -1,7 +1,7 @@
 ---
 title: ArgumentOverture
 date: 2018-09-30
-tags: [swift, experiment, cli]
+tags: [swift]
 ---
 
 A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses [Overture](https://github.com/pointfreeco/swift-overture) and is build for high composability, flexibility and little impact on your project's freedom to evolve.

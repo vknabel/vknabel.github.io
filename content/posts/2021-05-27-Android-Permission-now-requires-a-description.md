@@ -1,7 +1,7 @@
 ---
 title: 'Android Permission now requires a description'
 date: '2021-05-27'
-tags: [android]
+tags: [tooling]
 ---
 
 Now, Android apps require a description for each permission. Back then, it was optional.

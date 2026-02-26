@@ -1,7 +1,7 @@
 ---
 title: 'Invalid Gradle Private Key'
 date: '2021-06-07'
-tags: [android]
+tags: [tooling]
 ---
 
 Gradle did reject my ssh key due to `invalid privatekey`.

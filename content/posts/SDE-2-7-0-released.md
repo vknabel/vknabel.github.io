@@ -2,7 +2,7 @@
 title: SDE 2.7.0 released
 aliases: [/pages/SDE-2-7-0-released/]
 date: 2019-04-11
-tags: [vscode, lsp, announcement]
+tags: [tooling, announcement]
 ---
 
 Today I released the new [2.7.0 update to SDE for VS Code](https://github.com/vknabel/vscode-swift-development-environment/releases/tag/2.7.0) and the companion project sourcekite has been updated, too.

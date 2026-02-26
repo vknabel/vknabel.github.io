@@ -1,7 +1,7 @@
 ---
 title: 'Swift Coverage for VS Code'
 aliases: [/pages/Swift-Coverage-for-VS-Code/]
-tags: [swift, vscode]
+tags: [swift, tooling]
 date: 2020-08-29
 images:
   - /images/Swift-Coverage-for-VS-Code/example-xcode.png

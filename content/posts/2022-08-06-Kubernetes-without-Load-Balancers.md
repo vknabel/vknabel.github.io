@@ -1,7 +1,7 @@
 ---
 title: Kubernetes without Load Balancers?
 date: 2022-08-06
-tags: [devops]
+tags: [hosting]
 ---
 
 All the hosted Kubernetes solutions I know of want you to pay roughly 10$ pre month for each load balancer.

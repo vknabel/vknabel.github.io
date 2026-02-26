@@ -2,7 +2,7 @@
 title: Debugging Swift in VS Code in 2022
 aliases: [/pages/Debugging-Swift-in-VS-Code-in-2022/]
 date: 2022-02-08
-tags: [vscode, swift]
+tags: [tooling, swift]
 images:
   - /images/Debugging-Swift-in-VS-Code-in-2022/example_debugging.png
   - /images/Debugging-Swift-in-VS-Code-in-2022/example_breakpoint.png

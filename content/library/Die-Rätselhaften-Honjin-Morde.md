@@ -9,5 +9,6 @@ publisher = "aufbau taschenbuch"
 translation = "Übersetzt von Ursula Gräfe"
 language = 'de-DE'
 publishUrl = "https://www.aufbau-verlage.de/aufbau-taschenbuch/die-ratselhaften-honjin-morde/978-3-7466-3823-2"
+tags = ["books"]
 +++
 

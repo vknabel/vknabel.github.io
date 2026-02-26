@@ -2,7 +2,7 @@
 title: CommandMine
 aliases: [/pages/CommandMine/]
 date: 2017-03-08
-tags: [swift, cli]
+tags: [swift, tooling]
 ---
 
 Command mine is a concept of a swift library for parsing command line arguments. It is designed to support asynchronous implementations of CLIS, that may even be used inside frameworks.

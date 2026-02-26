@@ -1,7 +1,7 @@
 ---
 title: 'Reminder: websites contain weird characters'
 date: '2021-11-16'
-tags: [vscode, web]
+tags: [tooling, web]
 ---
 
 Copying contents from the web often copies weird characters, like the invisible character `U+FEFF` or "Zero Width No-Break Space".

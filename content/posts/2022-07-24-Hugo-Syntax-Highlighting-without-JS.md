@@ -1,7 +1,7 @@
 ---
 title: Hugo's Syntax Highlighting is static
 date: 2022-07-24
-tags: [web, golang]
+tags: [web, go]
 ---
 
 Unlinke many other static site generators, the [syntax highlighting of Hugo](https://gohugo.io/content-management/syntax-highlighting/) does not use client-side JavaScript, which is great!

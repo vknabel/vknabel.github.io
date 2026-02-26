@@ -1,10 +1,12 @@
 ---
 title: My Personal View on Acorn
 date: 2022-12-12
-tags: [kubernetes, acorn]
+tags: [hosting, tooling]
 ---
 
 [Acorn](https://acorn.io) is an application deployment framework for k8s, that tries to simplify instead of introducing another layer of indirection. I won't cover all details and problems it tries to solve here, instead I'd like to share some experiences and thoughts.
+
+> **Acorn has been discontinued** and they are now doing some AI slop stuff.
 
 ## My experience with Acorn and Kubernetes
 

@@ -1,7 +1,7 @@
 ---
 title: Designing and scoping my programming language Lithia
 date: 2022-07-22
-tags: [lithia, compilers]
+tags: [lithia, tooling]
 ---
 
 Once you have decided you want to create your own programming language, you need to create a broader concept. Every programming language is unique in its own way. Your goal is to find out in which way. And you need to find your reason _why_ you want to create it in the first place.

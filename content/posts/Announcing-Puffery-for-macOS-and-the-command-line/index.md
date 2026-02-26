@@ -1,7 +1,7 @@
 ---
 title: Announcing Puffery for macOS and the command line
 date: '2022-07-29'
-tags: [puffery, cli, announcement]
+tags: [puffery, tooling, announcement]
 images: [/images/puffery-macos-showcase.png, /images/puffery-cli-showcase.png]
 ---
 

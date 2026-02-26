@@ -2,7 +2,7 @@
 title: Apple’s SourceKit LSP and SDE Roadmap
 aliass: [/pages/Apples-SourceKit-LSP-and-SDE-Roadmap/]
 date: 2018-11-16
-tags: [vscode, swift, lsp]
+tags: [tooling, swift]
 ---
 
 Apple recently [announced](https://forums.swift.org/t/new-lsp-language-service-supporting-swift-and-c-family-languages-for-any-editor-and-platform/17024/) to develop a language server for Swift and C-family languages. Or said more clearly: Apple started development to support every editor implementing the [language server protocol](https://langserver.org/) like VS Code, Sublime Text, Jet Brains‘ IDEs and Atom.

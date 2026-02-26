@@ -8,6 +8,7 @@ publisher = "dtv"
 translation = "Aus dem Englischen von Ute Leibmann"
 language = 'de-DE'
 publishUrl = "https://www.dtv.de/buch/ich-sperling-14918"
+tags = ["books"]
 +++
 
 The story is told from the perspective of a young boy in ancient Rome who grows up in a brothel.

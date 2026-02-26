@@ -1,7 +1,7 @@
 ---
 title: 'Ultra-fast Hugo GitHub actions'
 date: '2022-07-24'
-tags: [devops, web]
+tags: [web, tooling]
 ---
 
 I created a [GitHub workflow](https://github.com/vknabel/vknabel.github.io/blob/main/.github/workflows/pages.yml) to automatically build and deploy my website to GitHub Pages.

@@ -1,7 +1,7 @@
 ---
 title: Statically read files with go:embed
 date: 2022-08-18
-tags: [golang]
+tags: [go]
 ---
 
 Did you ever want to access the contents of an auxiliary file from within your repository to access the contents at runtime? This file could include some static settings like the version of the application, translations for user-facing texts, GraphQL requests or SQL queries. The typical solution to this problem is shipping your binary with the auxiliary files.

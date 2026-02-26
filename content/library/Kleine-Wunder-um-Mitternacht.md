@@ -9,5 +9,6 @@ publisher = "Limes"
 translation = "Aus dem Japanischen von Astrid Finke"
 language = 'de-DE'
 publishUrl = "https://www.penguin.de/buecher/keigo-higashino-kleine-wunder-um-mitternacht/taschenbuch/9783734113048"
+tags = ["books"]
 +++
 

@@ -9,5 +9,6 @@ publisher = "Kein&Aber"
 translation = "Aus dem Hebräischen von Ruth Achlama"
 language = 'de-DE'
 publishUrl = "https://www.keinundaber.ch/buecher/ungebetene-g%C3%A4ste?variant=11209804"
+tags = ["books"]
 +++
 

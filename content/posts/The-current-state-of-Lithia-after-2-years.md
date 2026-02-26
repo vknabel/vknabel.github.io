@@ -1,7 +1,7 @@
 ---
 title: The current state of Lithia after 2 years
 date: 2024-01-18
-tags: [lithia, compilers, golang]
+tags: [lithia, tooling, go]
 images:
   - /images/feature/lithia-strelitzia-lush.jpeg
 ---

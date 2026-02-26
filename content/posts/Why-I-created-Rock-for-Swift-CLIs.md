@@ -2,7 +2,7 @@
 title: Why I created Rock for Swift CLIs
 aliases: [/pages/Why-I-created-Rock-for-Swift-CLIs/]
 date: 2017-02-22
-tags: [swift, cli]
+tags: [swift, tooling]
 ---
 
 I excessively make use of the official Swift Package Manager as I usually do some CLIs or other stuff. For this use case it is really great. When developing Apps, Carthage and CocoaPods come in handy, which are great, too.

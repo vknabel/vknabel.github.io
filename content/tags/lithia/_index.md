@@ -1,5 +1,7 @@
 ---
 title: 'Lithia'
+images:
+  - /images/tags/lithia.png
 ---
 
 Discontinued experimental programming language, functional with an implicit but strong and dynamic type system.

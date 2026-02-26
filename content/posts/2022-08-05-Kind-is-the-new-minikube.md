@@ -1,7 +1,7 @@
 ---
 title: Kind is the new minikube
 date: 2022-08-05
-tags: [devops]
+tags: [tooling, hosting]
 ---
 
 I have been playing around with minikube for quite some time now. Though as I run minikube on my Mac, I experienced multiple bugs regarding accessing the cluster and it's published ports.

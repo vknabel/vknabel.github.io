@@ -1,7 +1,7 @@
 ---
 title: Overriding Go values with ldflags
 date: 2022-08-12
-tags: [golang]
+tags: [go]
 ---
 
 You can override Go values with ldflags during the build.

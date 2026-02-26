@@ -2,7 +2,7 @@
 title: Archery 0.3.0 released
 aliases: [/pages/Archery-0-3-0-released/]
 date: 2019-10-12
-tags: [archery, swift, announcement]
+tags: [tooling, swift, announcement]
 ---
 
 _Archery_ is about doing something with your project’s metadata. The new version 0.3.0 puts everything on steroids and allows you to script your metadata.

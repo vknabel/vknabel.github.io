@@ -1,7 +1,7 @@
 ---
 title: Bash scripts with Gum
 date: 2022-08-03
-tags: [cli, devops, golang]
+tags: [go, tooling, hosting]
 ---
 
 I gave the newest tool of Charm [Gum](https://github.com/charmbracelet/gum) a try.

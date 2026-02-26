@@ -9,5 +9,6 @@ publisher = "Kein&Aber"
 translation = ""
 language = 'de-DE'
 publishUrl = "https://www.keinundaber.ch/buecher/ewig-sommer?variant=4709925"
+tags = ["books"]
 +++
 

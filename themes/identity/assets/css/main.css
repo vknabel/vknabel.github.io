@@ -79,7 +79,7 @@
   --text-color: var(--color-night-bordeaux-900);
   /* --text-color: #3D3D3D; */
   --link-color: var(--color-dark-amaranth-700);
-  --link-color--hover: var(--color-sandy-brown-400);
+  --link-color--hover: var(--color-amaranth-300);
 
   --display-font-family: "Lora";
   --body-font-family: "Inria Serif";
@@ -93,7 +93,7 @@
     --background-color: var(--color-amaranth-950);
     --text-color: var(--color-night-bordeaux-50);
     --link-color: var(--color-dark-amaranth-300);
-    --link-color--hover: var(--color-sandy-brown-600);
+    --link-color--hover: var(--color-amaranth-500);
 
     --display-font-family: "Lora";
     --body-font-family: "Inria Serif";
@@ -268,6 +268,11 @@ header a.logo {
   color: var(--text-color);
 }
 
+header a.logo:hover {
+  color: var(--link-color--hover);
+  transition: color .1s ease-in-out;
+}
+
 header a.logo::after {
   content: none;
 }
@@ -288,6 +293,8 @@ header nav ul a {
   font-weight: 400;
   font-size: 18px;
   color: var(--text-color);
+  scale: 1;
+  transition: scale .1s ease-in-out;
 }
 
 main {
@@ -390,6 +397,11 @@ section.article-compact {
 section.article-compact .article-feature {
   max-width: 150px;
   max-height: 150px;
+  object-fit: contain;
+}
+section.article-compact .article-feature.article-feature--small {
+  max-width: 40px;
+  max-height: 40px;
   object-fit: contain;
 }
 

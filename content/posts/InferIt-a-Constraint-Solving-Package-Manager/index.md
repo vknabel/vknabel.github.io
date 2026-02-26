@@ -1,7 +1,7 @@
 ---
 title: 'InferIt: a Constraint Solving Package Manager'
 date: 2019-10-15
-tags: [swift, experiment, cli]
+tags: [swift, tooling]
 ---
 
 The initial idea behind InferIt was to create some mixture of a constraint solver and a dependency manager: you would just tell it what to install and it would gather as much information as possible to install it.

@@ -2,7 +2,7 @@
 title: Upgrading a server-side Swift project to Vapor 4
 aliases: [/pages/Upgrading-a-server-side-Swift-project-to-Vapor-4/]
 date: 2020-04-22
-tags: [swift, vapor, migration]
+tags: [swift, tooling]
 ---
 
 The past few days I created a new server using [Vapor](https://vapor.codes) and hit `vapor new <project> --auth` which created a Vapor 3 server. Later I upgraded the young project to Vapor 4, but found some lack of practical information about the upgrade on the internet. So here I share my subjective experience and try to give you some tips.

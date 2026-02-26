@@ -1,7 +1,7 @@
 ---
 title: "Discontinuing of Projects"
 date: 2026-01-02
-tags: [announcement, devlog, swift, zirric, lithia]
+tags: [announcement, tooling, zirric, lithia]
 ---
 
 Starting with this year, I have decided to discontinue all of my open source projects.

@@ -9,5 +9,6 @@ publisher = "Hanser Berlin"
 translation = ""
 language = 'de-DE'
 publishUrl = "https://www.hanser-literaturverlage.de/buch/behzad-karim-khani-hund-wolf-schakal-9783446273788-t-3715"
+tags = ["books"]
 +++
 

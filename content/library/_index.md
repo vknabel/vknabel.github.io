@@ -1,5 +1,7 @@
 ---
 title: "Library"
+aliases:
+  - /tags/books
 ---
 
 I regularly read books and now started writing little reviews here and do some recommendations.
