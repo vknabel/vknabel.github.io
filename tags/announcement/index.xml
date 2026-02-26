@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Announcement on vknabel</title><link>https://vknabel.com/tags/announcement/</link><description>Recent content in Announcement on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Thu, 26 Feb 2026 22:13:55 +0100</lastBuildDate><atom:link href="https://vknabel.com/tags/announcement/index.xml" rel="self" type="application/rss+xml"/><item><title>The Grand Redesign</title><link>https://vknabel.com/posts/the-grand-redesign/</link><pubDate>Thu, 26 Feb 2026 22:13:55 +0100</pubDate><guid>https://vknabel.com/posts/the-grand-redesign/</guid><description>&lt;p&gt;Nine years ago I launched this blog to share some thoughts about software development. Most of the time I have been very strict about content that I posted. If it wasn&amp;rsquo;t tech, I didn&amp;rsquo;t post it.&lt;/p&gt;
+&lt;p&gt;Over the years my priorities shifted. I even started a new blog to open up a new niche. But in the end I decided to not restrict myself in terms of topics. Let&amp;rsquo;s see where this leads me to.&lt;/p&gt;
+&lt;h2 id="how-it-started"&gt;How it started&lt;/h2&gt;
+&lt;p&gt;Back in February 2017, that&amp;rsquo;s &lt;em&gt;nine freaking years&lt;/em&gt; ago, I launched this blog. I just picked some template and some static site generator to get started.
+The blog was built using &lt;a href="https://www.gatsbyjs.com/docs/glossary/static-site-generator/"&gt;Gatsby&lt;/a&gt; with some simple theme.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/posts/The-Grand-Redesign/vknabel-2017.png" alt="screenshot of the design in 2017, dark, mostly grey"&gt;&lt;/p&gt;
+&lt;h2 id="the-problem-with-gatsby"&gt;The problem with Gatsby&lt;/h2&gt;
+&lt;p&gt;With the years I was increasingly frustrated with Gatsby. I wanted a simple blog, nothing too crazy client side stuff. But essentially that was the focus of Gatsby: web workers and lots of JavaScript.&lt;/p&gt;
+&lt;p&gt;When I left day to day web development, I also switched to &lt;a href="https://gohugo.io"&gt;Hugo&lt;/a&gt;. After all the hassle this was a breeze! I picked a new theme that was simple, but less basic and had a touch of color.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://vknabel.com/images/posts/The-Grand-Redesign/vknabel-2022.png" alt="screenshot of the new markdown like design in 2022"&gt;&lt;/p&gt;
+&lt;p&gt;Essentially I was pretty happy with my site. But as teased above not with the topics I was writing about.
+I started a new website &lt;a href="https://vknabel.com/tags/plants"&gt;Aroid Garden&lt;/a&gt; about houseplants, but also lost focus there due to personal reasons. Eventually I sunsetted it.&lt;/p&gt;
+&lt;h2 id="why-the-redesign"&gt;Why the redesign?&lt;/h2&gt;
+&lt;p&gt;Now I decided to transform my former tech blog to a personal one. If I want to write something down, I don&amp;rsquo;t want to think about wether the topic fits or not.
+Writing is a habit that must be built and maintained, but I regularly focus on other stuff than tech.&lt;/p&gt;
+&lt;p&gt;Though the markdown-style design just doesn&amp;rsquo;t fit the new content I want to share. That&amp;rsquo;s why I decided to go with the redesign.
+As it&amp;rsquo;s been a great choice I sticked to Hugo, but couldn&amp;rsquo;t find a theme that fit my needs, so I rolled my own. For technical details about this site see &lt;a href="https://vknabel.com/colophon"&gt;Colophon&lt;/a&gt;, which will be updated in the future.&lt;/p&gt;
+&lt;p&gt;I know there are still some rough edges around the design, but better ship, than procrastinate.&lt;/p&gt;
+&lt;h2 id="what-about-the-content"&gt;What about the content?&lt;/h2&gt;
+&lt;p&gt;When mixing many topics, it makes sense to provide ways to navigate and filter it more easily.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;refactored the tags that grew over the years (I had &lt;code&gt;go&lt;/code&gt; and &lt;code&gt;golang&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;separate &lt;a href="https://vknabel.com/rss"&gt;RSS feeds&lt;/a&gt; for the blog, library and one for all content&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I also provide additional content like:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a book &lt;a href="https://vknabel.com/library"&gt;library&lt;/a&gt; to share book recommendatations&lt;/li&gt;
+&lt;li&gt;a &lt;a href="https://vknabel.com/now"&gt;now&lt;/a&gt; page to share what I&amp;rsquo;m currently doing&lt;/li&gt;
+&lt;li&gt;the &lt;a href="https://vknabel.com/colophon"&gt;colophon&lt;/a&gt; to share technical details about the site&lt;/li&gt;
+&lt;li&gt;my list of &lt;a href="https://vknabel.com/projects"&gt;projects&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;and &lt;a href="https://vknabel.com/sovereignity"&gt;sovereignity&lt;/a&gt; to share my efforts to regain control over my data and online presence&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Also some updated content:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the &lt;a href="https://vknabel.com/about"&gt;about&lt;/a&gt; page was just outdated&lt;/li&gt;
+&lt;li&gt;I imported the Aroid Garden posts to the &lt;a href="https://vknabel.com/tags/plants"&gt;plants tag&lt;/a&gt;, though the layout isn&amp;rsquo;t optimized for it&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In the end, when you have a look at &lt;a href="https://vknabel.com/"&gt;Home&lt;/a&gt;, you cannot come around to see that my content has changed.
+And that this is just the beginning.&lt;/p&gt;</description></item><item><title>Discontinuing of Projects</title><link>https://vknabel.com/posts/2026-01-02-discontinuing-of-projects/</link><pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2026-01-02-discontinuing-of-projects/</guid><description>&lt;p&gt;Starting with this year, I have decided to discontinue all of my open source projects.&lt;/p&gt;
+&lt;p&gt;Most notably this affects my VS Code extensions for Swift.
+I archieved the repositories and requested to deprecate the extensions in the Visual Studio Marketplace.&lt;/p&gt;
+&lt;p&gt;Also I decided to stop my work on my toy programming language.&lt;/p&gt;
+&lt;h2 id="reasoning"&gt;Reasoning&lt;/h2&gt;
+&lt;p&gt;Since a few years I shifted my focus from Swift development to Go and Kubernetes and switched my main editor from VS Code to Helix.&lt;/p&gt;
+&lt;p&gt;And I found joy in so many different things that can be done without computers. Doing some side projects just isn&amp;rsquo;t worth the hassle for me anymore.&lt;/p&gt;
+&lt;p&gt;Occasionally I will still write some blog posts and update my non-archived repositories.&lt;/p&gt;</description></item><item><title>Announcing Puffery for macOS and the command line</title><link>https://vknabel.com/posts/announcing-puffery-for-macos-and-the-command-line/</link><pubDate>Fri, 29 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/announcing-puffery-for-macos-and-the-command-line/</guid><description>&lt;p&gt;Two years ago, I created &lt;a href="https://apps.apple.com/de/app/puffery/id1508776889"&gt;Puffery for iOS&lt;/a&gt;, which allows sending push notifications to your iOS devices.&lt;/p&gt;
+&lt;p&gt;You can follow other&amp;rsquo;s channels and directly receive updates. There is no algorithm that decides wether you should receive notifications or not.&lt;/p&gt;
+&lt;p&gt;From the beginning scripting is part of puffery&amp;rsquo;s DNA: you were able to send messages with Siri Shortcuts and a simple &lt;code&gt;curl&lt;/code&gt; command.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;If you want to take a deeper look, feel free to check out the &lt;a href="https://github.com/vknabel/puffery"&gt;GitHub repository&lt;/a&gt; including the Swift Server written in Vapor, and the iOS app built with SwiftUI in a single mono-repo.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="puffery-for-macos"&gt;Puffery for macOS&lt;/h2&gt;
+&lt;p&gt;&lt;img src="./puffery-macos-showcase.png" alt=""&gt;&lt;/p&gt;
+&lt;p&gt;If you do no share your channels, sending and receiving messages and thus push notifications from the same iOS device is kind of useless in the long run.&lt;/p&gt;
+&lt;p&gt;Some of your most productive time of the day, you are probably sitting in front of your Mac. And a macOS app better integrates into your daily workflow.&lt;/p&gt;
+&lt;p&gt;Of course, you can use your Shortcuts from your iOS device. But what&amp;rsquo;s special on macOS is the ability to pin specific workflows to the dock or the status bar. Even adding workflows to your share menus is possible!&lt;/p&gt;
+&lt;p&gt;No need to open Puffery directly if you don&amp;rsquo;t want to. No distractions.&lt;/p&gt;
+&lt;p&gt;If you are a user of macOS widgets, you are covered, too! They work exactly the same way as on iOS.&lt;/p&gt;
+&lt;h2 id="puffery-for-the-command-line"&gt;Puffery for the command line&lt;/h2&gt;
+&lt;p&gt;&lt;img src="./puffery-cli-showcase.png" alt=""&gt;&lt;/p&gt;
+&lt;p&gt;With the next announcement, we are slowly moving outside of the Apple ecosystem. Puffery is now available as a command line tool. Currently it has a limited scope and has not yet received feature parity with the iOS or macOS apps, but it does not only support macOS, but also Linux &lt;em&gt;and&lt;/em&gt; Windows.&lt;/p&gt;
+&lt;p&gt;It provides a tui / text based interface to scroll through lists of channels and messages. You can also send messages to a previously selected channel.&lt;/p&gt;
+&lt;p&gt;You can even signup or login with your existing account.&lt;/p&gt;
+&lt;p&gt;To give it a try, have a look on the &lt;a href="https://github.com/vknabel/go-puffery#installation"&gt;puffery installation instructions&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;It has been built in Go and &lt;a href="https://charm.sh/"&gt;Charm&lt;/a&gt;&amp;rsquo;s &lt;a href="https://github.com/charmbracelet/bubbletea"&gt;Bubble Tea library&lt;/a&gt;. As all of Puffery, it is open source and licensed under the &lt;a href="https://github.com/vknabel/go-puffery/blob/main/LICENSE"&gt;MIT license&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Archery 0.3.0 released</title><link>https://vknabel.com/posts/archery-0-3-0-released/</link><pubDate>Sat, 12 Oct 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/archery-0-3-0-released/</guid><description>&lt;p&gt;&lt;em&gt;Archery&lt;/em&gt; is about doing something with your project’s metadata. The new version 0.3.0 puts everything on steroids and allows you to script your metadata.
+A detailed overview of all changes can be found on &lt;a href="https://github.com/vknabel/Archery/blob/master/CHANGELOG.md#021"&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="archerfile-loaders"&gt;Archerfile Loaders&lt;/h2&gt;
+&lt;p&gt;At first you will notice the new option to load additional contents into your Archerfile an incredibly open field of new possibilities.
+The most obvious use case is to collect metadata from multiple configuration files.
+At a second look you can even script the generation of your metadata.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;loaders&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#ae81ff"&gt;cat Metadata/*.yml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#e6db74"&gt;&amp;#34;echo today: $(date +%Y-%m-%d)&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#ae81ff"&gt;mirror file https://raw.githubusercontent.com/vknabel/Archery/0.3.0/Examples/MapSwiftTargetsToScripts.yml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;But caution: your loader will be executed with every invocation of Archery. Make sure they run fast enough!&lt;/p&gt;
+&lt;h2 id="sequence-of-scripts"&gt;Sequence of Scripts&lt;/h2&gt;
+&lt;p&gt;Often one script requires multiple steps. In earlier versions we used &lt;code&gt;vknabel/ArcheryArrow&lt;/code&gt; for this purpose. Now we can be much more direct:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;scripts&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;test&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;run&lt;/span&gt;: [&lt;span style="color:#ae81ff"&gt;host, swift5.0, swift5.1]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;scripts&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;host&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;swift test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;swift5.0&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;docker ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;swift5.1&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;docker ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="environment-variables"&gt;Environment variables&lt;/h2&gt;
+&lt;p&gt;Let’s assume we have &lt;code&gt;Metadata/Scripts.yml&lt;/code&gt; with the following contents:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;scripts&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;dump&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;echo $ARCHERY_METADATA&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In here we use our second new feature: using env variables to access our Archerfile contents!&lt;/p&gt;
+&lt;p&gt;On execution you will receive the fully loaded metadata as JSON!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ archery dump
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;🏹 Running scripts ▶︎ dump
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;{&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;loaders&amp;#34;&lt;/span&gt;:&lt;span style="color:#f92672"&gt;[]&lt;/span&gt;,&lt;span style="color:#e6db74"&gt;&amp;#34;scripts&amp;#34;&lt;/span&gt;:&lt;span style="color:#f92672"&gt;{&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;dump&amp;#34;&lt;/span&gt;:&lt;span style="color:#f92672"&gt;{&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;command&amp;#34;&lt;/span&gt;:&lt;span style="color:#e6db74"&gt;&amp;#34;echo &lt;/span&gt;$ARCHERY_METADATA&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}}&lt;/span&gt;,&lt;span style="color:#e6db74"&gt;&amp;#34;today&amp;#34;&lt;/span&gt;:&lt;span style="color:#e6db74"&gt;&amp;#34;2019-10-10&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A full list of all exposed environment variables visit &lt;a href="https://github.com/vknabel/Archery"&gt;Archery on GitHub&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To accomplish this the whole underlying script execution mechanism has been rebuild from scratch.
+Previously scripts relied on separate SwiftPM repositories, called Arrows, which would be installed by Archery using Mint. For many use cases this mechanism required too much ceremony around it. For example the &lt;code&gt;vknabel/BashArrow&lt;/code&gt; would have to be compiled before running your actual script.
+Instead we focus on the easiest and fastest scripting mechanism: bash scripts.
+Though this will not break: Archery will generate the correct Mint commands and will execute your arrows as before if you have Mint installed.&lt;/p&gt;
+&lt;p&gt;Aside from the speed up for bash scripts, the &lt;code&gt;vknabel/ArcheryArrow&lt;/code&gt; will come pre-shipped too and doesn‘t take a whole Swift build to proceed.&lt;/p&gt;
+&lt;h2 id="faq-and-examples"&gt;FAQ and Examples&lt;/h2&gt;
+&lt;h3 id="how-do-i-update-to-030"&gt;How do I update to 0.3.0?&lt;/h3&gt;
+&lt;p&gt;Your existing Archerfile still works the same as before. So nothing to do on this side!&lt;/p&gt;
+&lt;p&gt;If you currently use the arrow syntax, make sure to have Mint installed as it moved from an internal to an external dependency. Also make sure to use Swift 5 as Swift 4 support has been dropped.&lt;/p&gt;
+&lt;h3 id="is-there-a-new-plugin-concept"&gt;Is there a new plugin concept?&lt;/h3&gt;
+&lt;p&gt;Previously Mint was the only mechanism to implement plugins. Now as we focus on more general solutions, the new mechanism needs to be more general, too.&lt;/p&gt;
+&lt;p&gt;Though more general problems require more solutions or even more specializations. Mint will still be available as any other command line tool. To fill the more general gap, I created &lt;a href="https://github.com/vknabel/mirror-sh"&gt;Mirror&lt;/a&gt; which tries to solve similar problems on a more general basis.&lt;/p&gt;
+&lt;h3 id="how-can-i-share-and-reuse-parts-of-my-metadata"&gt;How can I share and reuse parts of my metadata?&lt;/h3&gt;
+&lt;p&gt;Now as you can script your metadata, you can also easily reuse parts of your configuration.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;loaders&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#ae81ff"&gt;mirror file https://raw.githubusercontent.com/vknabel/Archery/0.3.0/Examples/TestingOnMultiplePlatforms.yml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In this example we used &lt;a href="https://github.com/vknabel/mirror-sh"&gt;Mirror&lt;/a&gt; from above as &lt;code&gt;curl&lt;/code&gt; would always download the file over and over. Mirror does it only once.&lt;/p&gt;
+&lt;h3 id="project-bash"&gt;Project Bash&lt;/h3&gt;
+&lt;p&gt;Some larger projects might already require their own CLI. Smaller ones only have a few helpers around.
+The following script exposes
+Linking all scripts into your current bash session.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# Archerfile&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;scripts&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;alias&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;node Scripts/alias.js&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-javascript" data-lang="javascript"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;// Scripts/alias.js
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;const&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;scripts&lt;/span&gt; &lt;span style="color:#f92672"&gt;=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;JSON&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;parse&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;process&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;env&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ARCHERY_METADATA&lt;/span&gt;).&lt;span style="color:#a6e22e"&gt;scripts&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Object.&lt;span style="color:#a6e22e"&gt;keys&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;scripts&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; .&lt;span style="color:#a6e22e"&gt;filter&lt;/span&gt;((&lt;span style="color:#a6e22e"&gt;name&lt;/span&gt;) =&amp;gt; &lt;span style="color:#a6e22e"&gt;name&lt;/span&gt; &lt;span style="color:#f92672"&gt;!==&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;alias&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; .&lt;span style="color:#a6e22e"&gt;forEach&lt;/span&gt;((&lt;span style="color:#a6e22e"&gt;name&lt;/span&gt;) =&amp;gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;const&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;command&lt;/span&gt; &lt;span style="color:#f92672"&gt;=&lt;/span&gt; &lt;span style="color:#e6db74"&gt;`&lt;/span&gt;&lt;span style="color:#e6db74"&gt;${&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;process&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;env&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ARCHERY&lt;/span&gt;&lt;span style="color:#e6db74"&gt;}&lt;/span&gt;&lt;span style="color:#e6db74"&gt; &lt;/span&gt;&lt;span style="color:#e6db74"&gt;${&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;name&lt;/span&gt;&lt;span style="color:#e6db74"&gt;}&lt;/span&gt;&lt;span style="color:#e6db74"&gt;`&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#a6e22e"&gt;console&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;log&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;`
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;function &lt;/span&gt;&lt;span style="color:#e6db74"&gt;${&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;name&lt;/span&gt;&lt;span style="color:#e6db74"&gt;}&lt;/span&gt;&lt;span style="color:#e6db74"&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; &lt;/span&gt;&lt;span style="color:#e6db74"&gt;${&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;command&lt;/span&gt;&lt;span style="color:#e6db74"&gt;}&lt;/span&gt;&lt;span style="color:#e6db74"&gt; &amp;#34;$@&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;`&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; });
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;At the end we are capable of linking all helpers directly into our current bash or zsh session!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ eval &lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;/Users/vknabel/Developer/vknabel/Archery/.build/debug/archery alias&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="how-can-i-test-on-multiple-operating-systems"&gt;How can I test on multiple operating systems?&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;scripts&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;test&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;help&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;Runs tests on your current host system, but also on supported linux versions&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;run&lt;/span&gt;: [&lt;span style="color:#ae81ff"&gt;host, swift5.0, swift5.1]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;scripts&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;host&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;swift test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;swift5.0&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;env&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;SWIFT_VERSION&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;5.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;command&lt;/span&gt;: |-&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; export CONTAINER=$(docker create —rm —workdir /archery swift:$SWIFT_VERSION swift test)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; docker cp . $CONTAINER:/archery
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; docker start —attach $CONTAINER&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;swift5.1&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;env&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;SWIFT_VERSION&lt;/span&gt;: &lt;span style="color:#ae81ff"&gt;5.1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#f92672"&gt;command&lt;/span&gt;: |-&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; export CONTAINER=$(docker create --rm --workdir /archery swift:$SWIFT_VERSION swift test)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; docker cp . $CONTAINER:/archery
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; docker start —attach $CONTAINER&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="how-to-override-with-private-configs"&gt;How to override with private configs?&lt;/h3&gt;
+&lt;p&gt;Overriding data with Archery is quite easy: load the same data structure with different contents. If you wish some configs to be private, just put them into your &lt;code&gt;.gitignore&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;loaders&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# load default configs&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#ae81ff"&gt;cat Config.default.yml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# override with private configs if existing&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#ae81ff"&gt;cat Config.private.yml 2&amp;gt; /dev/null&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Using the same mechanism you can even override a few scripts, e.g. if you prefer to dockerize your dependencies.&lt;/p&gt;
+&lt;h3 id="any-questions-left"&gt;Any questions left?&lt;/h3&gt;
+&lt;p&gt;If you have any questions left or ideas for improvements, create an issue for &lt;a href="https://github.com/vknabel/Archery"&gt;Archery on GitHub&lt;/a&gt; or get in contact with &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt;. Thanks for reading!&lt;/p&gt;</description></item><item><title>SDE 2.7.0 released</title><link>https://vknabel.com/posts/sde-2-7-0-released/</link><pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/sde-2-7-0-released/</guid><description>&lt;p&gt;Today I released the new &lt;a href="https://github.com/vknabel/vscode-swift-development-environment/releases/tag/2.7.0"&gt;2.7.0 update to SDE for VS Code&lt;/a&gt; and the companion project sourcekite has been updated, too.&lt;/p&gt;
+&lt;p&gt;The new sourcekite &lt;a href="https://github.com/vknabel/sourcekite/releases/tag/0.5.0"&gt;0.5.0&lt;/a&gt; now supports Swift 5, but drops support for Swift 3. If you still need support for Swift 3.1, I also tagged &lt;a href="https://github.com/vknabel/sourcekite/releases/tag/0.4.2"&gt;0.4.2&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Since 2.6.0, SDE already supported Apple‘s official &lt;a href="https://github.com/apple/sourcekit-lsp"&gt;sourcekit-lsp&lt;/a&gt; by using the &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;langserver&amp;quot;&lt;/code&gt; and the &lt;code&gt;swift.languageServerPath&lt;/code&gt; setting.
+As announced in &lt;a href="https://www.vknabel.com/pages/Apples-SourceKit-LSP-and-SDE-Roadmap/"&gt;Apples SourceKit-LSP and SDE Roadmap&lt;/a&gt; SDE 2.7.0 now explicitly mirrors official SourceKit-LSP settings like &lt;code&gt;sourcekit-lsp.serverPath&lt;/code&gt; and &lt;code&gt;sourcekit-lsp.toolchainPath&lt;/code&gt;. These settings will only be respected when explicitly setting &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;sourcekit-lsp&amp;quot;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;I‘d suggest you to configure both &lt;code&gt;sourcekit-lsp&lt;/code&gt; and &lt;code&gt;sourcekite&lt;/code&gt; configs. Depending on your project, you may swap out the actually used LSP by updating &lt;code&gt;sde.languageServerMode&lt;/code&gt;. Both LSP implementations have different benefits. Apple‘s SourceKit-LSP is easier to install, under active development and more robust. On the other hand SDE‘s LSP is more flexible in terms of settings, works for standalone Swift files, Xcode projects (through manual configuration) and handles modules differently.&lt;/p&gt;
+&lt;h2 id="upgrade-if-you-use-sourcekit-lsp"&gt;Upgrade if you use SourceKit-LSP&lt;/h2&gt;
+&lt;p&gt;In your settings replace your &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;langserver&amp;quot;&lt;/code&gt; with &lt;code&gt;&amp;quot;sde.languageServerMode&amp;quot;: &amp;quot;sourcekit-lsp&amp;quot;&lt;/code&gt; and &lt;code&gt;swift.languageServerPath&lt;/code&gt; with &lt;code&gt;sourcekit-lsp.serverPath&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;That‘s it.&lt;/p&gt;
+&lt;h2 id="upgrade-if-you-use-sourcekite"&gt;Upgrade if you use Sourcekite&lt;/h2&gt;
+&lt;p&gt;Clone the latest version of sourcekite and open the repo within your terminal.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;On Linux:&lt;/strong&gt; assuming you have already linked your &lt;code&gt;sourcekitdInProc&lt;/code&gt;, you simply need to run &lt;code&gt;swift build -Xlinker -l:sourcekitdInProc -c release&lt;/code&gt; and overwrite your old binary.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;On macOS:&lt;/strong&gt; Run &lt;code&gt;make install LIB_DIR=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/lib&lt;/code&gt; if you have multiple Swift toolchains installed and &lt;code&gt;make install LIB_DIR=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib&lt;/code&gt; otherwise to install the new build to &lt;code&gt;/usr/local/bin/sourcekite&lt;/code&gt;. If you used a different path, override it by adding &lt;code&gt;PREFIX=&amp;lt;your-path&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Your &lt;code&gt;swift.path.sourcekite&lt;/code&gt; should still be valid. Make sure to restart your VS Code before further development.&lt;/p&gt;
+&lt;h2 id="upgrade-if-you-use-ryan-loveletts-langserverswift"&gt;Upgrade if you use Ryan Lovelett‘s LangserverSwift&lt;/h2&gt;
+&lt;p&gt;You have no upgrade steps to do, but you are now able to additionally use SourceKit-LSP.&lt;/p&gt;
+&lt;p&gt;Install SourceKit-LSP and let the global &lt;code&gt;sourcekit-lsp.serverPath&lt;/code&gt; point to the release binary. Now you can swap your language server inside different projects by overriding &lt;code&gt;sde.languageServerMode&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Though as Ryan‘s Langserver is no longer maintained, I‘d recommend you to set your default &lt;code&gt;sde.languageServerMode&lt;/code&gt; to &lt;code&gt;sourcekite&lt;/code&gt; or &lt;code&gt;sourcekit-lsp&lt;/code&gt;.&lt;/p&gt;</description></item></channel></rss>

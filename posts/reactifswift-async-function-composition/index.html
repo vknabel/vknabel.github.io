@@ -1,0 +1,255 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width"><title>ReactifSwift: async function composition | vknabel</title><link rel=stylesheet href=/css/main.min.e9fd179d6f16b595a4ec4953ef9042fa8e3bcdf9755535ae526ed686593a3ced.css integrity="sha256-6f0XnW8WtZWk7ElT75BC+o47zfl1VTWuUm7Whlk6PO0=" crossorigin=anonymous><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel=stylesheet><script src=/js/main.23cd0c7d837263b9eaeb96ee2d9ccfa2969daa3fa00fa1c1fe8701a9b87251a1.js integrity="sha256-I80MfYNyY7nq65buLZzPopadqj+gD6HB/ocBqbhyUaE=" crossorigin=anonymous></script><link rel=icon type=image/png href=/images/vknabel.jpg><link rel=me href=https://mastodon.social/@vknabel><meta name=fediverse:creator content="@vknabel@mastodon.social"><script defer src=https://uma.knabel.dev/umami data-website-id=6c602988-83e0-47c7-a844-d7c4e6edc43d data-domains=www.vknabel.com></script><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Async operators debounce, throttle or delay that functional reactive programming libraries as RxSwift and ReactiveSwift provide are super useful and expressive. Though their biggest benefit lays within composability."><meta property="og:image" content><meta property="og:url" content="https://vknabel.com/posts/reactifswift-async-function-composition/"><meta property="og:site_name" content="vknabel"><meta property="og:title" content="ReactifSwift: async function composition"><meta property="og:description" content="Async operators debounce, throttle or delay that functional reactive programming libraries as RxSwift and ReactiveSwift provide are super useful and expressive. Though their biggest benefit lays within composability."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-10-15T00:00:00+00:00"><meta property="article:modified_time" content="2019-10-15T00:00:00+00:00"><meta property="article:tag" content="Swift"><meta name=twitter:card content="summary"><meta name=twitter:title content="ReactifSwift: async function composition"><meta name=twitter:description content="Async operators debounce, throttle or delay that functional reactive programming libraries as RxSwift and ReactiveSwift provide are super useful and expressive. Though their biggest benefit lays within composability."><link rel=alternate type=application/rss+xml href=https://vknabel.com/index.xml title=News><link rel=alternate type=application/rss+xml href=https://vknabel.com/posts/index.xml title=Posts><link rel=alternate type=application/rss+xml href=https://vknabel.com/library/index.xml title=Library><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/announcement/index.xml title="Tagged with Announcement"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/books/index.xml title="Tagged with Books"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/go/index.xml title="Tagged with Go"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/hosting/index.xml title="Tagged with Hosting"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/lithia/index.xml title="Tagged with Lithia"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/plants/index.xml title="Tagged with Plants"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/puffery/index.xml title="Tagged with Puffery"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/swift/index.xml title="Tagged with Swift"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/tooling/index.xml title="Tagged with Tooling"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/web/index.xml title="Tagged with Web"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/zirric/index.xml title="Tagged with Zirric"></head><body><div class=content><header><nav class=menu-main><ul><li><a aria-current=true class=ancestor href=/posts/>Blog</a></li><li><a href=/library/>Library</a></li></ul></nav><a href=/ class=logo>vk</a><nav class=menu-secondary><ul><li><a href=/about/>About</a></li></ul></nav></header><main><h1>ReactifSwift: async function composition</h1><small><i>Posted on <time datetime=2019-10-15T00:00:00+00:00>2019-10-15</time></i></small><p>Async operators <code>debounce</code>, <code>throttle</code> or <code>delay</code> that functional reactive programming libraries as <code>RxSwift</code> and <code>ReactiveSwift</code> provide are super useful and expressive. Though their biggest benefit lays within composability.</p><p>This playground tries to achieve the same using plain functions with little help of a global scheduler for a greater testing experience. For better composability it relies on <a href=https://github.com/pointfreeco/swift-overture>Overture</a> in version 0.2.0.</p><p><em>Originally written at 2018-06-10</em></p><h2 id=example>Example</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-swift data-lang=swift><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> count = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> countChars = with({ count <span style=color:#f92672>+=</span> $0 }, pipe(
+</span></span><span style=display:flex><span>    map(<span style=color:#66d9ef>get</span>(<span style=color:#960050;background-color:#1e0010>\</span>String.count)),
+</span></span><span style=display:flex><span>    throttle(time: <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> time = TestingScheduler()
+</span></span><span style=display:flex><span>ReactifCurrent.scheduler = time
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;A&#34;</span>)
+</span></span><span style=display:flex><span>time.tick(<span style=color:#ae81ff>50</span>)
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;B&#34;</span>)
+</span></span><span style=display:flex><span>time.tick(<span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>countChars(<span style=color:#e6db74>&#34;Abc&#34;</span>)
+</span></span><span style=display:flex><span>count <span style=color:#75715e>// 4</span>
+</span></span></code></pre></div><h2 id=implementation>Implementation</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#75715e>// import Overture</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>Foundation</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>typealias</span> Unary&lt;A&gt; = (A) -&gt; Void
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>protocol</span> <span style=color:#a6e22e>Invalidatable</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>invalidate</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Timer</span>: Invalidatable {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>protocol</span> <span style=color:#a6e22e>Scheduler</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> time: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TestingScheduler</span>: Scheduler {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> delayed: [FakeTimer] = []
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> currentInterval: TimeInterval = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FakeTimer</span>: Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> date: Date
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> fire: (() -&gt; Void)?
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>init</span>(date: Date, fire: @escaping () -&gt; Void) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.fire = fire
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.date = date
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> isValid: Bool {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> fire <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tick</span>(<span style=color:#66d9ef>_</span> now: Date) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> fire = fire, now <span style=color:#f92672>&gt;=</span> <span style=color:#66d9ef>self</span>.date {
+</span></span><span style=display:flex><span>                fire()
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>invalidate</span>() {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>self</span>.fire = <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tick</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.currentInterval <span style=color:#f92672>+=</span> interval
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> currently = now()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.delayed.forEach { $0.tick(currently) }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.delayed = <span style=color:#66d9ef>self</span>.delayed.filter { $0.isValid }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Date(timeIntervalSince1970: currentInterval)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> timer = FakeTimer(date: now().addingTimeInterval(interval), fire: f)
+</span></span><span style=display:flex><span>        delayed.append(timer)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> timer
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>final</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TimeScheduler</span>: Scheduler {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>now</span>() -&gt; Date {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Date()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(<span style=color:#66d9ef>_</span> interval: TimeInterval, <span style=color:#66d9ef>_</span> f: @escaping () -&gt; Void) -&gt; Invalidatable {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Timer(timeInterval: interval, repeats: <span style=color:#66d9ef>false</span>) { <span style=color:#66d9ef>_</span> <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            f()
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>ReactifRuntimeContext</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> scheduler: Scheduler = TimeScheduler()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> ReactifCurrent = ReactifRuntimeContext()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Sink</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>typealias</span> Completion = () -&gt; Void
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> call: (@escaping (@escaping Completion) -&gt; Void) -&gt; Bool
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>init</span>(<span style=color:#66d9ef>_</span> call: @escaping (@escaping (@escaping Completion) -&gt; Void) -&gt; Bool) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>self</span>.call = call
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extension</span> <span style=color:#a6e22e>Sink</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>lock</span>(name: String? = <span style=color:#66d9ef>nil</span>) -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> lock = NSLock()
+</span></span><span style=display:flex><span>        lock.name = name
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(lock.unlock)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>recursiveLock</span>(name: String? = <span style=color:#66d9ef>nil</span>) -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> lock = NSRecursiveLock()
+</span></span><span style=display:flex><span>        lock.name = name
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(lock.unlock)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>synchronous</span>() -&gt; Sink {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Sink { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            f({})
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>filter</span>(<span style=color:#66d9ef>_</span> includes: @escaping () -&gt; Bool) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { (sink: Sink) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        Sink { (f: @escaping Unary&lt;Sink.Completion&gt;) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            includes() <span style=color:#f92672>&amp;&amp;</span> sink.call(f)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>reschedule</span>(<span style=color:#66d9ef>_</span> transform: @escaping (@escaping Unary&lt;Sink.Completion&gt;, @escaping Sink.Completion) -&gt; Void) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { (sink: Sink) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        Sink { (f: @escaping Unary&lt;Sink.Completion&gt;) <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            sink.call { complete <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>                transform(f, complete)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>delay</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>            f(completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>extend</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        f {
+</span></span><span style=display:flex><span>            ReactifCurrent.scheduler.delay(time, completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>debounce</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> currentAttempt: Invalidatable?
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> reschedule { f, completion <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        currentAttempt?.invalidate()
+</span></span><span style=display:flex><span>        currentAttempt = ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>            f(completion)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>throttle</span>(time: TimeInterval) -&gt; (Sink) -&gt; Sink {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> lastInvocation: Date?
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> filter {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> now = ReactifCurrent.scheduler.now()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>defer</span> { lastInvocation = now }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> lastInvocation = lastInvocation, now.timeIntervalSince(lastInvocation) <span style=color:#f92672>&lt;</span> time {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>schedule</span>&lt;A&gt;(<span style=color:#66d9ef>_</span> factory: @escaping <span style=color:#66d9ef>@autoclosure</span> () -&gt; Sink) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> sink = factory()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span> sink.call { f(a);$0() } }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// </span><span style=color:#75715e>TODO:</span><span style=color:#75715e> throttle using time after completion instead of starting time</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>throttle</span>&lt;A&gt;(time: TimeInterval) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> schedule(with(.synchronous(), throttle(time: time)))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaustA</span>&lt;A&gt;(ending time: TimeInterval? = <span style=color:#66d9ef>nil</span>) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> schedule(with(.recursiveLock(), extend(time: <span style=color:#ae81ff>10</span>)))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaust</span>&lt;A&gt;(ending time: TimeInterval? = <span style=color:#66d9ef>nil</span>) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> lock = NSLock()
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> lock.<span style=color:#66d9ef>try</span>() {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> time = time {
+</span></span><span style=display:flex><span>                    ReactifCurrent.scheduler.delay(time, lock.unlock)
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                    lock.unlock()
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>map</span>&lt;A, B&gt;(<span style=color:#66d9ef>_</span> transform: @escaping (A) -&gt; B) -&gt; (@escaping Unary&lt;B&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span> pipe(transform, f) }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>filter</span>&lt;A&gt;(<span style=color:#66d9ef>_</span> include: @escaping (A) -&gt; Bool) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> include(a) {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>debounce</span>&lt;A&gt;(time: TimeInterval) -&gt; (@escaping Unary&lt;A&gt;) -&gt; Unary&lt;A&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { f <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>var</span> currentAttempt: Invalidatable?
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { a <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>            currentAttempt?.invalidate()
+</span></span><span style=display:flex><span>            currentAttempt = ReactifCurrent.scheduler.delay(time) {
+</span></span><span style=display:flex><span>                f(a)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>I think this is a quite cool idea for 240 lines of code. If just a few functions are required and using a FRP library would be too much just for a few functions, this might be a lightweight, but valuable alternative.</p><p>Though as we now have <code>Combine</code> by Apple, this is more likely to be a niche idea.</p><p><em><a href=./playground.zip>download this playground</a></em></p><ul class=tags><li class="tags-item tags-item--tag"><a href=/tags/swift/>Swift</a></li></div></main><footer><div><small>2026 © Valentin Knabel</small><br><small>Made with ♥ by a human.</small><br></div><div><h6 id=menu-social>Social</h6><nav class=menu-social><ul><li><a href=https://github.com/vknabel>GitHub</a></li><li><a href=https://mastodon.social/@vknabel/>Mastodon</a></li><li><a href=https://code.knabel.dev/explore/repos>code.knabel.dev</a></li><li><a href=/rss/>RSS</a></li></ul></nav></div><div><h6 id=menu-links>Links</h6><nav class=menu-tertiary><ul><li><a href=/now/>Now</a></li><li><a href=/colophon/>Colophon</a></li><li><a href=/projects/>Projects</a></li><li><a href=/sovereignity/>Sovereignity</a></li><li><a href=/tags/>Tags</a></li></ul></nav></div></footer></div></body></html>

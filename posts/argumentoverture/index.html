@@ -1,0 +1,124 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width"><title>ArgumentOverture | vknabel</title><link rel=stylesheet href=/css/main.min.e9fd179d6f16b595a4ec4953ef9042fa8e3bcdf9755535ae526ed686593a3ced.css integrity="sha256-6f0XnW8WtZWk7ElT75BC+o47zfl1VTWuUm7Whlk6PO0=" crossorigin=anonymous><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel=stylesheet><script src=/js/main.23cd0c7d837263b9eaeb96ee2d9ccfa2969daa3fa00fa1c1fe8701a9b87251a1.js integrity="sha256-I80MfYNyY7nq65buLZzPopadqj+gD6HB/ocBqbhyUaE=" crossorigin=anonymous></script><link rel=icon type=image/png href=/images/vknabel.jpg><link rel=me href=https://mastodon.social/@vknabel><meta name=fediverse:creator content="@vknabel@mastodon.social"><script defer src=https://uma.knabel.dev/umami data-website-id=6c602988-83e0-47c7-a844-d7c4e6edc43d data-domains=www.vknabel.com></script><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses Overture and is build for high composability, flexibility and little impact on your project&rsquo;s freedom to evolve."><meta property="og:image" content><meta property="og:url" content="https://vknabel.com/posts/argumentoverture/"><meta property="og:site_name" content="vknabel"><meta property="og:title" content="ArgumentOverture"><meta property="og:description" content="A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses Overture and is build for high composability, flexibility and little impact on your project’s freedom to evolve."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-09-30T00:00:00+00:00"><meta property="article:modified_time" content="2018-09-30T00:00:00+00:00"><meta property="article:tag" content="Swift"><meta name=twitter:card content="summary"><meta name=twitter:title content="ArgumentOverture"><meta name=twitter:description content="A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses Overture and is build for high composability, flexibility and little impact on your project’s freedom to evolve."><link rel=alternate type=application/rss+xml href=https://vknabel.com/index.xml title=News><link rel=alternate type=application/rss+xml href=https://vknabel.com/posts/index.xml title=Posts><link rel=alternate type=application/rss+xml href=https://vknabel.com/library/index.xml title=Library><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/announcement/index.xml title="Tagged with Announcement"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/books/index.xml title="Tagged with Books"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/go/index.xml title="Tagged with Go"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/hosting/index.xml title="Tagged with Hosting"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/lithia/index.xml title="Tagged with Lithia"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/plants/index.xml title="Tagged with Plants"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/puffery/index.xml title="Tagged with Puffery"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/swift/index.xml title="Tagged with Swift"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/tooling/index.xml title="Tagged with Tooling"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/web/index.xml title="Tagged with Web"><link rel=alternate type=application/rss+xml href=https://vknabel.com/tags/zirric/index.xml title="Tagged with Zirric"></head><body><div class=content><header><nav class=menu-main><ul><li><a aria-current=true class=ancestor href=/posts/>Blog</a></li><li><a href=/library/>Library</a></li></ul></nav><a href=/ class=logo>vk</a><nav class=menu-secondary><ul><li><a href=/about/>About</a></li></ul></nav></header><main><h1>ArgumentOverture</h1><small><i>Posted on <time datetime=2018-09-30T00:00:00+00:00>2018-09-30</time></i></small><p>A Swift Playground aiming to provide some functional helpers to parse arguments for command line tools. It uses <a href=https://github.com/pointfreeco/swift-overture>Overture</a> and is build for high composability, flexibility and little impact on your project&rsquo;s freedom to evolve.</p><p>A central use case was <a href=https://github.com/vknabel/archery>Archery</a>&rsquo;s: only actually interpreted arguments shall be consumed. Any others shall be collected (<code>remaining</code>) or should prevent execution (<code>exhaust</code>), depending on the current command.</p><p>First of all an example usage.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#75715e>// Experiment</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>do</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> (isVerbose, whoToGreet, language, <span style=color:#66d9ef>_</span>) = <span style=color:#66d9ef>try</span> with([<span style=color:#e6db74>&#34;-v&#34;</span>, <span style=color:#e6db74>&#34;hi&#34;</span>, <span style=color:#e6db74>&#34;Some string&#34;</span>, <span style=color:#e6db74>&#34;--language&#34;</span>, <span style=color:#e6db74>&#34;en&#34;</span>], chain(
+</span></span><span style=display:flex><span>        flag(<span style=color:#e6db74>&#34;verbose&#34;</span>, <span style=color:#e6db74>&#34;v&#34;</span>),
+</span></span><span style=display:flex><span>        positional(<span style=color:#e6db74>&#34;Name&#34;</span>),
+</span></span><span style=display:flex><span>        argument(<span style=color:#e6db74>&#34;language&#34;</span>, <span style=color:#e6db74>&#34;l&#34;</span>),
+</span></span><span style=display:flex><span>        exhaust
+</span></span><span style=display:flex><span>    ))
+</span></span><span style=display:flex><span>} <span style=color:#66d9ef>catch</span> {
+</span></span><span style=display:flex><span>    print(<span style=color:#e6db74>&#34;Command failed:&#34;</span>, error)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The implementation of the micro-library itself.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-swift data-lang=swift><span style=display:flex><span><span style=color:#75715e>// Errors</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>quoted</span>(<span style=color:#66d9ef>_</span> string: String) -&gt; String {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>\(</span>string<span style=color:#e6db74>)</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>protocol</span> <span style=color:#a6e22e>StringConvertibleError</span>: Error, CustomStringConvertible {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>MissingArgumentError</span>: StringConvertibleError {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>let</span> name: String?
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>var</span> description: String {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> with(name, pipe(
+</span></span><span style=display:flex><span>            map(quoted),
+</span></span><span style=display:flex><span>            map { <span style=color:#e6db74>&#34;Missing argument </span><span style=color:#e6db74>\(</span>$0<span style=color:#e6db74>)</span><span style=color:#e6db74>&#34;</span> },
+</span></span><span style=display:flex><span>            ??<span style=color:#e6db74>&#34;Missing argument&#34;</span>
+</span></span><span style=display:flex><span>        ))
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>NonExhaustiveArgumentsError</span>: StringConvertibleError {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>let</span> remaining: [String]
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>var</span> description: String {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Unused arguments: </span><span style=color:#e6db74>\(</span>remaining<span style=color:#e6db74>)</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Domain</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>isArgument</span>(named name: String) -&gt; (String) -&gt; Bool {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { $0 == <span style=color:#e6db74>&#34;-</span><span style=color:#e6db74>\(</span>name<span style=color:#e6db74>)</span><span style=color:#e6db74>&#34;</span> <span style=color:#f92672>||</span> $0 == <span style=color:#e6db74>&#34;--</span><span style=color:#e6db74>\(</span>name<span style=color:#e6db74>)</span><span style=color:#e6db74>&#34;</span> }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>isOneArgument</span>(of names: [String]) -&gt; (String) -&gt; Bool {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { passed <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        names.<span style=color:#66d9ef>lazy</span>
+</span></span><span style=display:flex><span>        .map(isArgument(named:))
+</span></span><span style=display:flex><span>        .reduce(<span style=color:#66d9ef>false</span>, { $0 <span style=color:#f92672>||</span> $1(passed) })
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>indexOfArguments</span>(named names: [String]) -&gt; ([String]) -&gt; Array&lt;String&gt;.Index? {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { passed <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        passed.index(<span style=color:#66d9ef>where</span>: isOneArgument(of: names))
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>flag</span>(<span style=color:#66d9ef>_</span> names: String...) -&gt; ([String]) -&gt; ([String], Bool) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { arguments <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> index = arguments.index(<span style=color:#66d9ef>where</span>: isOneArgument(of: names)) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> result = arguments
+</span></span><span style=display:flex><span>            result.remove(at: index)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> (result, <span style=color:#66d9ef>true</span>)
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> (arguments, <span style=color:#66d9ef>false</span>)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>positional</span>(<span style=color:#66d9ef>_</span> name: String? = <span style=color:#66d9ef>nil</span>) -&gt; ([String]) <span style=color:#66d9ef>throws</span> -&gt; ([String], String) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { arguments <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> index = arguments.index(<span style=color:#66d9ef>where</span>: { <span style=color:#f92672>!</span>$0.starts(with: <span style=color:#e6db74>&#34;-&#34;</span>)})
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> index = index {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> result = arguments
+</span></span><span style=display:flex><span>            result.remove(at: index)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> (result, arguments[index])
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>throw</span>  MissingArgumentError(name: name)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>optional</span>&lt;A&gt;(<span style=color:#66d9ef>_</span> f: @escaping ([String]) <span style=color:#66d9ef>throws</span> -&gt; ([String], A)) -&gt; ([String]) <span style=color:#66d9ef>throws</span> -&gt; ([String], A?) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { arguments <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>do</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>let</span> (remaining, parsed) = <span style=color:#66d9ef>try</span> f(arguments)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> (remaining, .some(parsed))
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> <span style=color:#66d9ef>is</span> MissingArgumentError {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> (arguments, <span style=color:#66d9ef>nil</span>)
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>throw</span> error
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>argument</span>(<span style=color:#66d9ef>_</span> names: String...) -&gt; ([String]) <span style=color:#66d9ef>throws</span> -&gt;  ([String], String) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { arguments <span style=color:#66d9ef>in</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>let</span> flagIndex = indexOfArguments(named: names)(arguments), arguments.count <span style=color:#f92672>&gt;=</span> flagIndex <span style=color:#f92672>+</span> <span style=color:#ae81ff>2</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>let</span> value = arguments[flagIndex <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>]
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> rest = arguments
+</span></span><span style=display:flex><span>            rest.remove(at: flagIndex <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>            rest.remove(at: flagIndex)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> (rest, value)
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>throw</span> MissingArgumentError(name: names.first)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>exhaust</span>(<span style=color:#66d9ef>_</span> arguments: [String]) <span style=color:#66d9ef>throws</span> -&gt; ([String], Void) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> arguments.isEmpty {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> ([], ())
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span> NonExhaustiveArgumentsError(remaining: arguments)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>func</span> <span style=color:#a6e22e>remaining</span>(<span style=color:#66d9ef>_</span> arguments: [String]) -&gt; ([String], [String]) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> ([], arguments)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=whats-next>What&rsquo;s next?</h2><p>The same concept could be applied to processes and especially handling interrupts:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-swift data-lang=swift><span style=display:flex><span>with(Process(), concat(
+</span></span><span style=display:flex><span>    setWorkingDir(<span style=color:#e6db74>&#34;tmp&#34;</span>),
+</span></span><span style=display:flex><span>    passInterrupt(),
+</span></span><span style=display:flex><span>    setBashCommand(<span style=color:#e6db74>&#34;&#34;</span>) <span style=color:#75715e>// is { concat(setLaunchPath(&#34;/bin/bash&#34;), setArguments([&#34;-c&#34;, $0]) }</span>
+</span></span><span style=display:flex><span>))
+</span></span></code></pre></div><p><em><a href=./playground.zip>download this playground</a></em></p><ul class=tags><li class="tags-item tags-item--tag"><a href=/tags/swift/>Swift</a></li></div></main><footer><div><small>2026 © Valentin Knabel</small><br><small>Made with ♥ by a human.</small><br></div><div><h6 id=menu-social>Social</h6><nav class=menu-social><ul><li><a href=https://github.com/vknabel>GitHub</a></li><li><a href=https://mastodon.social/@vknabel/>Mastodon</a></li><li><a href=https://code.knabel.dev/explore/repos>code.knabel.dev</a></li><li><a href=/rss/>RSS</a></li></ul></nav></div><div><h6 id=menu-links>Links</h6><nav class=menu-tertiary><ul><li><a href=/now/>Now</a></li><li><a href=/colophon/>Colophon</a></li><li><a href=/projects/>Projects</a></li><li><a href=/sovereignity/>Sovereignity</a></li><li><a href=/tags/>Tags</a></li></ul></nav></div></footer></div></body></html>

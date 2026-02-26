@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Go on vknabel</title><link>https://vknabel.com/tags/go/</link><description>Recent content in Go on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Sun, 28 Sep 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/go/index.xml" rel="self" type="application/rss+xml"/><item><title>Zirric: Going Virtual</title><link>https://vknabel.com/posts/2025-09-28-going-virtual/</link><pubDate>Sun, 28 Sep 2025 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2025-09-28-going-virtual/</guid><description>&lt;p&gt;A few years ago while I started working on &lt;a href="https://code.knabel.dev/lithia-lang/lithia"&gt;Lithia&lt;/a&gt;, I decided to use whatever takes me to my goal. Getting finished was the primary focus. And I did.&lt;/p&gt;
+&lt;p&gt;With &lt;a href="https://code.knabel.dev/zirric-lang/zirric"&gt;Zirric&lt;/a&gt; I want to take less compromise and build a better language. Performance and portability aren&amp;rsquo;t completely irrelevant anymore.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="the-tree-walker"&gt;The Tree Walker&lt;/h2&gt;
+&lt;p&gt;For Lithia I chose to implement a tree walker interpreter. It is simple to implement and easy to understand. The downside is that it&amp;rsquo;s slow.&lt;/p&gt;
+&lt;p&gt;Here the interpreter walks the abstract syntax tree (AST) and executes the program directly. This means that every time a function is called, the AST nodes for that function have to be traversed again.&lt;/p&gt;
+&lt;p&gt;In this approach every node in the AST has an &lt;code&gt;evaluate&lt;/code&gt; method that takes the current context as a parameter. The context holds variable bindings and other state information.&lt;/p&gt;
+&lt;p&gt;Variables and constants were stored in a map. During every variable access, a lookup with the string name of the variable had to be performed. In case of a miss, a parent context had to be checked as well until the variable was found or the global context was reached.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-lithia" data-lang="lithia"&gt;let a = &amp;#34;global&amp;#34;
+
+func do { =&amp;gt;
+ let b = &amp;#34;local&amp;#34;
+
+ print a // lookup &amp;#34;a&amp;#34; in current context -&amp;gt; miss -&amp;gt; lookup &amp;#34;a&amp;#34; in parent context -&amp;gt; hit
+ print b // lookup &amp;#34;b&amp;#34; in current context -&amp;gt; hit
+}
+
+do // looks up the function &amp;#34;do&amp;#34; and calls it
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Additionally checking the type of a value wasn&amp;rsquo;t trivial as well as the types had to be looked up by name as well.&lt;/p&gt;
+&lt;p&gt;Furthermore Lithia leverages lazy evaluation, which means that expressions are not evaluated until their value is needed. This adds additional overhead as every expression has to be wrapped in a thunk (a parameterless function).&lt;/p&gt;
+&lt;p&gt;And this makes the second problem of this clear: everything is hidden behind pointers and in general everything is kind of costly. Not necessarily in terms of complexity, its just slow like hashing strings multiple times per variable access, checking if everything has been evaluated and last but not least it can&amp;rsquo;t be cached efficiently by the CPU.&lt;/p&gt;
+&lt;h2 id="the-bytecode-interpreter"&gt;The Bytecode Interpreter&lt;/h2&gt;
+&lt;p&gt;Zirric takes a different approach to this. It defines a virtual machine (VM) that executes bytecode instructions. Zirric&amp;rsquo;s VM is stack based, which is comparable for a simple calculator or a deck of cards: each operation works on the topmost elements of the stack.&lt;/p&gt;
+&lt;p&gt;The bytecode itself is separated of all constants. Instead these are in a separate array or slice while the bytecode references them by index.
+In case of the expression &lt;code&gt;40 + 2&lt;/code&gt;, the constant &lt;code&gt;40&lt;/code&gt; is at index &lt;code&gt;0&lt;/code&gt; and &lt;code&gt;2&lt;/code&gt; is at index &lt;code&gt;1&lt;/code&gt;. The human readable bytecode to add these two numbers is then:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;# 1 + 2
+Cons 0 # Pushes the constant at index 0 (40) onto the stack
+Cons 1 # Pushes the constant at index 1 (2) onto the stack
+Add
+# Result: 42
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;The actual bytecode currently looks like this: &lt;code&gt;01 00 00 01 00 01 10&lt;/code&gt;. Neat, huh?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The VM iterates over the bytecode instructions and executes them one by one.
+Here &lt;code&gt;Cons&lt;/code&gt; loads the constant with the fitting index onto the stack. &lt;code&gt;Add&lt;/code&gt; pops the top two elements from the stack, adds them and pushes the result back onto the stack.
+That way the stack of the VM grows and shrinks as needed.&lt;/p&gt;
+&lt;p&gt;When it comes to variables, the VM uses a different approach as well: each variable gets an index assigned at compile time. That way variable access is just a matter of looking up an index of a single array.&lt;/p&gt;
+&lt;p&gt;Now let&amp;rsquo;s get back to our example from above:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-lithia" data-lang="lithia"&gt;let a = &amp;#34;global&amp;#34; // globals[0] = constants[0]
+
+func do() { // functions are constants: constants[1]
+ let b = &amp;#34;local&amp;#34; // locals[0] = constants[2]
+
+ print(a) // globals[0]
+ print(b) // locals[0]
+}
+
+do() // constants[1]()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;No more string lookups. No more parent contexts. Just direct index access.
+And the best part of this: the CPU can cache this data much more efficiently.&lt;/p&gt;
+&lt;p&gt;What about laziness? Almost everything is now eagerly evaluated. Expressions are evaluated as soon as they are encountered.
+Though there are a few exceptions like logical operators (&lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt;, &lt;code&gt;||&lt;/code&gt;) which skip their right hand side if the result is already determined by the left hand side. This is common and does not add much overhead.&lt;/p&gt;
+&lt;p&gt;But in Zirric globals are still initialized lazily. More on this in a future blog post.&lt;/p&gt;
+&lt;h2 id="why-that-hassle"&gt;Why that hassle?&lt;/h2&gt;
+&lt;p&gt;Interpreters are much easier to implement and to understand. Is this actually worth it?&lt;/p&gt;
+&lt;p&gt;Glad you asked! I made some micro benchmarks for Lithia and Zirric. In this case I wrote a simple recursive Fibonacci function in both languages and measured the time it takes to compute for several numbers.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Microbenchmarks can be misleading and do not reflect real world performance. But as long as we keep all tests as similar as possible, we can get a rough idea of the performance difference.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Here is the Lithia version:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-lithia" data-lang="lithia"&gt;func fib { n =&amp;gt;
+ if (n &amp;lt; 2), n, (fib n - 1) + (fib n - 2)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Here is the Zirric version:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;func fib(n) {
+	return if n &amp;lt; 2 {
+		n
+	} else {
+		fib(n-1) + fib(n-2)				
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;As both languages are implemented in Go, I used the builtin Go benchmarking for both to keep it as similar as possible.&lt;/p&gt;
+&lt;p&gt;And these are the results on my machine:&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;Input&lt;/th&gt;
+ &lt;th&gt;Repetitions&lt;/th&gt;
+ &lt;th&gt;Lithia&lt;/th&gt;
+ &lt;th&gt;Repetitions&lt;/th&gt;
+ &lt;th&gt;Zirric&lt;/th&gt;
+ &lt;th&gt;Factor&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;28&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;5,338 sec&lt;/td&gt;
+ &lt;td&gt;1,000,000,000&lt;/td&gt;
+ &lt;td&gt;0.1101 ns&lt;/td&gt;
+ &lt;td&gt;4,848,486&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;30&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;13,990 sec&lt;/td&gt;
+ &lt;td&gt;1,000,000,000&lt;/td&gt;
+ &lt;td&gt;0.2860 ns&lt;/td&gt;
+ &lt;td&gt;4,891,832&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;32&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;36,805 sec&lt;/td&gt;
+ &lt;td&gt;1,000,000,000&lt;/td&gt;
+ &lt;td&gt;0.7305 ns&lt;/td&gt;
+ &lt;td&gt;5,038,386&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;40&lt;/td&gt;
+ &lt;td&gt;0&lt;/td&gt;
+ &lt;td&gt;(too long)&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;34,238 sec&lt;/td&gt;
+ &lt;td&gt;(too long)&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;When I first saw these results, I had to check if I messed something up. We are comparing seconds with nanoseconds here. That&amp;rsquo;s why I added another run with &lt;code&gt;fib(40)&lt;/code&gt; for Zirric to validate the tests. And they were right. Zirric is nearly &lt;em&gt;five million&lt;/em&gt; times faster than Lithia in this case.&lt;/p&gt;
+&lt;p&gt;To get some more context, I also measured the Python and Ruby &lt;code&gt;fib(40)&lt;/code&gt; and got around 10 to 17 seconds here. Although these numbers are not accurate and probably estimated too high, they give a rough idea of the performance difference. Zirric is multiple times slower than these languages, but still in the same ballpark, while Lithia is outclassed by magnitudes.&lt;/p&gt;
+&lt;p&gt;Zirric is still in early development. Through optimization, new language features but also additional safe guards the performance profile will change over time. And probably not always for the better. Also this is just a microbenchmark that is not in favor of Lithia. Real world performance might be different. Take these numbers with a grain of salt.&lt;/p&gt;
+&lt;p&gt;But yes, this was worth the hassle.
+In case you are curios about what&amp;rsquo;s up next or want a nerd talk, feel free to reach out to me &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Zirric: A new Beginning</title><link>https://vknabel.com/posts/2025-09-16-a-new-beginning/</link><pubDate>Tue, 16 Sep 2025 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2025-09-16-a-new-beginning/</guid><description>&lt;p&gt;After a long time of procrastination I finally resumed my work on my new programming language. &lt;a href="https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/"&gt;Back then&lt;/a&gt; I wrote about the current state of &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt; and how I arrived in a dead end regarding the language design. Sure I proposed some large changes, but if a lazy evaluated programming language with a parensless call syntax becomes a strict evaluated programming language with a regular call syntax and multiple additional features, is it still the same &lt;del&gt;boat&lt;/del&gt;&amp;hellip; language?&lt;/p&gt;
+&lt;p&gt;Literally every line of code would break. That&amp;rsquo;s why I decided to create a new, currently private, repository for my new programming language called &lt;strong&gt;zirric&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="what-will-zirric-be-like"&gt;What will zirric be like?&lt;/h2&gt;
+&lt;p&gt;Similarly to Lithia, zirric will still be simple, but it will still be much more feature rich than Lithia.&lt;/p&gt;
+&lt;p&gt;First to get the boring stuff out of the way:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;zirric will be dynamically but strongly typed as Lithia is.&lt;/li&gt;
+&lt;li&gt;zirric will be strict evaluated while Lithia is lazy evaluated.&lt;/li&gt;
+&lt;li&gt;The call syntax might now look slightly familiar as &lt;code&gt;f(a, b)&lt;/code&gt; instead of &lt;code&gt;f a, b&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="annotations"&gt;Annotations&lt;/h3&gt;
+&lt;p&gt;Regarding the type system zirric adds the new &lt;code&gt;annotation&lt;/code&gt; types to Lithia&amp;rsquo;s &lt;code&gt;data&lt;/code&gt; and &lt;code&gt;enum&lt;/code&gt; types.
+An &lt;code&gt;annotation&lt;/code&gt; is declared like a &lt;code&gt;data&lt;/code&gt; type, but can be instantiated with an &lt;code&gt;@&lt;/code&gt; before declarations.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;annotation Countable {
+ @Returns(Int)
+ length(@Has(Countable) value)
+}
+
+@Countable({ v -&amp;gt; v.length })
+data Bag {
+ @Array items
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In contrast to decorators in other languages, annotations only store data. They cannot change the behavior of functions or types.
+To use annotations, a new reflection API will be provided.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;import reflect
+
+@Returns(Int)
+func count(@Has(Countable) value) {
+ return reflect.typeOf(value).annotation(Countable).length(value)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The effectively replaces the old but common &lt;a href="https://github.com/vknabel/lithia?tab=readme-ov-file#why-no-interfaces"&gt;witness pattern in Lithia&lt;/a&gt; with a more flexible and powerful system without introducing other new concepts like interfaces.&lt;/p&gt;
+&lt;p&gt;As you might have noticed, the new annotations &lt;em&gt;can&lt;/em&gt; but don&amp;rsquo;t have to be used to provide type hints. In the long term these should be checked by the compiler and fuel the language server to provide better IDE support.&lt;/p&gt;
+&lt;h3 id="control-flow"&gt;Control Flow&lt;/h3&gt;
+&lt;p&gt;In Lithia there were no control flow constructs like &lt;code&gt;if&lt;/code&gt; statements or &lt;code&gt;for&lt;/code&gt; loops except the &lt;code&gt;type&lt;/code&gt; expression. Instead everything was expressed via functions and recursion. This was slow and cumbersome.&lt;/p&gt;
+&lt;p&gt;zirric now comes with classic &lt;code&gt;if&lt;/code&gt; and &lt;code&gt;switch&lt;/code&gt; statements as well as &lt;code&gt;for&lt;/code&gt; loops.
+&lt;code&gt;if&lt;/code&gt; statements will support multiple branches and &lt;code&gt;else if&lt;/code&gt; as well as inline variable declarations.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;if condition {
+ doSomething()
+} else if otherCondition {
+ doSomethingElse()
+} else {
+ defaultCase()
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;switch&lt;/code&gt; statements will support type matching as well as value matching.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;switch value {
+case @SomeType:
+ doSomething(value)
+case 42:
+ doSomethingElse()
+case _:
+ defaultCase()
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;for&lt;/code&gt; loops will support iterating over ranges, arrays, maps and custom iterators and infinite loops with &lt;code&gt;for { }&lt;/code&gt;.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;for {
+ if condition {
+ break
+ }
+}
+
+for i in Range(0, 10) {
+ println(i)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In contrast to other languages, there will also be &lt;code&gt;if&lt;/code&gt;, &lt;code&gt;switch&lt;/code&gt; and &lt;code&gt;for&lt;/code&gt; expressions that can be used inline to assign values. In there only variable declarations and one expression per branch are allowed.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;let filtered = for num -&amp;gt; items {
+ if num % 13 == 0 {
+ break
+ } else if num % 2 == 0 &amp;amp;&amp;amp; num % 3 == 0 {
+ &amp;#34;fizzbuzz&amp;#34;
+ } else if num % 2 == 0 {
+ &amp;#34;fizz&amp;#34;
+ } else if num % 3 == 0 {
+ &amp;#34;buzz&amp;#34;
+ } else {
+ continue
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="a-few-more-things"&gt;A few more things&lt;/h3&gt;
+&lt;p&gt;zirric will come with a working package manager out of the box, it will have a new design and mascot (you might have noticed) and in the long term the language server and tooling will be much better and more accurate than Lithia&amp;rsquo;s.&lt;/p&gt;
+&lt;p&gt;A much better performance is also a goal, but don&amp;rsquo;t expect miracles here. Lithia was just really slow.&lt;/p&gt;
+&lt;p&gt;More on all of that later.&lt;/p&gt;
+&lt;h2 id="what-is-the-current-state"&gt;What is the current state?&lt;/h2&gt;
+&lt;p&gt;As of now, zirric is still in a very early stage. zirric can parse lots of the syntax although large parts are still missing. Though the execution side is still in its infancy and only supports a few basic mathematical operations, arrays, bools, and &lt;code&gt;if&lt;/code&gt; statements and expressions. Variables and functions will be the next big step.&lt;/p&gt;
+&lt;p&gt;At the tooling side, the core of the package manager is already present.&lt;/p&gt;
+&lt;p&gt;I guess I have quite a long way to go, but I am excited to finally work on a new programming language again. If you want to follow along or want a quick chat, feel free to reach out to me &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>The current state of Lithia after 2 years</title><link>https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/</link><pubDate>Thu, 18 Jan 2024 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/</guid><description>&lt;p&gt;In 2021 I started working on the current Go implementation of my own experimental programming language called &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt;. Now it is available in version v0.0.19. Infrequently I also wrote some words about it on this blog.
+It has been designed to be an experiment, that is able to teach some lessons and that can be fulfilled.&lt;/p&gt;
+&lt;p&gt;For a programming language being able to teach lessons, a Standard Library and of course some programs need to exist. Only the experience of its developers can lead to conclusions.
+Now it’s time to derive those!&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="the-current-state"&gt;The current state&lt;/h2&gt;
+&lt;p&gt;But first let’s have a look on the current state of Lithia.&lt;/p&gt;
+&lt;p&gt;Lithia has all planned features implemented. You can define &lt;code&gt;data&lt;/code&gt;-structures, &lt;code&gt;enum&lt;/code&gt;s similar to unions, functions, constants, modules and imports, closures, partial application of parameters and lazy evaluation.
+The standard library currently consists of 19 modules providing base types, helpers around comparisons, strings, results and more, file system access and a micro-framework to write unit tests in and for Lithia. Every module is fully documented and is generated by a Lithia script.&lt;/p&gt;
+&lt;p&gt;To declare packages and to make project-based scripts easily accessible, there is the &lt;code&gt;Potfile&lt;/code&gt; (comparable to &lt;code&gt;package.json&lt;/code&gt;, &lt;code&gt;Package.swift&lt;/code&gt;, &lt;code&gt;go.mod&lt;/code&gt;, &lt;code&gt;Gemfile&lt;/code&gt; &amp;amp; &lt;code&gt;Taskfile&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;Although the performance of the Lithia interpreter has largely improved in the early days but it’s still slow and leaves room for improvements.&lt;/p&gt;
+&lt;p&gt;Developing Lithia is fueled by the Visual Studio Code extension which relies on the Language Server within the Lithia binary and does not need to be installed separately.
+It provides syntax highlighting, diagnostics and autocompletion. Additionally to the LSP there is a tree-sitter grammar which can be used in other modern editors.&lt;/p&gt;
+&lt;h2 id="the-developer-experience"&gt;The Developer Experience&lt;/h2&gt;
+&lt;p&gt;Obviously the development experience in such a young programming language doesn’t reach the ease of use of mature ones. But for a scripting it provides decent autocompletion.
+Though there are no formatters or linters, yet. And currently there is no debugger support, which is a bummer. In practice this at least encourages the use of unit testing.&lt;/p&gt;
+&lt;p&gt;Lithia has a dynamic but strict type system, which may lead to runtime errors, which is okay for scripting. But the mix of lazy evaluation often further delays and hides these runtime errors and make debugging unnecessarily hard. Especially when adding concurrency. This needs to change.&lt;/p&gt;
+&lt;p&gt;Another option for improvement is the current parens-less call syntax: instead of &lt;code&gt;f(g(x), y)&lt;/code&gt; you write &lt;code&gt;f g x, y&lt;/code&gt;. With great syntax highlighting this is something you get around, but syntax should be self-explanatory.&lt;/p&gt;
+&lt;p&gt;What&amp;rsquo;s also missing is a real package manager although git submodules at least provide a workaround for this.&lt;/p&gt;
+&lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;In general Lithia as an experiment was successful and lead to really great results. The simplicity but power of the type system is a breeze. But Lithia needs a change. And at its core lazy evaluation needs to be dropped, while the overall tooling should evolve.
+But what’s still missing is the perfect use case that perfectly fits Lithia’s language features.
+The upcoming release v0.1.0 should provide answers and solutions for those pain points.&lt;/p&gt;
+&lt;p&gt;If you wish, check out the open source repository of &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt;. If you have any questions don&amp;rsquo;t hesitate to ask me on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt; or join the &lt;a href="https://github.com/vknabel/lithia/discussions"&gt;Lithia discussions&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy coding!&lt;/p&gt;</description></item><item><title>Statically read files with go:embed</title><link>https://vknabel.com/posts/statically-read-files-with-go-embed/</link><pubDate>Thu, 18 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/statically-read-files-with-go-embed/</guid><description>&lt;p&gt;Did you ever want to access the contents of an auxiliary file from within your repository to access the contents at runtime? This file could include some static settings like the version of the application, translations for user-facing texts, GraphQL requests or SQL queries. The typical solution to this problem is shipping your binary with the auxiliary files.&lt;/p&gt;
+&lt;p&gt;But this solution comes with great costs. You cannot ship one single executable anymore. Those files need to sit somewhere in the filesystem. And they might be misplaced, outdated or even missing.&lt;/p&gt;
+&lt;p&gt;Thankfully there is a library and language feature introduced in Go 1.16 that allows you to embed files statically into your binary.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;You can &lt;a href="./project.zip"&gt;download&lt;/a&gt; this example project or jump directly to the source code on &lt;a href="https://github.com/vknabel/vknabel.github.io/tree/main/content/posts/Statically-read-files-with-go-embed/project"&gt;Github&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="lets-goembed-the-license-file"&gt;Let&amp;rsquo;s go:embed the license file&lt;/h2&gt;
+&lt;p&gt;For now we want to start easy by embedding the contents a single file. In this case we wish to set our &lt;code&gt;license&lt;/code&gt; to the contents of our &lt;code&gt;LICENSE&lt;/code&gt; file.&lt;/p&gt;
+&lt;p&gt;To get started, we need to import the &lt;code&gt;embed&lt;/code&gt; package. As we won&amp;rsquo;t use any member of the embed package for now, we place an underscore before the package. This imports &lt;code&gt;embed&lt;/code&gt; solely for its side-effects. Otherwise go fmt would directly erase the import statement.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;import&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;_&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;embed&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now let&amp;rsquo;s create a new variable &lt;code&gt;license&lt;/code&gt; and assign the contents of the &lt;code&gt;LICENSE&lt;/code&gt; file to it.
+We simply initialize the variable by using the &lt;code&gt;go:embed&lt;/code&gt; compiler directive.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;//go:embed LICENSE&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;license&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;string&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And that&amp;rsquo;s it. If we mistype the file name, we get an error. If we forget to import the &lt;code&gt;embed&lt;/code&gt; package, we get a warning. But there may be no space between in &lt;code&gt;//go:embed&lt;/code&gt; like in normal comments.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: embedding file contents only works for global variables, not for locals.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To actually understand how powerful this feature is, let&amp;rsquo;s write a test by manually reading the file and comparing both.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;TestEmbedsLicenseFile&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt; &lt;span style="color:#f92672"&gt;*&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;testing&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;T&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// as usual, read the file&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#a6e22e"&gt;bytes&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;os&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ReadFile&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;LICENSE&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// check for errors&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Fatal&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;err&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// convert to string&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#a6e22e"&gt;want&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; string(&lt;span style="color:#a6e22e"&gt;bytes&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// actually use the contents&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;cmp&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Diff&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;want&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;license&lt;/span&gt;); &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Errorf&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;unexpected license (-want +got):\n%s&amp;#34;&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In this example, we declared the variable as &lt;code&gt;string&lt;/code&gt;, but in other cases you might want to use &lt;code&gt;[]byte&lt;/code&gt;. For example if you want to pin the signature of a remote certificate.&lt;/p&gt;
+&lt;h2 id="goembed-the-file-system"&gt;go:embed the file system&lt;/h2&gt;
+&lt;p&gt;In our previous example, we included a very special file that is unique in our repository. But sometimes we have many files, which should all be included in our binary.&lt;/p&gt;
+&lt;p&gt;In this case we are going to embed our docs folder within our app. We don&amp;rsquo;t want our users to be forced to leave. Instead we want them to be able to explore and access the docs directly from within our app.&lt;/p&gt;
+&lt;p&gt;In this case we are going to create an embedded file system.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;import&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;embed&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;//go:embed docs&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;docsFS&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;embed&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;FS&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;embed.FS&lt;/code&gt; conforms to &lt;code&gt;fs.FS&lt;/code&gt; and as with all &lt;code&gt;fs.FS&lt;/code&gt;, we can read directory and file contents. The usage is pretty straightforward.
+So let&amp;rsquo;s write a test which checks if the contents of the embedded &lt;code&gt;docs&lt;/code&gt; folder are equal to the contents of the &lt;code&gt;docs&lt;/code&gt; folder in our repository.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;TestEmbedsDocs&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt; &lt;span style="color:#f92672"&gt;*&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;testing&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;T&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#a6e22e"&gt;dirFS&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;os&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;DirFS&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;.&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// get all files within the docs directory&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#a6e22e"&gt;gotEntries&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;fs&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ReadDir&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;docsFS&lt;/span&gt;, &lt;span style="color:#e6db74"&gt;&amp;#34;docs&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Fatal&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;err&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#a6e22e"&gt;wantEntries&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;fs&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ReadDir&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;dirFS&lt;/span&gt;, &lt;span style="color:#e6db74"&gt;&amp;#34;docs&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Fatal&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;err&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; len(&lt;span style="color:#a6e22e"&gt;gotEntries&lt;/span&gt;) &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; len(&lt;span style="color:#a6e22e"&gt;wantEntries&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Errorf&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;got %d entries, want %d&amp;#34;&lt;/span&gt;, len(&lt;span style="color:#a6e22e"&gt;gotEntries&lt;/span&gt;), len(&lt;span style="color:#a6e22e"&gt;wantEntries&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;i&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;range&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;wantEntries&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;cmp&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Diff&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;gotEntries&lt;/span&gt;[&lt;span style="color:#a6e22e"&gt;i&lt;/span&gt;].&lt;span style="color:#a6e22e"&gt;Name&lt;/span&gt;(), &lt;span style="color:#a6e22e"&gt;wantEntries&lt;/span&gt;[&lt;span style="color:#a6e22e"&gt;i&lt;/span&gt;].&lt;span style="color:#a6e22e"&gt;Name&lt;/span&gt;()); &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Errorf&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;unexpected entry (-want +got):\n%s&amp;#34;&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#75715e"&gt;// read the files&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;got&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;fs&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ReadFile&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;docsFS&lt;/span&gt;, &lt;span style="color:#e6db74"&gt;&amp;#34;docs/&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;+&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;gotEntries&lt;/span&gt;[&lt;span style="color:#a6e22e"&gt;i&lt;/span&gt;].&lt;span style="color:#a6e22e"&gt;Name&lt;/span&gt;())
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Error&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;err&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;want&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;fs&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ReadFile&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;dirFS&lt;/span&gt;, &lt;span style="color:#e6db74"&gt;&amp;#34;docs/&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;+&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;wantEntries&lt;/span&gt;[&lt;span style="color:#a6e22e"&gt;i&lt;/span&gt;].&lt;span style="color:#a6e22e"&gt;Name&lt;/span&gt;())
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Error&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;err&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;cmp&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Diff&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;got&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;want&lt;/span&gt;); &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;			&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Errorf&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;unexpected contents (-want +got):\n%s&amp;#34;&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;This unit test is probably a bit too much, but it&amp;rsquo;s always a good idea to ensure the embedded contents are valid. Are they valid json? Not empty? Do certain files exist?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Huh? No magic? Yep. As you can see in the test above, the acutal file system and the embedded file system are used exactly the same.
+There are no real differences when using the readonly &lt;code&gt;fs.FS&lt;/code&gt;. But here&amp;rsquo;s the difference. Nobody guarantees that the files in the os file system has not been tampered with. Or if it has been set up correctly in the expected path. The compiler &lt;em&gt;proves&lt;/em&gt; that those files are accessible.&lt;/p&gt;
+&lt;p&gt;Another benefit: you decide which files you want to embed. Are you only interested in markdown files? Use &lt;code&gt;//go:embed docs/*.md&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s add another file: the README.md.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;//go:embed README.md&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;//go:embed docs&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;var&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;docsFS&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;embed&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;FS&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Yep, that&amp;rsquo;s it. We simply add another &lt;code&gt;//go:embed&lt;/code&gt; directive. But how do we know if both directives are respected?
+Correct, by writing a quick test!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;func&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;TestEmbedsReadme&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt; &lt;span style="color:#f92672"&gt;*&lt;/span&gt;&lt;span style="color:#a6e22e"&gt;testing&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;T&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// read using the ReadFile method&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#a6e22e"&gt;got&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;docsFS&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ReadFile&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;README.md&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Fatal&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;err&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#75715e"&gt;// as os has, too&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#a6e22e"&gt;want&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;os&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;ReadFile&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;README.md&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;err&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;nil&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Fatal&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;err&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#66d9ef"&gt;if&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;cmp&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Diff&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;got&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;want&lt;/span&gt;); &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt; &lt;span style="color:#f92672"&gt;!=&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;		&lt;span style="color:#a6e22e"&gt;t&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Errorf&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;unexpected README (-want +got):\n%s&amp;#34;&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;diff&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;go:embed&lt;/code&gt; bundles files and directories into the binary at compile-time. Of course you shouldn&amp;rsquo;t embed all files and blow up your binary size, but it can greatly simplify your deployment process and prove that auxiliary files are accessible and immutable.&lt;/p&gt;
+&lt;p&gt;Curious about more use cases? Here is a non-exhaustive list to get started:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;injecting the version of your software&lt;/li&gt;
+&lt;li&gt;pinning the signature of a remote certificate&lt;/li&gt;
+&lt;li&gt;embedding documentation&lt;/li&gt;
+&lt;li&gt;linking against an environment (prod, staging, &amp;hellip;)&lt;/li&gt;
+&lt;li&gt;translations / localizations&lt;/li&gt;
+&lt;li&gt;GraphQL requests&lt;/li&gt;
+&lt;li&gt;SQL queries&lt;/li&gt;
+&lt;li&gt;snapshot testing (e.g. for integration tests)&lt;/li&gt;
+&lt;li&gt;for loading defaults&lt;/li&gt;
+&lt;li&gt;&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Overriding Go values with ldflags</title><link>https://vknabel.com/posts/2022-08-12-overriding-go-values-with-ldflags/</link><pubDate>Fri, 12 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2022-08-12-overriding-go-values-with-ldflags/</guid><description>&lt;p&gt;You can override Go values with ldflags during the build.&lt;/p&gt;
+&lt;p&gt;That way, you can inject values like the current version, build date or the current commit hash.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go build &lt;span style="color:#ae81ff"&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; -ldflags &lt;span style="color:#e6db74"&gt;&amp;#34;-X &amp;#39;github.com/metal-stack/v.Version=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;VERSION&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39; \
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; -X &amp;#39;github.com/metal-stack/v.Revision=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;GITVERSION&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39; \
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; -X &amp;#39;github.com/metal-stack/v.GitSHA1=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;SHA&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39; \
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt; -X &amp;#39;github.com/metal-stack/v.BuildDate=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;BUILDDATE&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39;&amp;#34;&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Seen in the &lt;a href="https://github.com/metal-stack/v"&gt;metal-stack/v&lt;/a&gt; repository.&lt;/p&gt;</description></item><item><title>Bash scripts with Gum</title><link>https://vknabel.com/posts/2022-08-03-bash-scripts-with-gum/</link><pubDate>Wed, 03 Aug 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2022-08-03-bash-scripts-with-gum/</guid><description>&lt;p&gt;I gave the newest tool of Charm &lt;a href="https://github.com/charmbracelet/gum"&gt;Gum&lt;/a&gt; a try.
+It allows to create interactive bash scripts in just a few lines of code.&lt;/p&gt;
+&lt;p&gt;In my case I gave it a try for Kubernetes. I often want to look at the logs of a pod, but the exact k8s pod differs from time to time.
+And sometimes I forget the exact namespace or the pod&amp;rsquo;s name includes random characters.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;#! /bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# let the user select a namespace&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;NAMESPACE&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;kubectl get namespaces -o name | gum choose | cut -d/ -f2&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# let the user select a pod of the namespace&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;POD&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#66d9ef"&gt;$(&lt;/span&gt;kubectl get pods -n &lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;$NAMESPACE&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt; | tail -n +2 | gum choose | cut -d&lt;span style="color:#e6db74"&gt;&amp;#39; &amp;#39;&lt;/span&gt; -f1&lt;span style="color:#66d9ef"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# if you want to repeat, copy the command&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;echo &lt;span style="color:#e6db74"&gt;&amp;#34;&amp;gt; kubectl logs -n \&amp;#34;&lt;/span&gt;$NAMESPACE&lt;span style="color:#e6db74"&gt;\&amp;#34; \&amp;#34;&lt;/span&gt;$POD&lt;span style="color:#e6db74"&gt;\&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# print the logs&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;kubectl logs -n &lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;$NAMESPACE&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;$POD&lt;span style="color:#e6db74"&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>Go 1.19 new Garbage Collection Memory Limit</title><link>https://vknabel.com/posts/2022-07-30-go-1.19-new-garbage-collection-memory-limit/</link><pubDate>Sat, 30 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2022-07-30-go-1.19-new-garbage-collection-memory-limit/</guid><description>&lt;p&gt;Go 1.19 introduced a new option to customize the runtime Garbage Collection behavior: Memory Limit.
+This might be interesting when embedding Go within a mobile application.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://changelog.com/gotime/240"&gt;Go Time – Episode #240: What&amp;rsquo;s new in Go 1.19&lt;/a&gt;&lt;/p&gt;</description></item><item><title>Hugo's Syntax Highlighting is static</title><link>https://vknabel.com/posts/2022-07-24-hugo-syntax-highlighting-without-js/</link><pubDate>Sun, 24 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2022-07-24-hugo-syntax-highlighting-without-js/</guid><description>&lt;p&gt;Unlinke many other static site generators, the &lt;a href="https://gohugo.io/content-management/syntax-highlighting/"&gt;syntax highlighting of Hugo&lt;/a&gt; does not use client-side JavaScript, which is great!&lt;/p&gt;
+&lt;p&gt;The underlying library is available as Go module &lt;a href="https://github.com/alecthomas/chroma"&gt;github.com/alecthomas/chroma&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Go Data Race Detector</title><link>https://vknabel.com/posts/2022-07-09-go-data-race-detector/</link><pubDate>Sat, 09 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2022-07-09-go-data-race-detector/</guid><description>&lt;p&gt;You can run your Go program or your tests with the Data Race detection enabled. This might cost some performance and memory, but in case a data race is being detected, that&amp;rsquo;s worth it!&lt;/p&gt;
+&lt;p&gt;Perfect for your CI!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go run --race ./cmd/app
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go test --race ./...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>Iterating over a map in Go</title><link>https://vknabel.com/posts/2022-05-17-iterating-over-a-map-in-go/</link><pubDate>Tue, 17 May 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2022-05-17-iterating-over-a-map-in-go/</guid><description>&lt;p&gt;Iterating over a map in Go is not predictable.
+This is a design decision to avoid relying on memory layout.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;for&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;k&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;v&lt;/span&gt; &lt;span style="color:#f92672"&gt;:=&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;range&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;map&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;// always prints different results!&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#a6e22e"&gt;fmt&lt;/span&gt;.&lt;span style="color:#a6e22e"&gt;Printf&lt;/span&gt;(&lt;span style="color:#e6db74"&gt;&amp;#34;%s: %s\n&amp;#34;&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;k&lt;/span&gt;, &lt;span style="color:#a6e22e"&gt;v&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item></channel></rss>

@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Lithia on vknabel</title><link>https://vknabel.com/tags/lithia/</link><description>Recent content in Lithia on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Fri, 02 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/lithia/index.xml" rel="self" type="application/rss+xml"/><item><title>Discontinuing of Projects</title><link>https://vknabel.com/posts/2026-01-02-discontinuing-of-projects/</link><pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2026-01-02-discontinuing-of-projects/</guid><description>&lt;p&gt;Starting with this year, I have decided to discontinue all of my open source projects.&lt;/p&gt;
+&lt;p&gt;Most notably this affects my VS Code extensions for Swift.
+I archieved the repositories and requested to deprecate the extensions in the Visual Studio Marketplace.&lt;/p&gt;
+&lt;p&gt;Also I decided to stop my work on my toy programming language.&lt;/p&gt;
+&lt;h2 id="reasoning"&gt;Reasoning&lt;/h2&gt;
+&lt;p&gt;Since a few years I shifted my focus from Swift development to Go and Kubernetes and switched my main editor from VS Code to Helix.&lt;/p&gt;
+&lt;p&gt;And I found joy in so many different things that can be done without computers. Doing some side projects just isn&amp;rsquo;t worth the hassle for me anymore.&lt;/p&gt;
+&lt;p&gt;Occasionally I will still write some blog posts and update my non-archived repositories.&lt;/p&gt;</description></item><item><title>Zirric: A new Beginning</title><link>https://vknabel.com/posts/2025-09-16-a-new-beginning/</link><pubDate>Tue, 16 Sep 2025 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2025-09-16-a-new-beginning/</guid><description>&lt;p&gt;After a long time of procrastination I finally resumed my work on my new programming language. &lt;a href="https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/"&gt;Back then&lt;/a&gt; I wrote about the current state of &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt; and how I arrived in a dead end regarding the language design. Sure I proposed some large changes, but if a lazy evaluated programming language with a parensless call syntax becomes a strict evaluated programming language with a regular call syntax and multiple additional features, is it still the same &lt;del&gt;boat&lt;/del&gt;&amp;hellip; language?&lt;/p&gt;
+&lt;p&gt;Literally every line of code would break. That&amp;rsquo;s why I decided to create a new, currently private, repository for my new programming language called &lt;strong&gt;zirric&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="what-will-zirric-be-like"&gt;What will zirric be like?&lt;/h2&gt;
+&lt;p&gt;Similarly to Lithia, zirric will still be simple, but it will still be much more feature rich than Lithia.&lt;/p&gt;
+&lt;p&gt;First to get the boring stuff out of the way:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;zirric will be dynamically but strongly typed as Lithia is.&lt;/li&gt;
+&lt;li&gt;zirric will be strict evaluated while Lithia is lazy evaluated.&lt;/li&gt;
+&lt;li&gt;The call syntax might now look slightly familiar as &lt;code&gt;f(a, b)&lt;/code&gt; instead of &lt;code&gt;f a, b&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="annotations"&gt;Annotations&lt;/h3&gt;
+&lt;p&gt;Regarding the type system zirric adds the new &lt;code&gt;annotation&lt;/code&gt; types to Lithia&amp;rsquo;s &lt;code&gt;data&lt;/code&gt; and &lt;code&gt;enum&lt;/code&gt; types.
+An &lt;code&gt;annotation&lt;/code&gt; is declared like a &lt;code&gt;data&lt;/code&gt; type, but can be instantiated with an &lt;code&gt;@&lt;/code&gt; before declarations.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;annotation Countable {
+ @Returns(Int)
+ length(@Has(Countable) value)
+}
+
+@Countable({ v -&amp;gt; v.length })
+data Bag {
+ @Array items
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In contrast to decorators in other languages, annotations only store data. They cannot change the behavior of functions or types.
+To use annotations, a new reflection API will be provided.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;import reflect
+
+@Returns(Int)
+func count(@Has(Countable) value) {
+ return reflect.typeOf(value).annotation(Countable).length(value)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The effectively replaces the old but common &lt;a href="https://github.com/vknabel/lithia?tab=readme-ov-file#why-no-interfaces"&gt;witness pattern in Lithia&lt;/a&gt; with a more flexible and powerful system without introducing other new concepts like interfaces.&lt;/p&gt;
+&lt;p&gt;As you might have noticed, the new annotations &lt;em&gt;can&lt;/em&gt; but don&amp;rsquo;t have to be used to provide type hints. In the long term these should be checked by the compiler and fuel the language server to provide better IDE support.&lt;/p&gt;
+&lt;h3 id="control-flow"&gt;Control Flow&lt;/h3&gt;
+&lt;p&gt;In Lithia there were no control flow constructs like &lt;code&gt;if&lt;/code&gt; statements or &lt;code&gt;for&lt;/code&gt; loops except the &lt;code&gt;type&lt;/code&gt; expression. Instead everything was expressed via functions and recursion. This was slow and cumbersome.&lt;/p&gt;
+&lt;p&gt;zirric now comes with classic &lt;code&gt;if&lt;/code&gt; and &lt;code&gt;switch&lt;/code&gt; statements as well as &lt;code&gt;for&lt;/code&gt; loops.
+&lt;code&gt;if&lt;/code&gt; statements will support multiple branches and &lt;code&gt;else if&lt;/code&gt; as well as inline variable declarations.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;if condition {
+ doSomething()
+} else if otherCondition {
+ doSomethingElse()
+} else {
+ defaultCase()
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;switch&lt;/code&gt; statements will support type matching as well as value matching.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;switch value {
+case @SomeType:
+ doSomething(value)
+case 42:
+ doSomethingElse()
+case _:
+ defaultCase()
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;for&lt;/code&gt; loops will support iterating over ranges, arrays, maps and custom iterators and infinite loops with &lt;code&gt;for { }&lt;/code&gt;.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;for {
+ if condition {
+ break
+ }
+}
+
+for i in Range(0, 10) {
+ println(i)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In contrast to other languages, there will also be &lt;code&gt;if&lt;/code&gt;, &lt;code&gt;switch&lt;/code&gt; and &lt;code&gt;for&lt;/code&gt; expressions that can be used inline to assign values. In there only variable declarations and one expression per branch are allowed.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;let filtered = for num -&amp;gt; items {
+ if num % 13 == 0 {
+ break
+ } else if num % 2 == 0 &amp;amp;&amp;amp; num % 3 == 0 {
+ &amp;#34;fizzbuzz&amp;#34;
+ } else if num % 2 == 0 {
+ &amp;#34;fizz&amp;#34;
+ } else if num % 3 == 0 {
+ &amp;#34;buzz&amp;#34;
+ } else {
+ continue
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="a-few-more-things"&gt;A few more things&lt;/h3&gt;
+&lt;p&gt;zirric will come with a working package manager out of the box, it will have a new design and mascot (you might have noticed) and in the long term the language server and tooling will be much better and more accurate than Lithia&amp;rsquo;s.&lt;/p&gt;
+&lt;p&gt;A much better performance is also a goal, but don&amp;rsquo;t expect miracles here. Lithia was just really slow.&lt;/p&gt;
+&lt;p&gt;More on all of that later.&lt;/p&gt;
+&lt;h2 id="what-is-the-current-state"&gt;What is the current state?&lt;/h2&gt;
+&lt;p&gt;As of now, zirric is still in a very early stage. zirric can parse lots of the syntax although large parts are still missing. Though the execution side is still in its infancy and only supports a few basic mathematical operations, arrays, bools, and &lt;code&gt;if&lt;/code&gt; statements and expressions. Variables and functions will be the next big step.&lt;/p&gt;
+&lt;p&gt;At the tooling side, the core of the package manager is already present.&lt;/p&gt;
+&lt;p&gt;I guess I have quite a long way to go, but I am excited to finally work on a new programming language again. If you want to follow along or want a quick chat, feel free to reach out to me &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>The current state of Lithia after 2 years</title><link>https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/</link><pubDate>Thu, 18 Jan 2024 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/</guid><description>&lt;p&gt;In 2021 I started working on the current Go implementation of my own experimental programming language called &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt;. Now it is available in version v0.0.19. Infrequently I also wrote some words about it on this blog.
+It has been designed to be an experiment, that is able to teach some lessons and that can be fulfilled.&lt;/p&gt;
+&lt;p&gt;For a programming language being able to teach lessons, a Standard Library and of course some programs need to exist. Only the experience of its developers can lead to conclusions.
+Now it’s time to derive those!&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="the-current-state"&gt;The current state&lt;/h2&gt;
+&lt;p&gt;But first let’s have a look on the current state of Lithia.&lt;/p&gt;
+&lt;p&gt;Lithia has all planned features implemented. You can define &lt;code&gt;data&lt;/code&gt;-structures, &lt;code&gt;enum&lt;/code&gt;s similar to unions, functions, constants, modules and imports, closures, partial application of parameters and lazy evaluation.
+The standard library currently consists of 19 modules providing base types, helpers around comparisons, strings, results and more, file system access and a micro-framework to write unit tests in and for Lithia. Every module is fully documented and is generated by a Lithia script.&lt;/p&gt;
+&lt;p&gt;To declare packages and to make project-based scripts easily accessible, there is the &lt;code&gt;Potfile&lt;/code&gt; (comparable to &lt;code&gt;package.json&lt;/code&gt;, &lt;code&gt;Package.swift&lt;/code&gt;, &lt;code&gt;go.mod&lt;/code&gt;, &lt;code&gt;Gemfile&lt;/code&gt; &amp;amp; &lt;code&gt;Taskfile&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;Although the performance of the Lithia interpreter has largely improved in the early days but it’s still slow and leaves room for improvements.&lt;/p&gt;
+&lt;p&gt;Developing Lithia is fueled by the Visual Studio Code extension which relies on the Language Server within the Lithia binary and does not need to be installed separately.
+It provides syntax highlighting, diagnostics and autocompletion. Additionally to the LSP there is a tree-sitter grammar which can be used in other modern editors.&lt;/p&gt;
+&lt;h2 id="the-developer-experience"&gt;The Developer Experience&lt;/h2&gt;
+&lt;p&gt;Obviously the development experience in such a young programming language doesn’t reach the ease of use of mature ones. But for a scripting it provides decent autocompletion.
+Though there are no formatters or linters, yet. And currently there is no debugger support, which is a bummer. In practice this at least encourages the use of unit testing.&lt;/p&gt;
+&lt;p&gt;Lithia has a dynamic but strict type system, which may lead to runtime errors, which is okay for scripting. But the mix of lazy evaluation often further delays and hides these runtime errors and make debugging unnecessarily hard. Especially when adding concurrency. This needs to change.&lt;/p&gt;
+&lt;p&gt;Another option for improvement is the current parens-less call syntax: instead of &lt;code&gt;f(g(x), y)&lt;/code&gt; you write &lt;code&gt;f g x, y&lt;/code&gt;. With great syntax highlighting this is something you get around, but syntax should be self-explanatory.&lt;/p&gt;
+&lt;p&gt;What&amp;rsquo;s also missing is a real package manager although git submodules at least provide a workaround for this.&lt;/p&gt;
+&lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;In general Lithia as an experiment was successful and lead to really great results. The simplicity but power of the type system is a breeze. But Lithia needs a change. And at its core lazy evaluation needs to be dropped, while the overall tooling should evolve.
+But what’s still missing is the perfect use case that perfectly fits Lithia’s language features.
+The upcoming release v0.1.0 should provide answers and solutions for those pain points.&lt;/p&gt;
+&lt;p&gt;If you wish, check out the open source repository of &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt;. If you have any questions don&amp;rsquo;t hesitate to ask me on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt; or join the &lt;a href="https://github.com/vknabel/lithia/discussions"&gt;Lithia discussions&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy coding!&lt;/p&gt;</description></item><item><title>Designing and scoping my programming language Lithia</title><link>https://vknabel.com/posts/designing-and-scoping-my-language-lithia/</link><pubDate>Fri, 22 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/designing-and-scoping-my-language-lithia/</guid><description>&lt;p&gt;Once you have decided you want to create your own programming language, you need to create a broader concept. Every programming language is unique in its own way. Your goal is to find out in which way. And you need to find your reason &lt;em&gt;why&lt;/em&gt; you want to create it in the first place.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Do you want to solve a particular problem?&lt;/li&gt;
+&lt;li&gt;Is it for learning purposes?&lt;/li&gt;
+&lt;li&gt;For who do you build the language?&lt;/li&gt;
+&lt;li&gt;Who should use it?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Keep the answers in mind during the whole design process: they will guide you into the right direction.&lt;/p&gt;
+&lt;p&gt;In my case, I designed &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt; for myself to learn and explore all sorts of tooling around programming and to create them myself. And that&amp;rsquo;s also the focus of the language: tooling around itself. Learning by doing is king here.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="my-initial-take-on-designing-lithia"&gt;My initial take on designing Lithia&lt;/h2&gt;
+&lt;p&gt;I really like functional programming, but I value being able to perform changes imperatively when I need to. I like the idea of lazy evaluation and being able to create infinite data structures, but to only execute needed parts. And the stronger your type system is, the more errors can be caught at compile time. Some downsides like verbosity can be reduced by type inference.&lt;/p&gt;
+&lt;p&gt;Writing functional algorithms really work well with enumerations where every case may have attributes or associated values. It should also be possible to add scoped methods to already declared classes or data types.&lt;/p&gt;
+&lt;p&gt;And generics are great, let‘s stuff generics in there. Great nice language. How long will I take to implement it? Well…, scrap that.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Let‘s start all over.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Every programming language special on its own way. To define each characteristic of it, you not only need to know the language features, but the intentionally missing ones, naming conventions, typical patterns, the standard library and how everything is tied together.&lt;/p&gt;
+&lt;p&gt;That all defines the programming language. Everything is a tradeoff. For example, every piece of syntactic sugar makes your language more expressive, but harder to read. Every new feature needs to be learned and understood correctly. And every feature may be used in the wrong places or not at all.&lt;/p&gt;
+&lt;h2 id="what-language-is-worth-to-implement"&gt;What language is worth to implement?&lt;/h2&gt;
+&lt;p&gt;Let‘s be honest: programming languages tend to be on the bigger side of projects and we all have limited time, energy and motivation. And there are plenty of programming languages out there.&lt;/p&gt;
+&lt;p&gt;Where does your language fit between all those other already finished languages? Are you solving niche problems? Are you experimenting with new language concepts or are you mixing seemingly unrelated paradigms? And more importantly: why do &lt;strong&gt;you&lt;/strong&gt; want to implement it yourself? Are you able to even finish it? How do you keep your motivation up in the long term?&lt;/p&gt;
+&lt;p&gt;If you decided to start working on a compiler or interpreter, be sure to be able to finish it and expect you will be the only one using it.&lt;/p&gt;
+&lt;p&gt;So what‘s my case? Lithia does not solve a particular problem, but it enables me to learn about the inner workings of compilers, interpreters and the tooling around it. I want a green field to build all kinds of tooling. And in case there is a limitation or bug, I can fix or embrace and document it. What can be achieved in a specific field is not limited by external factors, only by my time, energy and motivation.&lt;/p&gt;
+&lt;h2 id="its-about-the-scope-and-milestones"&gt;It’s about the scope and milestones&lt;/h2&gt;
+&lt;p&gt;We know, the planned Lithia is not going to be able to compete with whole language ecosystems or programming languages that shine through lots of features. I wouldn’t be able to finish it.&lt;/p&gt;
+&lt;p&gt;Instead, the scope must be reduced. Even more as the language should be accompanied by tooling, coming with a huge scope increase!&lt;/p&gt;
+&lt;p&gt;But great tooling requires meta data like types to operate on and the compiler needs to support all that.&lt;/p&gt;
+&lt;p&gt;There need to be compromises.&lt;/p&gt;
+&lt;p&gt;And I need continuous wins to keep my motivation high. Once there is a basic implementation, I want to do some simple stuff, while working on a complex subsystem.&lt;/p&gt;
+&lt;p&gt;Lithia needs to shine through the absence of many features. Instead it should focus on few key concepts, that support requirements for tooling. And after all, it should be a language I like to program in.&lt;/p&gt;
+&lt;p&gt;To sum up, Lithia…&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;is a simple language with only a few features&lt;/li&gt;
+&lt;li&gt;supports tooling&lt;/li&gt;
+&lt;li&gt;allows a few quick wins&lt;/li&gt;
+&lt;li&gt;is conceptually attracting&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="lithia-is-an-experiment"&gt;Lithia is an experiment&lt;/h2&gt;
+&lt;p&gt;I personally prefer mostly functional programming languages with a shot of imperative programming. In that context I also favour lazy over strict evaluation and love currying.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Lazy vs strict evaluation:&lt;/strong&gt; expressions will only be evaluated if their value is actually needed in lazy evaluation. With strict evaluation they will always be evaluated.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Currying&lt;/strong&gt;: let’s imagine you have a function with two parameters, but you currently have just the first parameter. With currying you can pass just the first one and you will receive a function that accepts the second parameter. Without currying you‘d need to manually create that function.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Lithia won’t allow direct mutations of variables. There will only be constants. I didn’t want to explicitly forbid any mutations, but at this stage I didn’t know how they fit into the language, yet.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Why?&lt;/strong&gt; lazy evaluation and directly mutating variables might lead to weird behaviour. And what about types of a variable? May they change at any time?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The type system should be easy to bootstrap, but should enable static analysis in the future.&lt;/p&gt;
+&lt;p&gt;That’s my baseline.&lt;/p&gt;
+&lt;h3 id="type-system"&gt;Type System&lt;/h3&gt;
+&lt;p&gt;Variables, parameters and functions won&amp;rsquo;t have an explicit type annotation like Java&amp;rsquo;s &lt;code&gt;String name&lt;/code&gt;, Swift&amp;rsquo;s &lt;code&gt;let name: String&lt;/code&gt; or Go&amp;rsquo;s &lt;code&gt;var name string&lt;/code&gt;. If there would be type annotations, Lithia would need to enforce them right from the beginning.&lt;/p&gt;
+&lt;p&gt;Instead Lithia should have an easy to bootstrap dynamic type system, that still enables static analysis. The easiest way is not to allow structural manipulation of types.&lt;/p&gt;
+&lt;p&gt;How far can we get with type inference?&lt;/p&gt;
+&lt;h3 id="base-types"&gt;Base Types&lt;/h3&gt;
+&lt;p&gt;There are two basic kinds of types to support:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;types like classes and structs with independent properties.&lt;/li&gt;
+&lt;li&gt;types like enums that list all possible values. In some languages enums may have associated properties, thus mixing sum and product types.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Another aspect are reference and value types and semantics. How should changes propagate through the different parts of your program?&lt;/p&gt;
+&lt;p&gt;In Lithia there will be one type with properties called &lt;em&gt;data&lt;/em&gt; without any inheritance or methods like classes have. They will have a list of untyped properties.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Don&amp;rsquo;t worry if upcoming code snippets look unfamiliar – we will cover the syntax in another article.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;data Example {
+ firstProperty
+ secondProperty
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;But here is an optimisation for tooling: if you want to store a function within your &lt;em&gt;data&lt;/em&gt;, you can add all its parameters &lt;code&gt;firstProperty param, and, more&lt;/code&gt;. When the tooling and the compiler mature, they can detect errors and improve autocompletion.&lt;/p&gt;
+&lt;p&gt;In Lithia, the &lt;em&gt;enum&lt;/em&gt; type breaks with common interpretations. Here an &lt;em&gt;enum&lt;/em&gt; isn’t a direct list of possible values, but a list of possible types, called a union.&lt;/p&gt;
+&lt;p&gt;This change from individual values to more generic types should make the currently rather static language feel more dynamic and like a scripting language for lovers of strong typing.&lt;/p&gt;
+&lt;h3 id="the-type-switch"&gt;The type switch&lt;/h3&gt;
+&lt;p&gt;Now that we have enums, we need to resolve those types. A type switch maps every type to a function. It requires the enum definition and returns a function that receives the value.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;let increaseOptional = type Optional {
+ Some: { some =&amp;gt; some.value + 1 },
+ None: { none =&amp;gt; none }
+}
+increaseOptional (Some 1)
+increaseOptional None
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The goal is to provide functions to work on the enums within one module, that are reusable and higher level. This should reduce the amount of external type switches.&lt;/p&gt;
+&lt;h3 id="standard-library"&gt;Standard Library&lt;/h3&gt;
+&lt;p&gt;The stdlib is a great place to get quick wins from once the most basic implementation of the language has been finished.&lt;/p&gt;
+&lt;p&gt;In Lithia the interpreter’s responsibility ends early. It defines Strings, Characters, numeric types, Functions and some more basic types.&lt;/p&gt;
+&lt;p&gt;The Standard Library called &lt;em&gt;prelude&lt;/em&gt; starts with famous types like Boolean and List.&lt;/p&gt;
+&lt;p&gt;In here there are many possibilities:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Testing&lt;/li&gt;
+&lt;li&gt;Docs generation&lt;/li&gt;
+&lt;li&gt;Sorting&lt;/li&gt;
+&lt;li&gt;All kinds of basic data manipulations&lt;/li&gt;
+&lt;li&gt;And much, much more!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="what-didnt-make-it-to-lithia"&gt;What didn’t make it to Lithia&lt;/h3&gt;
+&lt;p&gt;The list of all features that did not find any place in Lithia is longer than what did. All have their particular reasons and their absence fit into the concept of Lithia. Here are some honorable mentions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Interfaces / protocols&lt;/li&gt;
+&lt;li&gt;Extensions / adding new methods to existing types&lt;/li&gt;
+&lt;li&gt;Methods&lt;/li&gt;
+&lt;li&gt;Type casts and direct type testing&lt;/li&gt;
+&lt;li&gt;Custom operators&lt;/li&gt;
+&lt;li&gt;Overloading&lt;/li&gt;
+&lt;li&gt;Variational arguments&lt;/li&gt;
+&lt;li&gt;Exceptions&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;In this post, I summarised my take on creating your own programming language. Don’t do it for glory, do it for yourself and the experience you gain.&lt;/p&gt;
+&lt;p&gt;Design your scope and concept. Make sure you stay motivated until the end. Don’t hesitate to reevaluate your decisions. Take tiny steps.&lt;/p&gt;
+&lt;p&gt;If you wish, check out the open source repository of &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt;. If you have any questions don&amp;rsquo;t hesitate to ask me on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt; or join the &lt;a href="https://github.com/vknabel/lithia/discussions"&gt;Lithia discussions&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy coding!&lt;/p&gt;</description></item><item><title>Starting the journey about creating a new programming language</title><link>https://vknabel.com/posts/journey-about-creating-a-new-programming-language/</link><pubDate>Fri, 22 Jul 2022 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/journey-about-creating-a-new-programming-language/</guid><description>&lt;p&gt;This is planned to be a series of blog posts about designing and developing my own programming language, where I want to share some pitfalls, my learnings, design decisions, experience and the development process.&lt;/p&gt;
+&lt;p&gt;While this series will not teach you how to write your first own programming language on its own, it might be supplementary.&lt;/p&gt;
+&lt;p&gt;After years of playing with the idea of writing my own programming language, I finally started. In the past I read books and blog posts about creating my own compiler, and I actually have written some parsers, but I never implemented the whole language itself. I know some theory, but I do not know how to actually apply it in practice.&lt;/p&gt;
+&lt;p&gt;I felt stuck between theory and simple proof of concept implementations like creating another Lisp.&lt;/p&gt;
+&lt;h2 id="whats-in-this-series"&gt;What&amp;rsquo;s in this series?&lt;/h2&gt;
+&lt;p&gt;These are all finished blog posts so far.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://vknabel.com/posts/designing-and-scoping-my-language-lithia/"&gt;Designing and scoping my language Lithia&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/"&gt;The current state of Lithia after 2 years&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://vknabel.com/posts/2025-09-16-a-new-beginning/"&gt;Zirric: A new Beginning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://vknabel.com/posts/2025-09-28-going-virtual/"&gt;Zirric: The Virtual Machine&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="my-motivations-and-background"&gt;My motivations and background&lt;/h2&gt;
+&lt;p&gt;As soon as I learned programming, I was inspired by all the tooling like linters, editors and the compiler itself. All developed in order to develop. They were those magical blackboxes, that felt beyond everything I could achieve.&lt;/p&gt;
+&lt;p&gt;Later I played around with various language features and writing my own standard library replacement for existing languages. Lots of fun, but not productive.&lt;/p&gt;
+&lt;p&gt;With the years, I learned new paradigms like object orientation, logical, constraint and functional programming. And beyond those big paradigms, there are many different concepts that define the languages character like the module system, dependencies, inheritance, generics, operator overloading, interfaces, type classes, strong or weak typing, dynamic or static, side-effects, monads and many more.&lt;/p&gt;
+&lt;p&gt;I started experimenting with new programming language concepts, mixing a few and thinking about the consequences. How do these features integrate and what does it mean for a different group of features? And which syntax do you need to support the special characteristics?&lt;/p&gt;
+&lt;p&gt;For fun, I worked on small libraries and tooling in existing programming language ecosystems. Nothing special or widespread.
+I read about compilers and interpreters and even though I implemented small lisp-like languages and custom parsers, I felt like I couldn’t write a compiler on my own.&lt;/p&gt;
+&lt;p&gt;I kept the wish to design and create my own programming language from ground up. With tooling. I want to learn every aspect of it. Run into problems. Solve them and gradually increase the maturity of the language, the tooling and the compiler.&lt;/p&gt;
+&lt;p&gt;That being said, I don’t want my language to be used in wild, heck I encourage you to &lt;em&gt;not&lt;/em&gt; use it. The journey and what we learn along the way is the treasure.&lt;/p&gt;
+&lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;I decided to create yet another programming language and let’s be honest: nobody will ever use it and I’m fine with it. But anyway I will still provide tooling and documentation for it.&lt;/p&gt;
+&lt;p&gt;I will update and link all my compiler and language design blog posts here.&lt;/p&gt;
+&lt;p&gt;If you wish, check out the open source repository of &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt;. If you have any questions don&amp;rsquo;t hesitate to ask me on &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt; or join the &lt;a href="https://github.com/vknabel/lithia/discussions"&gt;Lithia disussions&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy coding!&lt;/p&gt;</description></item></channel></rss>
