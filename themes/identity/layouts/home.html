@@ -9,7 +9,7 @@
   {{ if eq (len $ps) 0 }}
     {{ continue }}
   {{ end }}
-  <h2>{{ .Key }}</h2>
+  <h2 id="{{ .Key }}" class="section"><a href="#{{ .Key }}">{{ .Key }}</a></h2>
     {{ range $ps }}
     <section class="article-compact">
       {{ $p := . }}
