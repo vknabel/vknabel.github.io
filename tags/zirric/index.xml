@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Zirric on vknabel</title><link>https://vknabel.com/tags/zirric/</link><description>Recent content in Zirric on vknabel</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>© Valentin Knabel</copyright><lastBuildDate>Fri, 02 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://vknabel.com/tags/zirric/index.xml" rel="self" type="application/rss+xml"/><item><title>Discontinuing of Projects</title><link>https://vknabel.com/posts/2026-01-02-discontinuing-of-projects/</link><pubDate>Fri, 02 Jan 2026 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2026-01-02-discontinuing-of-projects/</guid><description>&lt;p&gt;Starting with this year, I have decided to discontinue all of my open source projects.&lt;/p&gt;
+&lt;p&gt;Most notably this affects my VS Code extensions for Swift.
+I archieved the repositories and requested to deprecate the extensions in the Visual Studio Marketplace.&lt;/p&gt;
+&lt;p&gt;Also I decided to stop my work on my toy programming language.&lt;/p&gt;
+&lt;h2 id="reasoning"&gt;Reasoning&lt;/h2&gt;
+&lt;p&gt;Since a few years I shifted my focus from Swift development to Go and Kubernetes and switched my main editor from VS Code to Helix.&lt;/p&gt;
+&lt;p&gt;And I found joy in so many different things that can be done without computers. Doing some side projects just isn&amp;rsquo;t worth the hassle for me anymore.&lt;/p&gt;
+&lt;p&gt;Occasionally I will still write some blog posts and update my non-archived repositories.&lt;/p&gt;</description></item><item><title>Zirric: Going Virtual</title><link>https://vknabel.com/posts/2025-09-28-going-virtual/</link><pubDate>Sun, 28 Sep 2025 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2025-09-28-going-virtual/</guid><description>&lt;p&gt;A few years ago while I started working on &lt;a href="https://code.knabel.dev/lithia-lang/lithia"&gt;Lithia&lt;/a&gt;, I decided to use whatever takes me to my goal. Getting finished was the primary focus. And I did.&lt;/p&gt;
+&lt;p&gt;With &lt;a href="https://code.knabel.dev/zirric-lang/zirric"&gt;Zirric&lt;/a&gt; I want to take less compromise and build a better language. Performance and portability aren&amp;rsquo;t completely irrelevant anymore.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="the-tree-walker"&gt;The Tree Walker&lt;/h2&gt;
+&lt;p&gt;For Lithia I chose to implement a tree walker interpreter. It is simple to implement and easy to understand. The downside is that it&amp;rsquo;s slow.&lt;/p&gt;
+&lt;p&gt;Here the interpreter walks the abstract syntax tree (AST) and executes the program directly. This means that every time a function is called, the AST nodes for that function have to be traversed again.&lt;/p&gt;
+&lt;p&gt;In this approach every node in the AST has an &lt;code&gt;evaluate&lt;/code&gt; method that takes the current context as a parameter. The context holds variable bindings and other state information.&lt;/p&gt;
+&lt;p&gt;Variables and constants were stored in a map. During every variable access, a lookup with the string name of the variable had to be performed. In case of a miss, a parent context had to be checked as well until the variable was found or the global context was reached.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-lithia" data-lang="lithia"&gt;let a = &amp;#34;global&amp;#34;
+
+func do { =&amp;gt;
+ let b = &amp;#34;local&amp;#34;
+
+ print a // lookup &amp;#34;a&amp;#34; in current context -&amp;gt; miss -&amp;gt; lookup &amp;#34;a&amp;#34; in parent context -&amp;gt; hit
+ print b // lookup &amp;#34;b&amp;#34; in current context -&amp;gt; hit
+}
+
+do // looks up the function &amp;#34;do&amp;#34; and calls it
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Additionally checking the type of a value wasn&amp;rsquo;t trivial as well as the types had to be looked up by name as well.&lt;/p&gt;
+&lt;p&gt;Furthermore Lithia leverages lazy evaluation, which means that expressions are not evaluated until their value is needed. This adds additional overhead as every expression has to be wrapped in a thunk (a parameterless function).&lt;/p&gt;
+&lt;p&gt;And this makes the second problem of this clear: everything is hidden behind pointers and in general everything is kind of costly. Not necessarily in terms of complexity, its just slow like hashing strings multiple times per variable access, checking if everything has been evaluated and last but not least it can&amp;rsquo;t be cached efficiently by the CPU.&lt;/p&gt;
+&lt;h2 id="the-bytecode-interpreter"&gt;The Bytecode Interpreter&lt;/h2&gt;
+&lt;p&gt;Zirric takes a different approach to this. It defines a virtual machine (VM) that executes bytecode instructions. Zirric&amp;rsquo;s VM is stack based, which is comparable for a simple calculator or a deck of cards: each operation works on the topmost elements of the stack.&lt;/p&gt;
+&lt;p&gt;The bytecode itself is separated of all constants. Instead these are in a separate array or slice while the bytecode references them by index.
+In case of the expression &lt;code&gt;40 + 2&lt;/code&gt;, the constant &lt;code&gt;40&lt;/code&gt; is at index &lt;code&gt;0&lt;/code&gt; and &lt;code&gt;2&lt;/code&gt; is at index &lt;code&gt;1&lt;/code&gt;. The human readable bytecode to add these two numbers is then:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;# 1 + 2
+Cons 0 # Pushes the constant at index 0 (40) onto the stack
+Cons 1 # Pushes the constant at index 1 (2) onto the stack
+Add
+# Result: 42
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;The actual bytecode currently looks like this: &lt;code&gt;01 00 00 01 00 01 10&lt;/code&gt;. Neat, huh?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The VM iterates over the bytecode instructions and executes them one by one.
+Here &lt;code&gt;Cons&lt;/code&gt; loads the constant with the fitting index onto the stack. &lt;code&gt;Add&lt;/code&gt; pops the top two elements from the stack, adds them and pushes the result back onto the stack.
+That way the stack of the VM grows and shrinks as needed.&lt;/p&gt;
+&lt;p&gt;When it comes to variables, the VM uses a different approach as well: each variable gets an index assigned at compile time. That way variable access is just a matter of looking up an index of a single array.&lt;/p&gt;
+&lt;p&gt;Now let&amp;rsquo;s get back to our example from above:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-lithia" data-lang="lithia"&gt;let a = &amp;#34;global&amp;#34; // globals[0] = constants[0]
+
+func do() { // functions are constants: constants[1]
+ let b = &amp;#34;local&amp;#34; // locals[0] = constants[2]
+
+ print(a) // globals[0]
+ print(b) // locals[0]
+}
+
+do() // constants[1]()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;No more string lookups. No more parent contexts. Just direct index access.
+And the best part of this: the CPU can cache this data much more efficiently.&lt;/p&gt;
+&lt;p&gt;What about laziness? Almost everything is now eagerly evaluated. Expressions are evaluated as soon as they are encountered.
+Though there are a few exceptions like logical operators (&lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt;, &lt;code&gt;||&lt;/code&gt;) which skip their right hand side if the result is already determined by the left hand side. This is common and does not add much overhead.&lt;/p&gt;
+&lt;p&gt;But in Zirric globals are still initialized lazily. More on this in a future blog post.&lt;/p&gt;
+&lt;h2 id="why-that-hassle"&gt;Why that hassle?&lt;/h2&gt;
+&lt;p&gt;Interpreters are much easier to implement and to understand. Is this actually worth it?&lt;/p&gt;
+&lt;p&gt;Glad you asked! I made some micro benchmarks for Lithia and Zirric. In this case I wrote a simple recursive Fibonacci function in both languages and measured the time it takes to compute for several numbers.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Microbenchmarks can be misleading and do not reflect real world performance. But as long as we keep all tests as similar as possible, we can get a rough idea of the performance difference.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Here is the Lithia version:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-lithia" data-lang="lithia"&gt;func fib { n =&amp;gt;
+ if (n &amp;lt; 2), n, (fib n - 1) + (fib n - 2)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Here is the Zirric version:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;func fib(n) {
+	return if n &amp;lt; 2 {
+		n
+	} else {
+		fib(n-1) + fib(n-2)				
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;As both languages are implemented in Go, I used the builtin Go benchmarking for both to keep it as similar as possible.&lt;/p&gt;
+&lt;p&gt;And these are the results on my machine:&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;Input&lt;/th&gt;
+ &lt;th&gt;Repetitions&lt;/th&gt;
+ &lt;th&gt;Lithia&lt;/th&gt;
+ &lt;th&gt;Repetitions&lt;/th&gt;
+ &lt;th&gt;Zirric&lt;/th&gt;
+ &lt;th&gt;Factor&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;28&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;5,338 sec&lt;/td&gt;
+ &lt;td&gt;1,000,000,000&lt;/td&gt;
+ &lt;td&gt;0.1101 ns&lt;/td&gt;
+ &lt;td&gt;4,848,486&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;30&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;13,990 sec&lt;/td&gt;
+ &lt;td&gt;1,000,000,000&lt;/td&gt;
+ &lt;td&gt;0.2860 ns&lt;/td&gt;
+ &lt;td&gt;4,891,832&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;32&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;36,805 sec&lt;/td&gt;
+ &lt;td&gt;1,000,000,000&lt;/td&gt;
+ &lt;td&gt;0.7305 ns&lt;/td&gt;
+ &lt;td&gt;5,038,386&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;40&lt;/td&gt;
+ &lt;td&gt;0&lt;/td&gt;
+ &lt;td&gt;(too long)&lt;/td&gt;
+ &lt;td&gt;1&lt;/td&gt;
+ &lt;td&gt;34,238 sec&lt;/td&gt;
+ &lt;td&gt;(too long)&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;When I first saw these results, I had to check if I messed something up. We are comparing seconds with nanoseconds here. That&amp;rsquo;s why I added another run with &lt;code&gt;fib(40)&lt;/code&gt; for Zirric to validate the tests. And they were right. Zirric is nearly &lt;em&gt;five million&lt;/em&gt; times faster than Lithia in this case.&lt;/p&gt;
+&lt;p&gt;To get some more context, I also measured the Python and Ruby &lt;code&gt;fib(40)&lt;/code&gt; and got around 10 to 17 seconds here. Although these numbers are not accurate and probably estimated too high, they give a rough idea of the performance difference. Zirric is multiple times slower than these languages, but still in the same ballpark, while Lithia is outclassed by magnitudes.&lt;/p&gt;
+&lt;p&gt;Zirric is still in early development. Through optimization, new language features but also additional safe guards the performance profile will change over time. And probably not always for the better. Also this is just a microbenchmark that is not in favor of Lithia. Real world performance might be different. Take these numbers with a grain of salt.&lt;/p&gt;
+&lt;p&gt;But yes, this was worth the hassle.
+In case you are curios about what&amp;rsquo;s up next or want a nerd talk, feel free to reach out to me &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Zirric: A new Beginning</title><link>https://vknabel.com/posts/2025-09-16-a-new-beginning/</link><pubDate>Tue, 16 Sep 2025 00:00:00 +0000</pubDate><guid>https://vknabel.com/posts/2025-09-16-a-new-beginning/</guid><description>&lt;p&gt;After a long time of procrastination I finally resumed my work on my new programming language. &lt;a href="https://vknabel.com/posts/the-current-state-of-lithia-after-2-years/"&gt;Back then&lt;/a&gt; I wrote about the current state of &lt;a href="https://github.com/vknabel/lithia"&gt;Lithia&lt;/a&gt; and how I arrived in a dead end regarding the language design. Sure I proposed some large changes, but if a lazy evaluated programming language with a parensless call syntax becomes a strict evaluated programming language with a regular call syntax and multiple additional features, is it still the same &lt;del&gt;boat&lt;/del&gt;&amp;hellip; language?&lt;/p&gt;
+&lt;p&gt;Literally every line of code would break. That&amp;rsquo;s why I decided to create a new, currently private, repository for my new programming language called &lt;strong&gt;zirric&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This blog post is part of a &lt;a href="https://vknabel.com/posts/journey-about-creating-a-new-programming-language/"&gt;Journey about creating a new programming language&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="what-will-zirric-be-like"&gt;What will zirric be like?&lt;/h2&gt;
+&lt;p&gt;Similarly to Lithia, zirric will still be simple, but it will still be much more feature rich than Lithia.&lt;/p&gt;
+&lt;p&gt;First to get the boring stuff out of the way:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;zirric will be dynamically but strongly typed as Lithia is.&lt;/li&gt;
+&lt;li&gt;zirric will be strict evaluated while Lithia is lazy evaluated.&lt;/li&gt;
+&lt;li&gt;The call syntax might now look slightly familiar as &lt;code&gt;f(a, b)&lt;/code&gt; instead of &lt;code&gt;f a, b&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="annotations"&gt;Annotations&lt;/h3&gt;
+&lt;p&gt;Regarding the type system zirric adds the new &lt;code&gt;annotation&lt;/code&gt; types to Lithia&amp;rsquo;s &lt;code&gt;data&lt;/code&gt; and &lt;code&gt;enum&lt;/code&gt; types.
+An &lt;code&gt;annotation&lt;/code&gt; is declared like a &lt;code&gt;data&lt;/code&gt; type, but can be instantiated with an &lt;code&gt;@&lt;/code&gt; before declarations.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;annotation Countable {
+ @Returns(Int)
+ length(@Has(Countable) value)
+}
+
+@Countable({ v -&amp;gt; v.length })
+data Bag {
+ @Array items
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In contrast to decorators in other languages, annotations only store data. They cannot change the behavior of functions or types.
+To use annotations, a new reflection API will be provided.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;import reflect
+
+@Returns(Int)
+func count(@Has(Countable) value) {
+ return reflect.typeOf(value).annotation(Countable).length(value)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The effectively replaces the old but common &lt;a href="https://github.com/vknabel/lithia?tab=readme-ov-file#why-no-interfaces"&gt;witness pattern in Lithia&lt;/a&gt; with a more flexible and powerful system without introducing other new concepts like interfaces.&lt;/p&gt;
+&lt;p&gt;As you might have noticed, the new annotations &lt;em&gt;can&lt;/em&gt; but don&amp;rsquo;t have to be used to provide type hints. In the long term these should be checked by the compiler and fuel the language server to provide better IDE support.&lt;/p&gt;
+&lt;h3 id="control-flow"&gt;Control Flow&lt;/h3&gt;
+&lt;p&gt;In Lithia there were no control flow constructs like &lt;code&gt;if&lt;/code&gt; statements or &lt;code&gt;for&lt;/code&gt; loops except the &lt;code&gt;type&lt;/code&gt; expression. Instead everything was expressed via functions and recursion. This was slow and cumbersome.&lt;/p&gt;
+&lt;p&gt;zirric now comes with classic &lt;code&gt;if&lt;/code&gt; and &lt;code&gt;switch&lt;/code&gt; statements as well as &lt;code&gt;for&lt;/code&gt; loops.
+&lt;code&gt;if&lt;/code&gt; statements will support multiple branches and &lt;code&gt;else if&lt;/code&gt; as well as inline variable declarations.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;if condition {
+ doSomething()
+} else if otherCondition {
+ doSomethingElse()
+} else {
+ defaultCase()
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;switch&lt;/code&gt; statements will support type matching as well as value matching.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;switch value {
+case @SomeType:
+ doSomething(value)
+case 42:
+ doSomethingElse()
+case _:
+ defaultCase()
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;for&lt;/code&gt; loops will support iterating over ranges, arrays, maps and custom iterators and infinite loops with &lt;code&gt;for { }&lt;/code&gt;.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;for {
+ if condition {
+ break
+ }
+}
+
+for i in Range(0, 10) {
+ println(i)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In contrast to other languages, there will also be &lt;code&gt;if&lt;/code&gt;, &lt;code&gt;switch&lt;/code&gt; and &lt;code&gt;for&lt;/code&gt; expressions that can be used inline to assign values. In there only variable declarations and one expression per branch are allowed.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-zirric" data-lang="zirric"&gt;let filtered = for num -&amp;gt; items {
+ if num % 13 == 0 {
+ break
+ } else if num % 2 == 0 &amp;amp;&amp;amp; num % 3 == 0 {
+ &amp;#34;fizzbuzz&amp;#34;
+ } else if num % 2 == 0 {
+ &amp;#34;fizz&amp;#34;
+ } else if num % 3 == 0 {
+ &amp;#34;buzz&amp;#34;
+ } else {
+ continue
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="a-few-more-things"&gt;A few more things&lt;/h3&gt;
+&lt;p&gt;zirric will come with a working package manager out of the box, it will have a new design and mascot (you might have noticed) and in the long term the language server and tooling will be much better and more accurate than Lithia&amp;rsquo;s.&lt;/p&gt;
+&lt;p&gt;A much better performance is also a goal, but don&amp;rsquo;t expect miracles here. Lithia was just really slow.&lt;/p&gt;
+&lt;p&gt;More on all of that later.&lt;/p&gt;
+&lt;h2 id="what-is-the-current-state"&gt;What is the current state?&lt;/h2&gt;
+&lt;p&gt;As of now, zirric is still in a very early stage. zirric can parse lots of the syntax although large parts are still missing. Though the execution side is still in its infancy and only supports a few basic mathematical operations, arrays, bools, and &lt;code&gt;if&lt;/code&gt; statements and expressions. Variables and functions will be the next big step.&lt;/p&gt;
+&lt;p&gt;At the tooling side, the core of the package manager is already present.&lt;/p&gt;
+&lt;p&gt;I guess I have quite a long way to go, but I am excited to finally work on a new programming language again. If you want to follow along or want a quick chat, feel free to reach out to me &lt;a href="https://mastodon.social/@vknabel"&gt;@mastodon.social@vknabel&lt;/a&gt;.&lt;/p&gt;</description></item></channel></rss>
