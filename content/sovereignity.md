@@ -6,6 +6,7 @@ title: 'Sovereignity'
 The development of global and especially US politics in the last decade made it clear that Europe must become more sovereign and independent from the US. And the same applies to everybody in the world regarding big tech.
 
 This here should be some kind of dashboard to reflect my current efforts and challenges. Maybe this inspires you to replace some technology with a better one.
+I can recommend [European Alternatives](https://european-alternatives.eu) to start with your research regarding alternatives.
 
 But beware: this conflict is not a personal one. Politics need to act and implement ntives to drive change.
 That beign said, take all this with a grain of salt, but maybe this might help you, too.
@@ -22,7 +23,7 @@ I still own an iPhone and Mac. I will continue using these as long they still fi
 
 ## Cloudflare
 
-This is a tough one for sure. Due to the architecture of my homelab and the fact that I do not get a public IPv4 address, I use Cloudflare Tunnel to expose my services to the internet. That paired with DDoS protection and great firewall capabilities ([looking at you Facebook](https://mastodon.social/@vknabel/116086189818408755)) switching away from it currently does not make sense for me. Nonetheless I stop using more services.
+This is a tough one for sure. Due to the architecture of my homelab and the fact that I do not get a public IPv4 address, I use Cloudflare Tunnel to expose my services to the internet. That paired with DDoS protection and great firewall capabilities ([looking at you Facebook](https://mastodon.social/@vknabel/116086189818408755)) switching away from it will be pretty tough for me. Nonetheless I stop using more services.
 
 - **S3**: self-hosted [Garage](https://garagehq.deuxfleurs.fr/).
 
@@ -73,3 +74,7 @@ Depending on the person, this might be easy or straigt up impossible.
 
 After long years of using it, I just wasn't happy or comfortable anymore.
 Switched to self-hosting [Vaultwarden](https://github.com/dani-garcia/vaultwarden).
+
+## More Services
+
+- **Let's Encrypt**: switched to [Actalis](https://www.actalis.com/) for TLS certificates on their free plan. See my [blog post](/posts/switching-from-letsencrypt-to-actalis/) for details.
