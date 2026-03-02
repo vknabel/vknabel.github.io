@@ -2,7 +2,7 @@
 title: About
 aliases: [/pages/About-Me/]
 date: 2022-07-22
-images: [/images/vknabel.jpg]
+images: [/images/vknabel-about.jpg]
 ---
 
 I’m Valentin Knabel, a developer, a cyclist, coffee nerd, vegan and a human.
