@@ -1,7 +1,12 @@
 ---
 date: '2026-02-25T18:34:13+01:00'
+update: 2026-02-26
 title: 'Projects'
+tags:
+- IndieWeb
 ---
+
+In my life I worked on many projects, both private and at work. Here I highlighted the most important and interesting ones. If there is no link, they won't be listed here.
 
 ## Private Projects
 

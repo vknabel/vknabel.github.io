@@ -1,6 +1,9 @@
 ---
 date: '2026-02-25T19:53:11+01:00'
+update: 2026-03-02
 title: 'Sovereignity'
+tags:
+- IndieWeb
 ---
 
 The development of global and especially US politics in the last decade made it clear that Europe must become more sovereign and independent from the US. And the same applies to everybody in the world regarding big tech.

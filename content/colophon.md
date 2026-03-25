@@ -1,6 +1,9 @@
 ---
 title: Colophon
 date: 2026-02-25
+# update: 2026-02-25
+tags:
+- IndieWeb
 ---
 
 This website is built using [Hugo](https://gohugo.io/) and hosted on [GitHub Pages](https://pages.github.com/).

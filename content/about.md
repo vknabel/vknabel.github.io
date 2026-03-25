@@ -2,7 +2,10 @@
 title: About
 aliases: [/pages/About-Me/]
 date: 2022-07-22
+update: 2026-03-02
 images: [/images/vknabel-about.jpg]
+tags:
+- IndieWeb
 ---
 
 I’m Valentin Knabel, a developer, a cyclist, coffee nerd, vegan and a human.

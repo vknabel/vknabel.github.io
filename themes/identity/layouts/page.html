@@ -7,6 +7,11 @@
   <small>
     <i>
       Posted on <time datetime="{{ $dateMachine }}">{{ $dateHuman }}</time>
+      {{- with .Params.update -}}
+      {{ $updateMachine := . | time.Format "2006-01-02T15:04:05-07:00" }}
+      {{ $updateHuman := . | time.Format "2006-01-02" }}
+      &mdash; updated at <time datetime="{{ $dateMachine }}">{{ $dateHuman }}</time>
+      {{- end -}}
     </i>
   </small>
   {{ end }}
