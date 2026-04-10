@@ -1,6 +1,5 @@
 ---
-date: '2026-04-05T20:12:46+01:00'
-draft: true
+date: '2026-04-10T21:30:00+02:00'
 title: 'Bikepacking: Descent to Italy'
 tags:
 - Bikepacking
@@ -9,8 +8,10 @@ images:
 - /images/posts/Bikepackgin-Descent-to-Italy/cover.jpg
 ---
 
-Today, I would like to invite you to join me on a journey through winding streets, quiet little towns and magical forests. Make yourself a drink, get comfortable and relax.
+Today, I would like to invite you to join me on a calming adventure through winding streets, quiet little towns and magical forests. Make yourself a drink, get comfortable and relax.
 Take a sip. Take your time. I’d like to take you to a place at the back of my mind.
+
+_This blog post has been written for the [IndieWeb Carnival](https://indieweb.org/IndieWeb_Carnival) topic [**Adventure**](https://lifeofpablo.com/blog/indieweb-carnival-2026-adventure) hosted by [Pablo](https://lifeofpablo.com)._
 
 Once you wake up, it’s still early in the morning. You get out of your tent. The sun slowly climbs up the mountains and shines down on the valley below. You grab a snack, pack up your tent, and load everything onto your bicycle. Let's hop on and start our day!
 
@@ -75,6 +76,4 @@ You spot a lovely café near the river. You sit back and watch the world go by, 
 
 I hope you enjoyed this little trip through my memory. Adventures like this can't be made online or at home. Whatever motivates you, let it lead you wherever you want, whenever you want. Load up your bicycle or backpack with everything you need and go out and explore the world.
 
-This was day three of my adventure from Germany to Italy from 2025. The route described starts Austria just before the Reschen Pass (Passo di Resia) and ends in Merano. It follows the Via Claudia Augusta route.
-
-_This blog post has been written for the [IndieWeb Carnival](https://indieweb.org/IndieWeb_Carnival) topic **Adventure**._
+This was day three of my adventure from southern Germany to northern Italy from 2025. The route described starts in Austria just before the Reschen Pass (Passo di Resia) and ends in Merano. It follows the Via Claudia Augusta route.
