@@ -24,4 +24,4 @@ If you want to dig deeper into my thoughts, priorities and projects, feel free t
 - [Now](/now) - describes my priorities and what's on my mind and what I’m currently working on.
 - [Colophon](/colophon) - how this website is built and what tools and technologies I use to build it.
 - [Projects](/projects) - a list of projects I maintain or regularly contribute to.
-- [Sovereignity](/sovereignity) - my current progress towards digital sovereignity using European services or self-hosted software.
+- [Sovereignty](/sovereignty) - my current progress towards digital sovereignty using European services or self-hosted software.
