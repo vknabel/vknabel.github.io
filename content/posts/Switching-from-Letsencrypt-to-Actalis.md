@@ -126,4 +126,4 @@ spec:
 
 ```
 
-And that's it! For more services and ideas you could get rid of big tech and the US, check out [Sovereignity](/sovereignity).
+And that's it! For more services and ideas you could get rid of big tech and the US, check out [Sovereignty](/sovereignty).
