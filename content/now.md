@@ -16,7 +16,7 @@ Currently I mostly do some Homelab stuff, riding my bicyle and enjoying my life 
 - Trying to break 5.5k by bicycle. I am still behind, but I catch up a little bit every week.
 - I found my passion to work on [Zirric](/tags/zirric) again.
 
-At the moment I mostly focus on my homelab and digital [sovereignity](/sovereignity).
+At the moment I mostly focus on my homelab and digital [sovereignty](/sovereignty).
 Other than that, most side [projects](/projects) are currently on hold.
 
 Stuff outside of the digital world is just too joyful right now.
