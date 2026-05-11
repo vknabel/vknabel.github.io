@@ -56,9 +56,9 @@ pageRef = "/projects"
 weight = 3
 
 [[menu.tertiary]]
-name = "Sovereignity"
-url = "/sovereignity"
-pageRef = "/sovereignity"
+name = "Sovereignty"
+url = "/sovereignty"
+pageRef = "/sovereignty"
 weight = 3
 
 [[menu.tertiary]]
