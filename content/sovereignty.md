@@ -1,7 +1,9 @@
 ---
 date: '2026-02-25T19:53:11+01:00'
 update: 2026-03-02
-title: 'Sovereignity'
+title: 'Sovereignty'
+aliases:
+- sovereignity
 tags:
 - IndieWeb
 ---
