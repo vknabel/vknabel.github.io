@@ -1,6 +1,6 @@
 ---
 date: '2026-02-25T18:34:13+01:00'
-update: 2026-02-26
+update: 2026-05-25
 title: 'Projects'
 tags:
 - IndieWeb
@@ -34,6 +34,6 @@ Here are some open source highlights:
 - [apple/swift-format for VS Code](https://code.knabel.dev/swift-lang/vscode-apple-swift-format): a plugin for [apple/swift-format](https://github.com/apple/swift-format). _Typescript, VS Code extension._
 - [SwiftFormat for VS Code](https://code.knabel.dev/swift-lang/vscode-swiftformat): a plugin for [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) on macOS. _Typescript, VS Code extension._
 - [Archery](https://code.knabel.dev/swift-lang/Archery) allows you to declare all your project's metadata and what you can do with it in one single place. _Swift, Docker, GitHub CI._
+- All my [VS Code extensions](https://marketplace.visualstudio.com/publishers/vknabel) are discontinued.
 
 _Visit my [GitHub profile](https://github.com/vknabel) or [code.knabel.dev](https://code.knabel.dev) for all open source contributions._
-_For an up-to date overview of all VS Code extensions, visit [my marketplace publisher site](https://marketplace.visualstudio.com/publishers/vknabel)._
