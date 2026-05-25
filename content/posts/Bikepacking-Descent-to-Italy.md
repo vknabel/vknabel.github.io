@@ -35,7 +35,7 @@ In front of you is the last hill. It's small and flat, but it obscures your view
 
 ![A tower in a mountain lake](/images/posts/Bikepacking-Descent-to-Italy/reschen-resia-lake.jpg)
 
-The view opens up to reveal a blue lake surrounded by mountains. In the middle of the lake, a lonely church tower rises from the depths of the water. This view immediately lets you know that you have arrived in Italy.
+The view opens up to reveal a blue lake surrounded by mountains. In the middle of the lake, a lonely church tower rises from the depths of the water. 
 
 Continue along the pavement on the left side of the lake. Follow it along the riverside, cross the river and find yourself on the opposite bank in a forest.
 The narrow road is surrounded by a beautiful green, mossy atmosphere. Birds sing around you and sunbeams filter through the canopy of trees.
