@@ -1,5 +1,5 @@
 baseURL = 'https://vknabel.com/'
-languageCode = 'en-us'
+locale = 'en-US'
 title = 'vknabel'
 copyright = "© Valentin Knabel"
 theme = "identity"
@@ -129,6 +129,6 @@ weight = 4
         title = true
     [markup.goldmark.renderer]
       hardWraps = false
-      unsafe = false
+      unsafe = true
       xhtml = false
 

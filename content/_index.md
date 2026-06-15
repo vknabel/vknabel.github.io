@@ -2,8 +2,9 @@
 date = '2026-02-25T14:19:26+01:00'
 title = 'Hi, I’m Valentin!'
 images = ['/images/vknabel.jpg']
-
 +++
+
+
 
 <div style="display: flex;flex-wrap: wrap;gap: 30px;justify-content: center;align-items: center;">
   <img src="/images/vknabel.jpg" style="width: 160px;height: 230px;object-fit: cover;border-radius: 10px">
@@ -14,7 +15,6 @@ images = ['/images/vknabel.jpg']
       Developer, cyclist, coffee nerd, human.<br>
       Open Source, kindness, honesty, vegan.
     </p>
-
     <p>
       It is fine to be imperfect, as long as  we are honest
       and have fun along the way.
