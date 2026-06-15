@@ -1,7 +1,7 @@
 ---
 title: "Now"
 date: 2026-02-26
-update: 2026-05-25
+update: 2026-06-15
 tags:
 - IndieWeb
 ---
@@ -10,13 +10,13 @@ From time to time, I like to share what I am up to and how I prefer to spend my 
 Currently I mostly do some Homelab stuff, riding my bicyle and enjoying my life in general.
 
 - My latest blog posts is [Hack the Garden No. 8 🔨 on metal-stack.io](https://metal-stack.io/blog/2026/05-hack-the-garden).
-- The last book I finished is [Nationales Sicherheits-Amt](/library/nationales-sicherheits-amt/).
-- I currently read **James by Percival Everett**.
+- The last book I finished is [James](/library/james) by Percival Everett.
+- I currently read **Text by Dmitry Glukhovsky**.
 - By day I work as a Kubernetes and Go Engineer at [x-cellent](https://x-cellent.com/). You might even spot me on their website, too.
 - By night I mostly tinker with my Homelab.
-- If the weather is great there is a high chance I am riding my bicycle _right now_.
-- During rain, [books](/library) are great!
-- Trying to break 5.5k by bicycle. I am still behind, due a crash in May.
+- ~If the weather is great there is a high chance I am riding my bicycle _right now_.~ Yikes, I crashed in May.
+- During rain or on the train, [books](/library) are great!
+- Trying to break 5.5k by bicycle. I am a few hundred kilometers behind my schedule.
 
 At the moment I mostly focus on my homelab and digital [sovereignty](/sovereignty).
 Other than that, most side [projects](/projects) are currently on hold.
