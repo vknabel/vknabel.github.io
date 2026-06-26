@@ -9,7 +9,7 @@ tags:
 From time to time, I like to share what I am up to and how I prefer to spend my time.
 Currently I mostly do some Homelab stuff, riding my bicyle and enjoying my life in general.
 
-- My latest blog posts is [Hack the Garden No. 8 🔨 on metal-stack.io](https://metal-stack.io/blog/2026/05-hack-the-garden).
+- My latest blog posts are [Hack the Garden No. 8 🔨 on metal-stack.io](https://metal-stack.io/blog/2026/05-hack-the-garden) and [Infrastructure as Code erklärt: Mehr Kontrolle, weniger manuelle Fehler on x-cellent.com](https://x-cellent.com/blog/infrastructure-as-code-erklart-mehr-kontrolle-weniger-manuelle-fehler) (German).
 - The last book I finished is **Prima Facie** by Suzie Miller after aborting Text by Dmitry Glukhovsky.
 - I currently read **Das Wesen des Lebens** by Iida Turpeinen.
 - By day I work as a Kubernetes and Go Engineer at [x-cellent](https://x-cellent.com/). You might even spot me on their website, too.
