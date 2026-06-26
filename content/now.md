@@ -1,7 +1,7 @@
 ---
 title: "Now"
 date: 2026-02-26
-update: 2026-06-15
+update: 2026-06-26
 tags:
 - IndieWeb
 ---
@@ -10,8 +10,8 @@ From time to time, I like to share what I am up to and how I prefer to spend my 
 Currently I mostly do some Homelab stuff, riding my bicyle and enjoying my life in general.
 
 - My latest blog posts is [Hack the Garden No. 8 🔨 on metal-stack.io](https://metal-stack.io/blog/2026/05-hack-the-garden).
-- The last book I finished is [James](/library/james) by Percival Everett.
-- I currently read **Text by Dmitry Glukhovsky**.
+- The last book I finished is **Prima Facie** by Suzie Miller after aborting Text by Dmitry Glukhovsky.
+- I currently read **Das Wesen des Lebens** by Iida Turpeinen.
 - By day I work as a Kubernetes and Go Engineer at [x-cellent](https://x-cellent.com/). You might even spot me on their website, too.
 - By night I mostly tinker with my Homelab.
 - ~If the weather is great there is a high chance I am riding my bicycle _right now_.~ Yikes, I crashed in May.
