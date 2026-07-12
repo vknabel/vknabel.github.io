@@ -2,7 +2,7 @@
 date = '2026-02-23T14:53:25+01:00'
 title = 'Trophy'
 language = 'de-DE'
-cover = "library/cover/Trophäe.jpg"
+cover = "library/cover/Trophy.jpg"
 isbn = "978-3-442-77524-8"
 author = "Gaea Schoeters"
 publisher = "btb"
