@@ -1,6 +1,6 @@
 +++
 date = '2025-04-01'
-title = 'Ich, Sperling'
+title = 'Sparrow - Ich, Sperling'
 cover = "library/cover/Ich-Sperling.jpg"
 isbn = "978-3-423-14918-1"
 author = "James Hynes"
