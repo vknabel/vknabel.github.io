@@ -9,6 +9,7 @@ publisher: "Kjona Verlag"
 translation: "Katharina Martl"
 language: 'de-DE'
 publishUrl: "https://www.kjona.eco/products/suzie-miller-prima-facie"
+tags: ["books"]
 ---
 
 I devoured this book. Told from the perspective of a defense attorney, it explores sexual offenses, critiques the legal system, and exposes the immense obstacles victims face in seeking justice, as well as the alarmingly high number of unreported cases.

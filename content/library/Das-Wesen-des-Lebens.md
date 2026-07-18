@@ -10,6 +10,7 @@ publisher: "FISCHER Taschenbuch"
 translation: "Maximilian Murmann"
 language: 'de-DE'
 publishUrl: "https://www.fischerverlage.de/buch/iida-turpeinen-das-wesen-des-lebens-9783596712724"
+tags: ["books"]
 ---
 
 The book weaves together stories of people connected to Steller’s sea cow and its extinction, though only indirectly.

@@ -9,5 +9,6 @@ publisher: ""
 translation: ""
 language: 'de-DE'
 publishUrl: ""
+tags: [books]
 ---
 

@@ -9,6 +9,7 @@ publisher: "Lübbe"
 translation: ""
 language: 'de-DE'
 publishUrl: "https://bastei-luebbe.de/Buecher/Romane-Erzaehlungen/NSA-Nationales-Sicherheits-Amt/9783404179008"
+tags: ["books"]
 ---
 
 What if electric computers and the internet existed before the nazi regime and the second world war? This book begins with a glimpse what surveillance and exessive data collection can be used for in a totalitarian regime, effectively even worsening the holocaust.

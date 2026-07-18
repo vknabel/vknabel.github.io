@@ -11,5 +11,7 @@ translation = "Aus dem Englischen von Claudia Feldmann"
 language = 'de-DE'
 publishUrl = "https://www.suhrkamp.de/buch/nguyen-phan-que-mai-wo-die-asche-blueht-t-9783458644217"
 tags = ["books"]
+state = 'unfinished'
 +++
 
+Aborted reading the book.

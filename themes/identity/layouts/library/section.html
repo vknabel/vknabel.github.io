@@ -3,7 +3,7 @@
     <h1>{{ .Title }}</h1>
     {{ .Content }}
     <div class="library-grid">
-      {{ range .Pages }}
+      {{ range where .Pages "Params.state" "!=" "unfinished" }}
         {{ $cover := resources.Get .Params.cover }}
         <a href="{{ .RelPermalink }}" class="cover {{ if not $cover }}cover--missing{{end}}">
         {{ if $cover }}
@@ -17,4 +17,25 @@
       {{ end }}
     </div>
   </section>
+
+  {{- $pages := where .Pages "Params.state" "unfinished" -}}
+  {{- if $pages -}}
+  <section class="library library--compact">
+    <h1>Unfinished</h1>
+    <div class="library-grid library-grid--compact">
+      {{ range $pages }}
+        {{ $cover := resources.Get .Params.cover }}
+        <a href="{{ .RelPermalink }}" class="cover cover--compact {{ if not $cover }}cover--missing{{end}}">
+        {{ if $cover }}
+          <img src="{{ $cover.RelPermalink }}" alt="{{ .LinkTitle }}">
+        {{ else }}
+          <span class="cover-title--compact cover-title">
+            {{ .Title }}
+          </span>
+        {{ end }}
+        </a>
+      {{ end }}
+    </div>
+  </section>
+  {{ end }}
 {{ end }}

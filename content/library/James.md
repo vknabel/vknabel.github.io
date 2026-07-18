@@ -9,6 +9,7 @@ publisher: "Hanser / Blessing"
 translation: "Nikolaus Stingl"
 language: 'de-DE'
 publishUrl: "https://www.penguin.de/buecher/percival-everett-james/taschenbuch/9783896677730"
+tags: ["books"]
 ---
 
 The book follows a slave in the southern USA during his escape journey. Based on _Huckleberry Finn_: a book I've never read.
