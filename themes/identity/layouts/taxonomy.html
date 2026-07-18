@@ -24,7 +24,13 @@
         {{- end -}}
       {{- end -}}
       <div>
-        <a class="inline-title" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+        <a class="inline-title" href="{{ .RelPermalink }}">
+          {{- .LinkTitle }}
+          {{- if .Params.Subtitle }}
+          &nbsp;/&nbsp;
+          <i>{{ .Params.Subtitle }}</i>
+          {{- end }}
+        </a>
 
         {{ if .Draft }}
           <span class="tags-item tags-item--draft">Draft</span>

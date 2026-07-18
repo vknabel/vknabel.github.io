@@ -1,7 +1,8 @@
 ---
 date: '2025-05-01'
 draft: true
-title: 'The Mountains Sing - Der Gesang Der Berge'
+title: 'The Mountains Sing'
+subtitle: 'Der Gesang Der Berge'
 cover: "library/cover/Der-Gesang-der-Berge.jpg"
 isbn: "978-3-458-68260-8"
 author: "Nguyễn Phan Quế Mai"

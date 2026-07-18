@@ -1,7 +1,8 @@
 ---
 date: '2026-07-12T17:33:45+02:00'
 draft: false
-title: 'Beasts of the Sea / Das Wesen Des Lebens'
+title: 'Beasts of the Sea'
+subtitle: 'Das Wesen Des Lebens'
 cover: "library/cover/Das-Wesen-des-Lebens.png"
 isbn: "978-3-596-71272-4"
 author: "Iida Turpeinen"

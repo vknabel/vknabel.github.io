@@ -1,5 +1,8 @@
 {{ define "main" }}
   <h1>{{ .Title }}</h1>
+  {{ if .Params.Subtitle }}
+  <p class="subtitle">{{ .Params.Subtitle }}</p>
+  {{ end }}
 
   <small class="meta">
   {{ if .Date}}

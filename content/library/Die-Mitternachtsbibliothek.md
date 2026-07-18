@@ -1,6 +1,7 @@
 +++
 date = '2025-07-01'
-title = 'The Midnight Library - Die Mitternachtsbibliothek'
+title = 'The Midnight Library'
+subtitle = 'Die Mitternachtsbibliothek'
 cover = "library/cover/Die-Mitternachtsbibliothek.png"
 isbn = "978-3-426-56230-7"
 author = "Matt Haig"

@@ -1,7 +1,8 @@
 +++
 date = '2025-10-01'
 draft = true
-title = 'Kleine Wunder Um Mitternacht'
+title = 'The Miracles of the Namiya General Store'
+subtitle = 'Kleine Wunder Um Mitternacht'
 cover = "library/cover/Kleine-Wunder-um-Mitternacht.jpg"
 isbn = "978-3-7341-1304-8"
 author = "Keigo Higashino"

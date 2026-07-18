@@ -1,6 +1,7 @@
 ---
 date: '2026-05-25'
-title: 'NSA - Nationales Sicherheits-Amt'
+title: 'NSA'
+subtitle: 'Nationales Sicherheits-Amt'
 cover: "library/cover/Nationales-Sicherheits-Amt.jpg"
 isbn: "978-3-404-17900-8"
 author: "Andreas Eschbach"

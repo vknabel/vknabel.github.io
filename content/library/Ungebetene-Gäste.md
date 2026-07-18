@@ -1,7 +1,7 @@
 +++
 date = '2025-12-01'
 draft = true
-title = 'Ungebetene Gäste'
+title = 'Ungebetene Gäste' # not translated into english yet
 cover = "library/cover/Ungebetene-Gäste.webp"
 isbn = "978-3-0369-5063-1"
 author = "Ayelet Gundar-Goshen"

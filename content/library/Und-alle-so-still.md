@@ -1,7 +1,8 @@
 +++
 date = '2025-09-01'
 draft = true
-title = 'Und Alle So Still'
+title = 'And All So Qiet'
+subtitle = 'Und Alle So Still'
 cover = "library/cover/Und-alle-so-still.png"
 isbn = "978-3-499-00923-5"
 author = "Mareike Fallwickl"
