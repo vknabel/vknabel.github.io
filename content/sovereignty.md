@@ -1,11 +1,11 @@
 ---
-date: '2026-02-25T19:53:11+01:00'
-update: 2026-03-02
-title: 'Sovereignty'
+date: "2026-02-25T19:53:11+01:00"
+update: 2026-11-07
+title: "Sovereignty"
 aliases:
-- sovereignity
+  - sovereignity
 tags:
-- IndieWeb
+  - IndieWeb
 ---
 
 The development of global and especially US politics in the last decade made it clear that Europe must become more sovereign and independent from the US. And the same applies to everybody in the world regarding big tech.
@@ -24,7 +24,7 @@ I still own an iPhone and Mac. I will continue using these as long they still fi
 - **iCloud**: canceled subscription. Self-hosted [NextCloud](https://nextcloud.com/) for files and [Immich](https://immich.app/) for photos.
 - **Apple Music**: canceled subscription. Moved to [Spotify](https://www.spotify.com) long ago.
 - **macOS**: proud Linux user at work. _arch btw_
-- **Mail/Calendar**: switched to [Proton](https://proton.me/). There are other great alternatives. 
+- **Mail/Calendar**: switched to ~~[Proton](https://proton.me/)~~ [Mailbox](https://mailbox.org). There are other great alternatives.
 
 ## Cloudflare
 
@@ -48,7 +48,7 @@ Here is what I've done so far:
 - **Search**: I switched to [Ecosia](https://www.ecosia.org/) long ago. Seems less of a harm for the environment, is German and does not track me. Win-win.
 - **Drive**: Self-hosted [NextCloud](https://nextcloud.com/).
 - **Photos**: Self-hosted [Immich](https://immich.app/).
-- **Mail/Calendar**: switched to [Proton](https://proton.me/). There are other great alternatives. 
+- **Mail/Calendar**: switched to ~~[Proton](https://proton.me/)~~ [Mailbox](https://mailbox.org). There are other great alternatives.
 - **Youtube**: account deleted. Still watching there, but more and more videos are available on [Spotify](https://www.spotify.com).
 - **Account**: deleted.
 
@@ -61,7 +61,7 @@ Currently I still host [zirric.knabel.dev](https://zirric.knabel.dev) there, but
 Besides [GitHub](#GitHub), I still own an Xbox.
 
 - **Xbox**: buy Games second hand or hard copies.
-- **Mail/Calendar**: switched to [Proton](https://proton.me/). There are other great alternatives. 
+- **Mail/Calendar**: switched to ~~[Proton](https://proton.me/)~~ [Mailbox](https://mailbox.org). There are other great alternatives.
 - **VSCode**: switched to [Helix](https://helix-editor.com/).
 - **VSCode Marketplace**: can't delete account yet to keep extensions up.
 

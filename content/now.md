@@ -1,7 +1,7 @@
 ---
 title: "Now"
 date: 2026-02-26
-update: 2026-09-02
+update: 2026-11-07
 tags:
   - IndieWeb
 ---
@@ -9,8 +9,8 @@ tags:
 From time to time, I like to share what I am up to and how I prefer to spend my time.
 Currently I mostly do some Homelab stuff, riding my bicyle and enjoying my life in general.
 
-- I currently read is **The Names** by Florence Knapp.
-- The last book I finished is [**Die schönste Version** by Ruth-Maria Thomas](/library/Die-schönste-Version).
+- I currently read is **Die schönste Version** by Eva Reisiger.
+- The last book I finished is [**The Eyes Are the Best Part** by Monika Kim](/library/the-eyes-are-the-best-part).
 - My latest blog posts are [Hack the Garden No. 8 🔨 on metal-stack.io](https://metal-stack.io/blog/2026/05-hack-the-garden) and [Infrastructure as Code erklärt: Mehr Kontrolle, weniger manuelle Fehler on x-cellent.com](https://x-cellent.com/blog/infrastructure-as-code-erklart-mehr-kontrolle-weniger-manuelle-fehler) (German).
 - By day I work as a Kubernetes and Go Engineer at [x-cellent](https://x-cellent.com/). You might even spot me on their website, too.
 - By night I mostly tinker with my Homelab.
