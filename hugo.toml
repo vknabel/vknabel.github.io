@@ -7,7 +7,7 @@ summaryLength = 1
 
 [params]
 initiales = "vk"
-favicon = "/images/vknabel.jpg"
+favicon = "/images/2026-vknabel-square@400w.jpg"
 attribution = "Made with ♥ by a human."
 mainSections = ["posts", "library"]
 customCSS = ['/css/overrides.css']

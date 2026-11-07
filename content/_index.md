@@ -1,13 +1,11 @@
 +++
 date = '2026-02-25T14:19:26+01:00'
 title = 'Hi, I’m Valentin!'
-images = ['/images/vknabel.jpg']
+images = ['/images/2026-vknabel@400w.jpg']
 +++
 
-
-
 <div style="display: flex;flex-wrap: wrap;gap: 30px;justify-content: center;align-items: center;">
-  <img src="/images/vknabel.jpg" style="width: 160px;height: 230px;object-fit: cover;border-radius: 10px">
+  <img src="/images/2026-vknabel@400w.jpg" style="width: 160px;height: 230px;object-fit: cover;border-radius: 10px">
 
   <div style="max-width: 450px;">
     <h1 style="margin-top: 0;font-size: 36px;">Hi, I'm Valentin Knabel!</h1>
